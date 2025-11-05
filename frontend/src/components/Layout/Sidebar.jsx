@@ -1,0 +1,149 @@
+import {
+    LayoutDashboard,
+    FileText,
+    DollarSign,
+    TrendingUp,
+    BarChart3,
+    User,
+    ChevronRight,
+    ChevronLeft,
+    X
+} from 'lucide-react'
+
+const Sidebar = ({ activeSection, setActiveSection, isOpen, onToggle, onClose, isMobile, isDarkMode }) => {
+    const menuItems = [
+        { id: 'dashboard', label: 'Dashboard Utama', icon: LayoutDashboard },
+        { id: 'business-plan', label: 'Rencana Bisnis', icon: FileText },
+        { id: 'financial', label: 'Manajemen Keuangan', icon: DollarSign },
+        { id: 'forecast', label: 'Forecast', icon: TrendingUp },
+        { id: 'analytics', label: 'Analisis & Grafik Bisnis', icon: BarChart3 },
+        { id: 'profile', label: 'Profil Pengguna', icon: User }
+    ]
+
+    const handleMenuClick = (itemId) => {
+        setActiveSection(itemId)
+        if (isMobile) {
+            onClose()
+        }
+    }
+
+    return (
+        <>
+            {/* Sidebar */}
+            <div className={`
+        fixed lg:static inset-y-0 left-0 z-50
+        bg-white dark:bg-gray-800 shadow-lg lg:shadow-xl min-h-screen
+        transition-all duration-300 ease-in-out
+        ${isOpen ? 'w-64 translate-x-0' : '-translate-x-full lg:translate-x-0 lg:w-20'}
+      `}>
+                {/* Logo Section */}
+                <div className="p-4 lg:p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                    {isOpen || !isMobile ? (
+                        <div className={`flex items-center justify-between w-full ${!isOpen && 'lg:justify-center'}`}>
+                            {(isOpen || !isMobile) && (
+                                <div className={`${!isOpen && 'lg:hidden'}`}>
+                                    <h1 className="text-xl lg:text-2xl font-bold text-gray-800 dark:text-white">
+                                        <span className="text-green-600 dark:text-green-400">Plan</span>Web
+                                    </h1>
+                                    <p className="text-xs lg:text-sm text-gray-500 dark:text-gray-400 mt-1 lg:block hidden">
+                                        Business Management
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Toggle Button */}
+                            <button
+                                onClick={onToggle}
+                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                            >
+                                {isOpen ? (
+                                    <ChevronLeft size={20} className="text-gray-600 dark:text-gray-300" />
+                                ) : (
+                                    <ChevronRight size={20} className="text-gray-600 dark:text-gray-300 lg:block hidden" />
+                                )}
+                            </button>
+
+                            {/* Close button for mobile */}
+                            {isMobile && isOpen && (
+                                <button
+                                    onClick={onClose}
+                                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors lg:hidden"
+                                >
+                                    <X size={20} className="text-gray-600 dark:text-gray-300" />
+                                </button>
+                            )}
+                        </div>
+                    ) : null}
+                </div>
+
+                {/* Menu Items */}
+                <nav className="p-2 lg:p-4 space-y-1 lg:space-y-2">
+                    {menuItems.map((item) => {
+                        const Icon = item.icon
+                        const isActive = activeSection === item.id
+
+                        return (
+                            <button
+                                key={item.id}
+                                onClick={() => handleMenuClick(item.id)}
+                                className={`w-full flex items-center p-3 rounded-lg transition-all duration-200 group ${isActive
+                                        ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800'
+                                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                                    }`}
+                            >
+                                <Icon
+                                    size={20}
+                                    className={`flex-shrink-0 ${isActive ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'
+                                        }`}
+                                />
+
+                                {/* Menu Text */}
+                                <span className={`
+                  font-medium text-left ml-3 
+                  transition-all duration-200
+                  ${isOpen ? 'opacity-100 block' : 'lg:opacity-0 lg:absolute lg:-left-96'}
+                `}>
+                                    {item.label}
+                                </span>
+
+                                {/* Tooltip for collapsed state */}
+                                {!isOpen && !isMobile && (
+                                    <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white dark:text-gray-200 text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50">
+                                        {item.label}
+                                    </div>
+                                )}
+
+                                {/* Active indicator for collapsed state */}
+                                {isActive && !isOpen && !isMobile && (
+                                    <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-green-600 dark:bg-green-400 rounded-r"></div>
+                                )}
+
+                                {/* Chevron - hide when sidebar collapsed */}
+                                <ChevronRight
+                                    size={16}
+                                    className={`
+                                    flex-shrink-0 transition-transform duration-200 ml-auto
+                                    ${isActive ? 'text-green-600 dark:text-green-400 rotate-90' : 'text-gray-400 dark:text-gray-500'}
+                                    ${isOpen ? 'opacity-100' : 'lg:opacity-0'}
+                                `}
+                                />
+                            </button>
+                        )
+                    })}
+                </nav>
+            </div>
+
+            {/* Toggle Button ketika sidebar tertutup di desktop */}
+            {!isOpen && !isMobile && (
+                <button
+                    onClick={onToggle}
+                    className="fixed top-6 left-6 z-40 p-2 bg-white dark:bg-gray-800 shadow-lg rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors hidden lg:block"
+                >
+                    <ChevronRight size={20} className="text-gray-600 dark:text-gray-300" />
+                </button>
+            )}
+        </>
+    )
+}
+
+export default Sidebar
