@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import LandingPage from './pages/LandingPage'
+import VerificationNotice from './pages/VerificationNotice'
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -95,6 +96,19 @@ function AppContent() {
             element={
               <PublicRoute>
                 <Register
+                  isDarkMode={isDarkMode}
+                  toggleDarkMode={toggleDarkMode}
+                />
+              </PublicRoute>
+            }
+          />
+
+          {/* Verification Notice Route */}
+          <Route
+            path="/verification-notice"
+            element={
+              <PublicRoute>
+                <VerificationNotice
                   isDarkMode={isDarkMode}
                   toggleDarkMode={toggleDarkMode}
                 />

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, Sun, Moon, ArrowLeft, CheckCircle } from 'lucide-react'
+import { Eye, EyeOff, Sun, Moon, ArrowLeft, CheckCircle, UserPlus } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
 const Register = ({ isDarkMode, toggleDarkMode }) => {
@@ -16,25 +16,32 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
     })
     const [errors, setErrors] = useState({})
     const [isLoading, setIsLoading] = useState(false)
-
+    
     const { register } = useAuth()
     const navigate = useNavigate()
 
     const handleSubmit = async (e) => {
         e.preventDefault()
         setErrors({})
-
+        
         if (!formData.acceptTerms) {
             setErrors({ acceptTerms: 'Anda harus menyetujui syarat dan ketentuan' })
             return
         }
 
         setIsLoading(true)
-
+        
         const result = await register(formData)
-
+        
         if (result.success) {
-            navigate('/dashboard')
+            if (result.needsVerification) {
+                // Redirect to verification notice dengan email user
+                navigate('/verification-notice', { 
+                    state: { email: formData.email } 
+                })
+            } else {
+                navigate('/dashboard')
+            }
         } else {
             if (result.errors) {
                 setErrors(result.errors)
@@ -42,7 +49,7 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
                 setErrors({ general: result.message })
             }
         }
-
+        
         setIsLoading(false)
     }
 
@@ -52,7 +59,7 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
             ...formData,
             [name]: type === 'checkbox' ? checked : value
         })
-
+        
         // Clear error when user types
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: '' }))
@@ -62,74 +69,86 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
         }
     }
 
-    const passwordStrength = formData.password.length > 0 ?
-        formData.password.length < 6 ? 'weak' :
-            formData.password.length < 10 ? 'medium' : 'strong'
+    const passwordStrength = formData.password.length > 0 ? 
+        formData.password.length < 6 ? 'weak' : 
+        formData.password.length < 10 ? 'medium' : 'strong' 
         : ''
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50 dark:from-gray-900 dark:to-gray-800 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-            {/* Back to Home */}
-            <div className="absolute top-6 left-6">
-                <Link
-                    to="/"
-                    className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
-                >
-                    <ArrowLeft size={16} className="mr-2" />
-                    Kembali ke Beranda
-                </Link>
-            </div>
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-md w-full space-y-8">
+                {/* Header Section */}
+                <div className="text-center relative">
+                    {/* Back to Home - Mobile */}
+                    <div className="absolute left-0 top-1/2 transform -translate-y-1/2 sm:hidden">
+                        <Link
+                            to="/"
+                            className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
+                        >
+                            <ArrowLeft size={16} className="mr-1" />
+                        </Link>
+                    </div>
 
-            {/* Dark Mode Toggle */}
-            <div className="absolute top-6 right-6">
-                <button
-                    onClick={toggleDarkMode}
-                    className="p-2 text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-800 rounded-lg transition-colors"
-                >
-                    {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-                </button>
-            </div>
+                    {/* Back to Home - Desktop */}
+                    <div className="hidden sm:block absolute left-0 top-1/2 transform -translate-y-1/2">
+                        <Link
+                            to="/"
+                            className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
+                        >
+                            <ArrowLeft size={16} className="mr-2" />
+                            Beranda
+                        </Link>
+                    </div>
 
-            <div className="sm:mx-auto sm:w-full sm:max-w-md">
-                {/* Logo */}
-                <div className="text-center">
-                    <Link to="/" className="inline-block">
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                            <span className="text-green-600 dark:text-green-400">Plan</span>Web
-                        </h1>
-                    </Link>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Business Management</p>
+                    {/* Dark Mode Toggle */}
+                    <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
+                        <button
+                            onClick={toggleDarkMode}
+                            className="p-2 text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-800 rounded-lg transition-colors"
+                            aria-label="Toggle dark mode"
+                        >
+                            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+                        </button>
+                    </div>
+
+                    {/* Logo */}
+                    <div className="mx-auto">
+                        <Link to="/" className="inline-block">
+                            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                                <span className="text-green-600 dark:text-green-400">Plan</span>Web
+                            </h1>
+                        </Link>
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Business Management</p>
+                    </div>
                 </div>
 
-                <h2 className="mt-6 text-center text-2xl font-bold text-gray-900 dark:text-white">
-                    Buat Akun Baru
-                </h2>
-                <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-                    Atau{' '}
-                    <Link
-                        to="/login"
-                        className="font-medium text-green-600 dark:text-green-400 hover:text-green-500 transition-colors"
-                    >
-                        masuk ke akun yang sudah ada
-                    </Link>
-                </p>
-            </div>
+                {/* Form Card */}
+                <div className="bg-white dark:bg-gray-800 py-6 sm:py-8 px-4 sm:px-6 shadow-lg sm:rounded-xl border border-gray-200 dark:border-gray-700">
+                    <div className="text-center mb-6">
+                        <div className="mx-auto w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mb-3">
+                            <UserPlus className="text-green-600 dark:text-green-400" size={24} />
+                        </div>
+                        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                            Buat Akun Baru
+                        </h2>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            Bergabunglah dengan PlanWeb dan mulai kelola bisnis Anda.
+                        </p>
+                    </div>
 
-            <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-                <div className="bg-white dark:bg-gray-800 py-8 px-6 shadow-lg sm:rounded-xl sm:px-10 border border-gray-200 dark:border-gray-700">
                     {/* General Error */}
                     {errors.general && (
                         <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                            <p className="text-sm text-red-600 dark:text-red-400">{errors.general}</p>
+                            <p className="text-sm text-red-600 dark:text-red-400 text-center">{errors.general}</p>
                         </div>
                     )}
 
-                    <form className="space-y-6" onSubmit={handleSubmit}>
+                    <form className="space-y-4 sm:space-y-6" onSubmit={handleSubmit}>
                         <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Nama Lengkap
                             </label>
-                            <div className="mt-1">
+                            <div className="relative">
                                 <input
                                     id="name"
                                     name="name"
@@ -138,21 +157,22 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
                                     required
                                     value={formData.name}
                                     onChange={handleChange}
-                                    className={`appearance-none block w-full px-3 py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm transition-colors ${errors.name ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
-                                        }`}
-                                    placeholder="John Doe"
+                                    className={`w-full px-3 py-3 sm:py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm transition-colors ${
+                                        errors.name ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
+                                    }`}
+                                    placeholder="Masukkan nama lengkap"
                                 />
-                                {errors.name && (
-                                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name[0]}</p>
-                                )}
                             </div>
+                            {errors.name && (
+                                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name[0]}</p>
+                            )}
                         </div>
 
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Alamat Email
                             </label>
-                            <div className="mt-1">
+                            <div className="relative">
                                 <input
                                     id="email"
                                     name="email"
@@ -161,21 +181,22 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
                                     required
                                     value={formData.email}
                                     onChange={handleChange}
-                                    className={`appearance-none block w-full px-3 py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm transition-colors ${errors.email ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
-                                        }`}
+                                    className={`w-full px-3 py-3 sm:py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm transition-colors ${
+                                        errors.email ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
+                                    }`}
                                     placeholder="email@example.com"
                                 />
-                                {errors.email && (
-                                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email[0]}</p>
-                                )}
                             </div>
+                            {errors.email && (
+                                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email[0]}</p>
+                            )}
                         </div>
 
                         <div>
-                            <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Username
                             </label>
-                            <div className="mt-1">
+                            <div className="relative">
                                 <input
                                     id="username"
                                     name="username"
@@ -184,21 +205,22 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
                                     required
                                     value={formData.username}
                                     onChange={handleChange}
-                                    className={`appearance-none block w-full px-3 py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm transition-colors ${errors.username ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
-                                        }`}
-                                    placeholder="username"
+                                    className={`w-full px-3 py-3 sm:py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm transition-colors ${
+                                        errors.username ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
+                                    }`}
+                                    placeholder="Pilih username"
                                 />
-                                {errors.username && (
-                                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.username[0]}</p>
-                                )}
                             </div>
+                            {errors.username && (
+                                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.username[0]}</p>
+                            )}
                         </div>
 
                         <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Password
                             </label>
-                            <div className="mt-1 relative">
+                            <div className="relative">
                                 <input
                                     id="password"
                                     name="password"
@@ -207,8 +229,9 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
                                     required
                                     value={formData.password}
                                     onChange={handleChange}
-                                    className={`appearance-none block w-full px-3 py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm pr-10 transition-colors ${errors.password ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
-                                        }`}
+                                    className={`w-full px-3 py-3 sm:py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm pr-10 transition-colors ${
+                                        errors.password ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
+                                    }`}
                                     placeholder="Minimal 8 karakter"
                                 />
                                 <button
@@ -228,12 +251,13 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
                             )}
                             {passwordStrength && !errors.password && (
                                 <div className="mt-2">
-                                    <div className={`text-xs ${passwordStrength === 'weak' ? 'text-red-500' :
-                                            passwordStrength === 'medium' ? 'text-yellow-500' : 'text-green-500'
-                                        }`}>
+                                    <div className={`text-xs ${
+                                        passwordStrength === 'weak' ? 'text-red-500' :
+                                        passwordStrength === 'medium' ? 'text-yellow-500' : 'text-green-500'
+                                    }`}>
                                         Kekuatan password: {
                                             passwordStrength === 'weak' ? 'Lemah' :
-                                                passwordStrength === 'medium' ? 'Sedang' : 'Kuat'
+                                            passwordStrength === 'medium' ? 'Sedang' : 'Kuat'
                                         }
                                     </div>
                                 </div>
@@ -241,10 +265,10 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
                         </div>
 
                         <div>
-                            <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Konfirmasi Password
                             </label>
-                            <div className="mt-1 relative">
+                            <div className="relative">
                                 <input
                                     id="password_confirmation"
                                     name="password_confirmation"
@@ -253,8 +277,9 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
                                     required
                                     value={formData.password_confirmation}
                                     onChange={handleChange}
-                                    className={`appearance-none block w-full px-3 py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm pr-10 transition-colors ${errors.password_confirmation ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
-                                        }`}
+                                    className={`w-full px-3 py-3 sm:py-3 border rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm pr-10 transition-colors ${
+                                        errors.password_confirmation ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'
+                                    }`}
                                     placeholder="Ulangi password"
                                 />
                                 <button
@@ -282,7 +307,7 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
                                 required
                                 checked={formData.acceptTerms}
                                 onChange={handleChange}
-                                className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 dark:border-gray-600 rounded mt-1"
+                                className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 dark:border-gray-600 rounded mt-1 flex-shrink-0"
                             />
                             <label htmlFor="acceptTerms" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
                                 Saya menyetujui{' '}
@@ -319,6 +344,26 @@ const Register = ({ isDarkMode, toggleDarkMode }) => {
                             </button>
                         </div>
                     </form>
+
+                    {/* Login Link */}
+                    <div className="mt-6 text-center">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Sudah punya akun?{' '}
+                            <Link
+                                to="/login"
+                                className="font-medium text-green-600 dark:text-green-400 hover:text-green-500 transition-colors"
+                            >
+                                Masuk di sini
+                            </Link>
+                        </p>
+                    </div>
+                </div>
+
+                {/* Additional Info - Desktop */}
+                <div className="hidden sm:block text-center">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                        © 2024 PlanWeb. All rights reserved.
+                    </p>
                 </div>
             </div>
         </div>

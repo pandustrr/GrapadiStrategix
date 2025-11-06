@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, Sun, Moon, ArrowLeft } from 'lucide-react'
+import { Eye, EyeOff, Sun, Moon, ArrowLeft, LogIn } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
 const Login = ({ isDarkMode, toggleDarkMode }) => {
@@ -25,7 +25,14 @@ const Login = ({ isDarkMode, toggleDarkMode }) => {
         if (result.success) {
             navigate('/dashboard')
         } else {
-            setError(result.message)
+            if (result.needsVerification) {
+                // Redirect to verification notice dengan email
+                navigate('/verification-notice', { 
+                    state: { email: result.email } 
+                })
+            } else {
+                setError(result.message)
+            }
         }
 
         setIsLoading(false)
@@ -40,68 +47,80 @@ const Login = ({ isDarkMode, toggleDarkMode }) => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50 dark:from-gray-900 dark:to-gray-800 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-            {/* Back to Home */}
-            <div className="absolute top-6 left-6">
-                <Link
-                    to="/"
-                    className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
-                >
-                    <ArrowLeft size={16} className="mr-2" />
-                    Kembali ke Beranda
-                </Link>
-            </div>
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-md w-full space-y-8">
+                {/* Header Section */}
+                <div className="text-center relative">
+                    {/* Back to Home - Mobile */}
+                    <div className="absolute left-0 top-1/2 transform -translate-y-1/2 sm:hidden">
+                        <Link
+                            to="/"
+                            className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
+                        >
+                            <ArrowLeft size={16} className="mr-1" />
+                        </Link>
+                    </div>
 
-            {/* Dark Mode Toggle */}
-            <div className="absolute top-6 right-6">
-                <button
-                    onClick={toggleDarkMode}
-                    className="p-2 text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-800 rounded-lg transition-colors"
-                >
-                    {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-                </button>
-            </div>
+                    {/* Back to Home - Desktop */}
+                    <div className="hidden sm:block absolute left-0 top-1/2 transform -translate-y-1/2">
+                        <Link
+                            to="/"
+                            className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
+                        >
+                            <ArrowLeft size={16} className="mr-2" />
+                            Beranda
+                        </Link>
+                    </div>
 
-            <div className="sm:mx-auto sm:w-full sm:max-w-md">
-                {/* Logo */}
-                <div className="text-center">
-                    <Link to="/" className="inline-block">
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                            <span className="text-green-600 dark:text-green-400">Plan</span>Web
-                        </h1>
-                    </Link>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Business Management</p>
+                    {/* Dark Mode Toggle */}
+                    <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
+                        <button
+                            onClick={toggleDarkMode}
+                            className="p-2 text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-800 rounded-lg transition-colors"
+                            aria-label="Toggle dark mode"
+                        >
+                            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+                        </button>
+                    </div>
+
+                    {/* Logo */}
+                    <div className="mx-auto">
+                        <Link to="/" className="inline-block">
+                            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                                <span className="text-green-600 dark:text-green-400">Plan</span>Web
+                            </h1>
+                        </Link>
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Business Management</p>
+                    </div>
                 </div>
 
-                <h2 className="mt-6 text-center text-2xl font-bold text-gray-900 dark:text-white">
-                    Masuk ke Akun Anda
-                </h2>
-                <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-                    Atau{' '}
-                    <Link
-                        to="/register"
-                        className="font-medium text-green-600 dark:text-green-400 hover:text-green-500 transition-colors"
-                    >
-                        buat akun baru
-                    </Link>
-                </p>
-            </div>
+                {/* Form Card */}
+                <div className="bg-white dark:bg-gray-800 py-6 sm:py-8 px-4 sm:px-6 shadow-lg sm:rounded-xl border border-gray-200 dark:border-gray-700">
+                    <div className="text-center mb-6">
+                        <div className="mx-auto w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mb-3">
+                            <LogIn className="text-green-600 dark:text-green-400" size={24} />
+                        </div>
+                        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+                            Masuk ke Akun
+                        </h2>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            Selamat datang kembali! Silakan masuk ke akun Anda.
+                        </p>
+                    </div>
 
-            <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-                <div className="bg-white dark:bg-gray-800 py-8 px-6 shadow-lg sm:rounded-xl sm:px-10 border border-gray-200 dark:border-gray-700">
                     {/* Error Message */}
                     {error && (
                         <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                            <p className="text-sm text-red-600 dark:text-red-400 text-center">{error}</p>
                         </div>
                     )}
 
-                    <form className="space-y-6" onSubmit={handleSubmit}>
+                    <form className="space-y-4 sm:space-y-6" onSubmit={handleSubmit}>
                         <div>
-                            <label htmlFor="login" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <label htmlFor="login" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Email atau Username
                             </label>
-                            <div className="mt-1">
+                            <div className="relative">
                                 <input
                                     id="login"
                                     name="login"
@@ -110,17 +129,17 @@ const Login = ({ isDarkMode, toggleDarkMode }) => {
                                     required
                                     value={formData.login}
                                     onChange={handleChange}
-                                    className="appearance-none block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm transition-colors"
+                                    className="w-full px-3 py-3 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm transition-colors"
                                     placeholder="email@example.com atau username"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Password
                             </label>
-                            <div className="mt-1 relative">
+                            <div className="relative">
                                 <input
                                     id="password"
                                     name="password"
@@ -129,7 +148,7 @@ const Login = ({ isDarkMode, toggleDarkMode }) => {
                                     required
                                     value={formData.password}
                                     onChange={handleChange}
-                                    className="appearance-none block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm pr-10 transition-colors"
+                                    className="w-full px-3 py-3 sm:py-3 border border-gray-300 dark:border-gray-600 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm pr-10 transition-colors"
                                     placeholder="Masukkan password"
                                 />
                                 <button
@@ -146,7 +165,7 @@ const Login = ({ isDarkMode, toggleDarkMode }) => {
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between text-sm">
                             <div className="flex items-center">
                                 <input
                                     id="remember-me"
@@ -154,13 +173,13 @@ const Login = ({ isDarkMode, toggleDarkMode }) => {
                                     type="checkbox"
                                     className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 dark:border-gray-600 rounded"
                                 />
-                                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                                <label htmlFor="remember-me" className="ml-2 text-gray-700 dark:text-gray-300">
                                     Ingat saya
                                 </label>
                             </div>
 
-                            <div className="text-sm">
-                                <a href="#" className="font-medium text-green-600 dark:text-green-400 hover:text-green-500 transition-colors">
+                            <div>
+                                <a href="#" className="text-green-600 dark:text-green-400 hover:text-green-500 transition-colors">
                                     Lupa password?
                                 </a>
                             </div>
@@ -178,33 +197,31 @@ const Login = ({ isDarkMode, toggleDarkMode }) => {
                                         Memproses...
                                     </>
                                 ) : (
-                                    'Masuk'
+                                    'Masuk ke Akun'
                                 )}
                             </button>
                         </div>
                     </form>
 
-                    {/* Register Prompt */}
-                    <div className="mt-6">
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-gray-300 dark:border-gray-600" />
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">Belum punya akun?</span>
-                            </div>
-                        </div>
-
-                        <div className="mt-4 text-center">
+                    {/* Register Link */}
+                    <div className="mt-6 text-center">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Belum punya akun?{' '}
                             <Link
                                 to="/register"
-                                className="inline-flex items-center text-sm font-medium text-green-600 dark:text-green-400 hover:text-green-500 transition-colors"
+                                className="font-medium text-green-600 dark:text-green-400 hover:text-green-500 transition-colors"
                             >
-                                Daftar akun baru
-                                <ArrowLeft size={16} className="ml-1 rotate-180" />
+                                Daftar di sini
                             </Link>
-                        </div>
+                        </p>
                     </div>
+                </div>
+
+                {/* Additional Info - Desktop */}
+                <div className="hidden sm:block text-center">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                        © 2024 PlanWeb. All rights reserved.
+                    </p>
                 </div>
             </div>
         </div>
