@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Mail;
@@ -35,4 +36,13 @@ Route::get('/test-email/{email?}', function ($email = null) {
             'message' => $e->getMessage()
         ]);
     }
+});
+
+// Business Background
+Route::prefix('business')->group(function () {
+    Route::post('/', [BusinessController::class, 'store']);     // Create
+    Route::get('/', [BusinessController::class, 'index']);      // Read all
+    Route::get('/{id}', [BusinessController::class, 'show']);   // Read single
+    Route::put('/{id}', [BusinessController::class, 'update']); // Update
+    Route::delete('/{id}', [BusinessController::class, 'destroy']); // Delete
 });
