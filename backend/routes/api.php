@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BusinessController;
+use App\Http\Controllers\OperationalPlanController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Mail;
@@ -15,6 +16,12 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+});
+
+// Operational Plan Routes
+Route::middleware('auth:sanctum')->group(function () {
+    Route::apiResource('operational-plans', OperationalPlanController::class);
+    Route::get('business-backgrounds', [BusinessController::class, 'index']);
 });
 
 Route::get('/test-email/{email?}', function ($email = null) {
