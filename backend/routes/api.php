@@ -3,6 +3,9 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BusinessPlan\BusinessController;
 use App\Http\Controllers\BusinessPlan\MarketAnalysisController;
+use App\Http\Controllers\BusinessPlan\MarketingStrategyController;
+use App\Http\Controllers\BusinessPlan\ProductServiceController;
+use App\Http\Controllers\BusinessPlan\OperationalPlanController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Mail;
 
@@ -20,7 +23,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Operational Plan Routes
 Route::middleware('auth:sanctum')->group(function () {
-    Route::apiResource('operational-plans', OperationalPlanController::class);
+    // Route::apiResource('operational-plans', OperationalPlanController::class);
     Route::get('business-backgrounds', [BusinessController::class, 'index']);
 });
 
@@ -45,6 +48,33 @@ Route::prefix('market-analysis')->group(function () {
     Route::post('/', [MarketAnalysisController::class, 'store']);
     Route::put('/{id}', [MarketAnalysisController::class, 'update']);
     Route::delete('/{id}', [MarketAnalysisController::class, 'destroy']);
+});
+
+// Product Service
+Route::prefix('product-service')->group(function () {
+    Route::get('/', [ProductServiceController::class, 'index']);
+    Route::post('/', [ProductServiceController::class, 'store']);
+    Route::get('/{id}', [ProductServiceController::class, 'show']);
+    Route::put('/{id}', [ProductServiceController::class, 'update']);
+    Route::delete('/{id}', [ProductServiceController::class, 'destroy']);
+});
+
+// Marketing Strategy
+Route::prefix('marketing-strategy')->group(function () {
+    Route::get('/', [MarketingStrategyController::class, 'index']);
+    Route::post('/', [MarketingStrategyController::class, 'store']);
+    Route::get('/{id}', [MarketingStrategyController::class, 'show']);
+    Route::put('/{id}', [MarketingStrategyController::class, 'update']);
+    Route::delete('/{id}', [MarketingStrategyController::class, 'destroy']);
+});
+
+// Operational Plan
+Route::prefix('operational-plan')->group(function () {
+    Route::get('/', [OperationalPlanController::class, 'index']);
+    Route::post('/', [OperationalPlanController::class, 'store']);
+    Route::get('/{id}', [OperationalPlanController::class, 'show']);
+    Route::put('/{id}', [OperationalPlanController::class, 'update']);
+    Route::delete('/{id}', [OperationalPlanController::class, 'destroy']);
 });
 
 // Route::get('/test-email/{email?}', function ($email = null) {
