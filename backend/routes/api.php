@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BusinessPlan\BusinessController;
 use App\Http\Controllers\BusinessPlan\MarketAnalysisController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\OperationalPlanController as ControllersOperationalPlanController;
 use Illuminate\Support\Facades\Mail;
 
 Route::post('/register', [AuthController::class, 'register']);
@@ -20,13 +21,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Operational Plan Routes
 Route::middleware('auth:sanctum')->group(function () {
-    Route::apiResource('operational-plans', OperationalPlanController::class);
+    Route::apiResource('operational-plans', ControllersOperationalPlanController::class);
     Route::get('business-backgrounds', [BusinessController::class, 'index']);
 });
-
-
-
-
 
 
 // Business Background
