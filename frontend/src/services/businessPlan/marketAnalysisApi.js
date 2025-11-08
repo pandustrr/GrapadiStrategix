@@ -4,11 +4,9 @@ export const marketAnalysisApi = {
     getAll: (params = {}) => {
         return api.get("/market-analysis", { params })
             .then(response => {
-                console.log('✅ Market analyses API response:', response.data);
                 return response;
             })
             .catch(error => {
-                console.error('❌ Market analyses API error:', error);
                 throw error;
             });
     },

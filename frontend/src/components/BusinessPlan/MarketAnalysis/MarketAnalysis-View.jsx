@@ -9,15 +9,15 @@ const MarketAnalysisView = ({ analysis, onBack, onEdit }) => {
         );
     }
 
-    // Helper function untuk mengakses business background
+    // Helper function untuk mengakses business background - PERBAIKI AKSES DATA
     const getBusinessInfo = () => {
-        if (!analysis.businessBackground) {
-            console.warn('Business background not found in view:', analysis);
+        // PERBAIKI: Gunakan business_background (dengan underscore)
+        if (!analysis.business_background) {
             return { name: 'Bisnis Tidak Ditemukan', category: 'Tidak ada kategori' };
         }
         return {
-            name: analysis.businessBackground.name || 'Bisnis Tidak Ditemukan',
-            category: analysis.businessBackground.category || 'Tidak ada kategori'
+            name: analysis.business_background.name || 'Bisnis Tidak Ditemukan',
+            category: analysis.business_background.category || 'Tidak ada kategori'
         };
     };
 
