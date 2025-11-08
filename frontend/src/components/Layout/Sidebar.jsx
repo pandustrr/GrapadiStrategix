@@ -9,61 +9,61 @@ import {
     ChevronLeft,
     X,
     LogOut,
-    Workflow
+    Workflow,
+    Building
 } from 'lucide-react'
 
-const Sidebar = ({ 
-    activeSection, 
-    setActiveSection, 
+const Sidebar = ({
+    activeSection,
+    setActiveSection,
     activeSubSection,
     setActiveSubSection,
-    isOpen, 
-    onToggle, 
-    onClose, 
-    isMobile, 
-    isDarkMode, 
-    onLogout, 
-    user 
+    isOpen,
+    onToggle,
+    onClose,
+    isMobile,
+    isDarkMode,
+    onLogout,
+    user
 }) => {
     const menuItems = [
-        { 
-            id: 'dashboard', 
-            label: 'Dashboard Utama', 
+        {
+            id: 'dashboard',
+            label: 'Dashboard Utama',
             icon: LayoutDashboard,
             description: 'Ringkasan bisnis Anda'
         },
-        { 
-            id: 'business-plan', 
-            label: 'Rencana Bisnis', 
+        {
+            id: 'business-plan',
+            label: 'Rencana Bisnis',
             icon: FileText,
             description: 'Kelola rencana bisnis lengkap',
             subItems: [
+                { id: 'business-background', label: 'Latar Belakang Bisnis', icon: Building },
                 { id: 'operational-plan', label: 'Rencana Operasional', icon: Workflow }
-                // Hanya Rencana Operasional yang ditampilkan
-                // Sub menu lainnya dihapus/dikomentari
             ]
         },
-        { 
-            id: 'financial', 
-            label: 'Manajemen Keuangan', 
+        {
+            id: 'financial',
+            label: 'Manajemen Keuangan',
             icon: DollarSign,
             description: 'Kelola keuangan bisnis'
         },
-        { 
-            id: 'forecast', 
-            label: 'Forecast', 
+        {
+            id: 'forecast',
+            label: 'Forecast',
             icon: TrendingUp,
             description: 'Prediksi dan perencanaan masa depan'
         },
-        { 
-            id: 'analytics', 
-            label: 'Analisis & Grafik', 
+        {
+            id: 'analytics',
+            label: 'Analisis & Grafik',
             icon: BarChart3,
             description: 'Analisis data bisnis'
         },
-        { 
-            id: 'profile', 
-            label: 'Profil Pengguna', 
+        {
+            id: 'profile',
+            label: 'Profil Pengguna',
             icon: User,
             description: 'Kelola profil Anda'
         }
@@ -155,17 +155,15 @@ const Sidebar = ({
                                 {/* Main Menu Item */}
                                 <button
                                     onClick={() => handleMenuClick(item.id)}
-                                    className={`w-full flex items-center p-3 rounded-lg transition-all duration-200 group ${
-                                        isActive
+                                    className={`w-full flex items-center p-3 rounded-lg transition-all duration-200 group ${isActive
                                             ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800'
                                             : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
-                                    }`}
+                                        }`}
                                 >
                                     <Icon
                                         size={20}
-                                        className={`shrink-0 ${
-                                            isActive ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'
-                                        }`}
+                                        className={`shrink-0 ${isActive ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'
+                                            }`}
                                     />
 
                                     {/* Menu Text */}
@@ -216,25 +214,23 @@ const Sidebar = ({
                                         {item.subItems.map((subItem) => {
                                             const SubIcon = subItem.icon
                                             const isSubActive = activeSubSection === subItem.id
-                                            
+
                                             return (
                                                 <button
                                                     key={subItem.id}
                                                     onClick={(e) => handleSubMenuClick(subItem.id, e)}
-                                                    className={`w-full flex items-center p-2 rounded-lg transition-all duration-200 group text-sm ${
-                                                        isSubActive
+                                                    className={`w-full flex items-center p-2 rounded-lg transition-all duration-200 group text-sm ${isSubActive
                                                             ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
                                                             : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     <SubIcon
                                                         size={16}
-                                                        className={`shrink-0 mr-2 ${
-                                                            isSubActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'
-                                                        }`}
+                                                        className={`shrink-0 mr-2 ${isSubActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'
+                                                            }`}
                                                     />
                                                     <span className="text-left truncate">{subItem.label}</span>
-                                                    
+
                                                     {/* Active indicator for sub menu */}
                                                     {isSubActive && (
                                                         <div className="ml-auto w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full"></div>
@@ -269,7 +265,7 @@ const Sidebar = ({
                                 </p>
                             </div>
                         )}
-                        
+
                         {/* User Tooltip for collapsed state */}
                         {!isOpen && !isMobile && (
                             <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white dark:text-gray-200 text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50">
@@ -282,9 +278,8 @@ const Sidebar = ({
                     {/* Logout Button */}
                     <button
                         onClick={handleLogout}
-                        className={`w-full flex items-center p-3 rounded-lg transition-all duration-200 group text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300 ${
-                            !isOpen && 'lg:justify-center'
-                        }`}
+                        className={`w-full flex items-center p-3 rounded-lg transition-all duration-200 group text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300 ${!isOpen && 'lg:justify-center'
+                            }`}
                     >
                         <LogOut
                             size={20}

@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
-import { 
-    FileText, 
-    Workflow, 
-    Target, 
-    Users, 
-    DollarSign, 
+import {
+    FileText,
+    Workflow,
+    Target,
+    Users,
+    DollarSign,
     BarChart3,
     ArrowLeft
 } from 'lucide-react';
+import BusinessBackground from '../components/BusinessPlan/BusinessBackground';
 import OperationalPlan from '../components/BusinessPlan/OperationalPlan';
 
 const RencanaBisnis = ({ activeSubSection, setActiveSubSection }) => {
@@ -45,7 +46,7 @@ const RencanaBisnis = ({ activeSubSection, setActiveSubSection }) => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* Rencana Operasional Card */}
-                <div 
+                <div
                     className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group hover:border-green-300 dark:hover:border-green-600"
                     onClick={() => handleSubSectionClick('operational-plan')}
                 >
@@ -148,9 +149,25 @@ const RencanaBisnis = ({ activeSubSection, setActiveSubSection }) => {
             </div>
         </div>
     );
-
+    
     const renderSubSection = () => {
         switch (view) {
+            case 'business-background':
+                return (
+                    <div>
+                        <div className="flex items-center gap-4 mb-6">
+                            <button
+                                onClick={handleBackToMain}
+                                className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                            >
+                                <ArrowLeft size={20} />
+                                Kembali ke Rencana Bisnis
+                            </button>
+                        </div>
+                        <BusinessBackground />
+                    </div>
+                );
+
             case 'operational-plan':
                 return (
                     <div>
@@ -163,11 +180,10 @@ const RencanaBisnis = ({ activeSubSection, setActiveSubSection }) => {
                                 Kembali ke Rencana Bisnis
                             </button>
                         </div>
-                        {/* Pastikan OperationalPlan dipanggil di sini */}
                         <OperationalPlan />
                     </div>
                 );
-            
+
             default:
                 return renderMainView();
         }
