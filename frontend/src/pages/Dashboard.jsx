@@ -4,13 +4,13 @@ import Header from '../components/Layout/Header'
 import StatCards from '../components/Dashboard/StatCards'
 import RecentPlans from '../components/Dashboard/RecentPlans'
 import QuickActions from '../components/Dashboard/QuickActions'
-import RencanaBisnis from './RencanaBisnis'
+import BusinessPlan from './BusinessPlan'
 import { FileText } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
 const Dashboard = ({ isDarkMode, toggleDarkMode }) => {
     const [activeSection, setActiveSection] = useState('dashboard')
-    const [activeSubSection, setActiveSubSection] = useState('') // Untuk sub menu
+    const [activeSubSection, setActiveSubSection] = useState('')
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const [isMobile, setIsMobile] = useState(false)
 
@@ -54,10 +54,10 @@ const Dashboard = ({ isDarkMode, toggleDarkMode }) => {
     }
 
     const renderContent = () => {
-        // Jika ada sub section aktif, tampilkan RencanaBisnis dengan sub section
-        if (activeSubSection) {
+        // Jika section business-plan aktif, tampilkan BusinessPlan component
+        if (activeSection === 'business-plan') {
             return (
-                <RencanaBisnis 
+                <BusinessPlan 
                     activeSubSection={activeSubSection}
                     setActiveSubSection={setActiveSubSection}
                 />
@@ -82,14 +82,6 @@ const Dashboard = ({ isDarkMode, toggleDarkMode }) => {
                         <RecentPlans />
                         <QuickActions />
                     </div>
-                )
-
-            case 'business-plan':
-                return (
-                    <RencanaBisnis 
-                        activeSubSection={activeSubSection}
-                        setActiveSubSection={setActiveSubSection}
-                    />
                 )
 
             case 'financial':

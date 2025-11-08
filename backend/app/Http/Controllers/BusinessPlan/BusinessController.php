@@ -5,10 +5,9 @@ namespace App\Http\Controllers\BusinessPlan;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-
 use App\Models\BusinessBackground;
-use App\Models\MarketAnalysis;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class BusinessController extends Controller
 {
@@ -70,13 +69,11 @@ class BusinessController extends Controller
         }
 
         try {
-
             $logoPath = null;
             if ($request->hasFile('logo')) {
                 $logoPath = $request->file('logo')->store('logos', 'public');
             }
 
-            // Simpan data ke database
             $business = BusinessBackground::create([
                 'user_id' => $request->user_id,
                 'logo' => $logoPath,
@@ -99,6 +96,7 @@ class BusinessController extends Controller
                 'data' => $business
             ], 201);
         } catch (\Exception $e) {
+            Log::error('Error storing business: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Terjadi kesalahan saat menyimpan data.'
@@ -127,31 +125,55 @@ class BusinessController extends Controller
 
         $validated = $request->validate([
             'logo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'name' => 'sometimes|required|string|max:255',
-            'category' => 'sometimes|required|string|max:255',
-            'description' => 'sometimes|required|string',
-            'purpose' => 'sometimes|required|string',
-            'location' => 'sometimes|required|string|max:255',
-            'business_type' => 'sometimes|required|string|max:50',
-            'start_date' => 'sometimes|required|date',
+            'name' => 'required|string|max:255',
+            'category' => 'required|string|max:255',
+            'description' => 'required|string',
+            'purpose' => 'nullable|string',
+            'location' => 'required|string|max:255',
+            'business_type' => 'required|string|max:50',
+            'start_date' => 'nullable|date',
             'values' => 'nullable|string',
             'vision' => 'nullable|string',
             'mission' => 'nullable|string',
             'contact' => 'nullable|string',
         ]);
 
-        if ($request->hasFile('logo')) {
-            $path = $request->file('logo')->store('logos', 'public');
-            $validated['logo'] = $path;
+        try {
+            // Handle logo update
+            if ($request->hasFile('logo')) {
+                // Upload logo baru
+                $path = $request->file('logo')->store('logos', 'public');
+                $validated['logo'] = $path;
+
+                // Hapus logo lama jika ada
+                if ($business->logo) {
+                    Storage::disk('public')->delete($business->logo);
+                }
+            } elseif ($request->has('logo') && $request->logo === '') {
+                // Jika logo dikirim sebagai string kosong, hapus logo
+                if ($business->logo) {
+                    Storage::disk('public')->delete($business->logo);
+                }
+                $validated['logo'] = null;
+            } else {
+                // Jika tidak ada perubahan logo, pertahankan logo lama
+                unset($validated['logo']);
+            }
+
+            $business->update($validated);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Business updated successfully',
+                'data' => $business
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Error updating business: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat memperbarui data.'
+            ], 500);
         }
-
-        $business->update($validated);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Business updated successfully',
-            'data' => $business
-        ], 200);
     }
 
     public function destroy($id)
@@ -165,11 +187,24 @@ class BusinessController extends Controller
             ], 404);
         }
 
-        $business->delete();
+        try {
+            // Hapus logo jika ada
+            if ($business->logo) {
+                Storage::disk('public')->delete($business->logo);
+            }
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Business deleted successfully'
-        ], 200);
+            $business->delete();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Business deleted successfully'
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Error deleting business: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat menghapus data.'
+            ], 500);
+        }
     }
 }
