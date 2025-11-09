@@ -6,10 +6,12 @@ import {
     Users,
     DollarSign,
     BarChart3,
-    Building
+    Building,
+    Package
 } from 'lucide-react';
 import Background from '../components/BusinessPlan/BusinessBackground/Background';
 import MarketAnalysis from '../components/BusinessPlan/MarketAnalysis/MarketAnalysis';
+import ProductService from '../components/BusinessPlan/ProductService/ProductService';
 
 const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
     const [view, setView] = useState('main');
@@ -84,6 +86,28 @@ const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
                     </div>
                 </div>
 
+                {/* Produk & Layanan Card */}
+                <div
+                    className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group hover:border-orange-300 dark:hover:border-orange-600"
+                    onClick={() => handleSubSectionClick('product-service')}
+                >
+                    <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                        <Package className="text-orange-600 dark:text-orange-400" size={24} />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                        Produk & Layanan
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                        Kelola produk, layanan, harga, dan strategi pengembangan
+                    </p>
+                    <div className="flex items-center text-orange-600 dark:text-orange-400 text-sm font-medium">
+                        <span>Kelola Produk/Layanan</span>
+                        <svg className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+                </div>
+
                 {/* Rencana Pemasaran Card */}
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group hover:border-blue-300 dark:hover:border-blue-600">
                     <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
@@ -147,6 +171,22 @@ const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
                         Segera Hadir
                     </div>
                 </div>
+
+                {/* Rencana Operasional Card */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group hover:border-teal-300 dark:hover:border-teal-600">
+                    <div className="w-12 h-12 bg-teal-100 dark:bg-teal-900/20 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                        <Workflow className="text-teal-600 dark:text-teal-400" size={24} />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                        Rencana Operasional
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                        Proses bisnis, alur kerja, dan manajemen operasional
+                    </p>
+                    <div className="text-gray-400 dark:text-gray-500 text-sm">
+                        Segera Hadir
+                    </div>
+                </div>
             </div>
         </div>
     );
@@ -157,6 +197,8 @@ const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
                 return <Background />;
             case 'market-analysis':
                 return <MarketAnalysis />;
+            case 'product-service':
+                return <ProductService />;
             default:
                 return renderMainView();
         }

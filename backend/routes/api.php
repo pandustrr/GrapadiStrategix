@@ -8,6 +8,7 @@ use App\Http\Controllers\BusinessPlan\ProductServiceController;
 use App\Http\Controllers\BusinessPlan\OperationalPlanController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -28,10 +29,6 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 
-
-
-
-
 // Business Background
 Route::prefix('business-background')->group(function () {
     Route::post('/', [BusinessController::class, 'store']);     // Create
@@ -50,12 +47,13 @@ Route::prefix('market-analysis')->group(function () {
     Route::delete('/{id}', [MarketAnalysisController::class, 'destroy']);
 });
 
-// Product Service
+// Product Service Routes
 Route::prefix('product-service')->group(function () {
     Route::get('/', [ProductServiceController::class, 'index']);
-    Route::post('/', [ProductServiceController::class, 'store']);
     Route::get('/{id}', [ProductServiceController::class, 'show']);
-    Route::put('/{id}', [ProductServiceController::class, 'update']);
+    Route::post('/', [ProductServiceController::class, 'store']);
+    Route::post('/{id}', [ProductServiceController::class, 'update']); // POST untuk FormData
+    Route::put('/{id}', [ProductServiceController::class, 'update']); // PUT untuk JSON
     Route::delete('/{id}', [ProductServiceController::class, 'destroy']);
 });
 
@@ -76,6 +74,7 @@ Route::prefix('operational-plan')->group(function () {
     Route::put('/{id}', [OperationalPlanController::class, 'update']);
     Route::delete('/{id}', [OperationalPlanController::class, 'destroy']);
 });
+
 
 // Route::get('/test-email/{email?}', function ($email = null) {
 //     $testEmail = $email ?: 'pandusatria2807@gmail.com';

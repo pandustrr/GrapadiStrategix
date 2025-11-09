@@ -10,7 +10,8 @@ import {
     X,
     LogOut,
     Workflow,
-    Building
+    Building,
+    Package
 } from 'lucide-react'
 
 const Sidebar = ({
@@ -41,6 +42,7 @@ const Sidebar = ({
             subItems: [
                 { id: 'business-background', label: 'Latar Belakang Bisnis', icon: Building },
                 { id: 'market-analysis', label: 'Analisis Pasar', icon: BarChart3 },
+                { id: 'product-service', label: 'Produk & Layanan', icon: Package },
             ]
         },
         {
