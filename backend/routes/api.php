@@ -8,6 +8,7 @@ use App\Http\Controllers\BusinessPlan\ProductServiceController;
 use App\Http\Controllers\BusinessPlan\OperationalPlanController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -51,7 +52,8 @@ Route::prefix('product-service')->group(function () {
     Route::get('/', [ProductServiceController::class, 'index']);
     Route::get('/{id}', [ProductServiceController::class, 'show']);
     Route::post('/', [ProductServiceController::class, 'store']);
-    Route::put('/{id}', [ProductServiceController::class, 'update']);
+    Route::post('/{id}', [ProductServiceController::class, 'update']); // POST untuk FormData
+    Route::put('/{id}', [ProductServiceController::class, 'update']); // PUT untuk JSON
     Route::delete('/{id}', [ProductServiceController::class, 'destroy']);
 });
 
@@ -72,6 +74,7 @@ Route::prefix('operational-plan')->group(function () {
     Route::put('/{id}', [OperationalPlanController::class, 'update']);
     Route::delete('/{id}', [OperationalPlanController::class, 'destroy']);
 });
+
 
 // Route::get('/test-email/{email?}', function ($email = null) {
 //     $testEmail = $email ?: 'pandusatria2807@gmail.com';
