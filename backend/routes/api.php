@@ -6,6 +6,7 @@ use App\Http\Controllers\BusinessPlan\MarketAnalysisController;
 use App\Http\Controllers\BusinessPlan\MarketingStrategyController;
 use App\Http\Controllers\BusinessPlan\ProductServiceController;
 use App\Http\Controllers\BusinessPlan\OperationalPlanController;
+use App\Http\Controllers\BusinessPlan\TeamStructureController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
@@ -75,6 +76,13 @@ Route::prefix('operational-plan')->group(function () {
     Route::delete('/{id}', [OperationalPlanController::class, 'destroy']);
 });
 
+Route::prefix('team-structure')->group(function () {
+    Route::get('/', [TeamStructureController::class, 'index']);
+    Route::get('/{id}', [TeamStructureController::class, 'show']);
+    Route::post('/', [TeamStructureController::class, 'store']);
+    Route::put('/{id}', [TeamStructureController::class, 'update']);
+    Route::delete('/{id}', [TeamStructureController::class, 'destroy']);
+});
 
 // Route::get('/test-email/{email?}', function ($email = null) {
 //     $testEmail = $email ?: 'pandusatria2807@gmail.com';
