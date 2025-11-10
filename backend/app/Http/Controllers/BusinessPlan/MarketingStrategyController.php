@@ -39,16 +39,20 @@ class MarketingStrategyController extends Controller
 
     public function index(Request $request)
     {
-        $query = MarketingStrategy::query();
+        // Ambil query builder awal, sudah include relasi businessBackground
+        $query = MarketingStrategy::with('businessBackground');
 
-        if ($request->user_id) {
+        // Filter berdasarkan user_id (jika dikirim)
+        if ($request->has('user_id')) {
             $query->where('user_id', $request->user_id);
         }
 
-        if ($request->business_background_id) {
+        // Filter berdasarkan business_background_id (opsional)
+        if ($request->has('business_background_id')) {
             $query->where('business_background_id', $request->business_background_id);
         }
 
+        // Ambil semua hasil filter
         $data = $query->get();
 
         return response()->json([
@@ -57,9 +61,12 @@ class MarketingStrategyController extends Controller
         ]);
     }
 
+
     public function show($id)
     {
-        $marketing = MarketingStrategy::find($id);
+        // $marketing = MarketingStrategy::find($id);
+        // $userId = $marketing->user_id;
+        $marketing = MarketingStrategy::with('businessBackground')->find($id);
 
         if (!$marketing) {
             return response()->json([
