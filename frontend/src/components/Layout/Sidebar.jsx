@@ -43,6 +43,7 @@ const Sidebar = ({
                 { id: 'business-background', label: 'Latar Belakang Bisnis', icon: Building },
                 { id: 'market-analysis', label: 'Analisis Pasar', icon: BarChart3 },
                 { id: 'product-service', label: 'Produk & Layanan', icon: Package },
+                { id: 'operational-plan', label: 'Rencana Operasional', icon: Workflow },
             ]
         },
         {
@@ -158,8 +159,8 @@ const Sidebar = ({
                                 <button
                                     onClick={() => handleMenuClick(item.id)}
                                     className={`w-full flex items-center p-3 rounded-lg transition-all duration-200 group ${isActive
-                                            ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800'
-                                            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                                        ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800'
+                                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
                                         }`}
                                 >
                                     <Icon
@@ -222,8 +223,8 @@ const Sidebar = ({
                                                     key={subItem.id}
                                                     onClick={(e) => handleSubMenuClick(subItem.id, e)}
                                                     className={`w-full flex items-center p-2 rounded-lg transition-all duration-200 group text-sm ${isSubActive
-                                                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
-                                                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                                                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
+                                                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
                                                         }`}
                                                 >
                                                     <SubIcon
