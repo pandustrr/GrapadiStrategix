@@ -175,3 +175,8 @@ export const AuthProvider = ({ children }) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
+// Ekspor AuthContext agar bisa digunakan di komponen lain
+export { AuthContext };
+
+export default AuthContext;
