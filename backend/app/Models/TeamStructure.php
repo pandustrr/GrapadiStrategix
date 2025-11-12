@@ -1,4 +1,5 @@
 <?php
+// app/Models/TeamStructure.php
 
 namespace App\Models;
 
@@ -12,11 +13,13 @@ class TeamStructure extends Model
     protected $fillable = [
         'user_id',
         'business_background_id',
+        'operational_plan_id',
         'team_category',
         'member_name',
         'position',
         'experience',
         'photo',
+        'sort_order',
         'status',
     ];
 
@@ -28,5 +31,11 @@ class TeamStructure extends Model
     public function businessBackground()
     {
         return $this->belongsTo(BusinessBackground::class);
+    }
+
+    // Relasi ke operational plan
+    public function operationalPlan()
+    {
+        return $this->belongsTo(OperationalPlan::class);
     }
 }

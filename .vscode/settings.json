@@ -1,1 +1,4 @@
-{}
+{
+  "css.validate": false,
+  "tailwindCSS.validate": false
+}

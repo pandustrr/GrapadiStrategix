@@ -13,6 +13,7 @@ import {
   Building,
   Package,
   FileChartColumnIncreasing,
+  Users, 
 } from "lucide-react";
 
 const Sidebar = ({
@@ -46,15 +47,31 @@ const Sidebar = ({
           label: "Latar Belakang Bisnis",
           icon: Building,
         },
-        { id: "market-analysis", label: "Analisis Pasar", icon: BarChart3 },
-        { id: "product-service", label: "Produk & Layanan", icon: Package },
-        {
-          id: "marketing-strategies",
-          label: "Strategi Pemasaran",
-          icon: FileChartColumnIncreasing,
+
+        { id: "market-analysis", 
+          label: "Analisis Pasar", 
+          icon: BarChart3 },
+
+        { id: "product-service", 
+          label: "Produk & Layanan", 
+          icon: Package },
+          
+        { 
+          id: "marketing-strategies", 
+          label: "Strategi Pemasaran", 
+          icon: FileChartColumnIncreasing
         },
-        { id: 'operational-plan', label: 'Rencana Operasional', icon: Workflow },
         
+        { 
+          id: 'operational-plan', 
+          label: 'Rencana Operasional', 
+          icon: Workflow 
+        },
+        { 
+          id: 'team-structure', 
+          label: 'Struktur Organisasi & Tim', 
+          icon: Users 
+        },
       ],
     },
     {

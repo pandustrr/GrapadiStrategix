@@ -244,7 +244,6 @@ const OperationalPlanList = ({
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                        {/* Tombol Semua Bisnis - SELALU HIJAU ketika aktif */}
                         <button
                             onClick={() => setSelectedBusiness('all')}
                             className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${selectedBusiness === 'all'

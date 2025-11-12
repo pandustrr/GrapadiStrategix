@@ -27,7 +27,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Operational Plan Routes
 Route::middleware('auth:sanctum')->group(function () {
-    // Route::apiResource('operational-plans', OperationalPlanController::class);
     Route::get('business-backgrounds', [BusinessController::class, 'index']);
 });
 
@@ -43,7 +42,7 @@ Route::prefix('business-background')->group(function () {
 
 // Market Analysis
 Route::prefix('market-analysis')->group(function () {
-    Route::get('/', [MarketAnalysisController::class, 'index']); // optional: ?user_id=1 or ?business_background_id=2
+    Route::get('/', [MarketAnalysisController::class, 'index']);
     Route::get('/{id}', [MarketAnalysisController::class, 'show']);
     Route::post('/', [MarketAnalysisController::class, 'store']);
     Route::put('/{id}', [MarketAnalysisController::class, 'update']);
@@ -87,18 +86,18 @@ Route::prefix('team-structure')->group(function () {
     Route::post('/', [TeamStructureController::class, 'store']);
     Route::put('/{id}', [TeamStructureController::class, 'update']);
     Route::delete('/{id}', [TeamStructureController::class, 'destroy']);
+    Route::post('/{id}/upload-photo', [TeamStructureController::class, 'uploadPhoto']);
 });
-
 
 Route::get('/test-wa', function () {
     $response = Http::withHeaders([
         'Authorization' => env('FONNTE_API_KEY'),
     ])->post(env('FONNTE_API_URL'), [
-        'target' => '6281237867242', // ganti ke nomor kamu
-        'message' => 'Halo Pandu! Tes kirim pesan dari Laravel 🚀',
+        'target' => '6281237867242',
+        'message' => 'Halo Pandu! Tes kirim pesan dari Laravel ',
     ]);
 
-    return response()->json($response->json()); // <- penting! biar tampil hasilnya
+    return response()->json($response->json());
 });
 
 // Route::get('/test-email/{email?}', function ($email = null) {
