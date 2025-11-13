@@ -17,13 +17,23 @@ class FinancialPlan extends Model
         'monthly_operational_cost',
         'estimated_monthly_income',
         'profit_loss_estimation',
+        'notes'
+    ];
+
+    protected $casts = [
+        'initial_capex' => 'decimal:2',
+        'monthly_operational_cost' => 'decimal:2',
+        'estimated_monthly_income' => 'decimal:2',
+        'profit_loss_estimation' => 'decimal:2',
     ];
 
     protected static function booted()
     {
         static::saving(function ($plan) {
             // Hitung otomatis laba/rugi sederhana
-            $plan->profit_loss_estimation = $plan->estimated_monthly_income - $plan->monthly_operational_cost;
+            if ($plan->estimated_monthly_income && $plan->monthly_operational_cost) {
+                $plan->profit_loss_estimation = $plan->estimated_monthly_income - $plan->monthly_operational_cost;
+            }
         });
     }
 

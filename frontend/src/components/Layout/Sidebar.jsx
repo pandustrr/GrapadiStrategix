@@ -72,13 +72,12 @@ const Sidebar = ({
           label: 'Struktur Organisasi & Tim', 
           icon: Users 
         },
+        { 
+          id: 'financial-plan', 
+          label: 'Rencana Keuangan', 
+          icon: DollarSign 
+        },
       ],
-    },
-    {
-      id: "financial",
-      label: "Manajemen Keuangan",
-      icon: DollarSign,
-      description: "Kelola keuangan bisnis",
     },
     {
       id: "forecast",
@@ -121,6 +120,11 @@ const Sidebar = ({
     if (isMobile) {
       onClose();
     }
+  };
+
+  // Check if any sub item is active
+  const isAnySubItemActive = (subItems) => {
+    return subItems.some(subItem => subItem.id === activeSubSection);
   };
 
   return (
@@ -199,6 +203,7 @@ const Sidebar = ({
             const isActive = activeSection === item.id;
             const hasSubItems = item.subItems && item.subItems.length > 0;
             const isBusinessPlanActive = activeSection === "business-plan";
+            const hasActiveSubItem = hasSubItems && isAnySubItemActive(item.subItems);
 
             return (
               <div key={item.id} className="space-y-1">
@@ -206,7 +211,7 @@ const Sidebar = ({
                 <button
                   onClick={() => handleMenuClick(item.id)}
                   className={`w-full flex items-center p-3 rounded-lg transition-all duration-200 group ${
-                    isActive
+                    isActive || (hasSubItems && hasActiveSubItem)
                       ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800"
                       : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
                   }`}
@@ -214,7 +219,7 @@ const Sidebar = ({
                   <Icon
                     size={20}
                     className={`shrink-0 ${
-                      isActive
+                      isActive || (hasSubItems && hasActiveSubItem)
                         ? "text-green-600 dark:text-green-400"
                         : "text-gray-400 dark:text-gray-500"
                     }`}
@@ -253,7 +258,7 @@ const Sidebar = ({
                   )}
 
                   {/* Active indicator for collapsed state */}
-                  {isActive && !isOpen && !isMobile && (
+                  {(isActive || (hasSubItems && hasActiveSubItem)) && !isOpen && !isMobile && (
                     <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-green-600 dark:bg-green-400 rounded-r"></div>
                   )}
 
@@ -264,7 +269,7 @@ const Sidebar = ({
                       className={`
                         shrink-0 transition-transform duration-200 ml-2
                         ${
-                          isActive
+                          (isActive || hasActiveSubItem)
                             ? "text-green-600 dark:text-green-400 rotate-90"
                             : "text-gray-400 dark:text-gray-500"
                         }
@@ -274,8 +279,8 @@ const Sidebar = ({
                   )}
                 </button>
 
-                {/* Sub Menu Items - Only show when business plan is active and sidebar is open */}
-                {hasSubItems && isBusinessPlanActive && isOpen && (
+                {/* Sub Menu Items - Show when business plan is active and sidebar is open */}
+                {hasSubItems && (isBusinessPlanActive || hasActiveSubItem) && isOpen && (
                   <div className="ml-4 pl-3 border-l border-gray-200 dark:border-gray-600 space-y-1">
                     {item.subItems.map((subItem) => {
                       const SubIcon = subItem.icon;

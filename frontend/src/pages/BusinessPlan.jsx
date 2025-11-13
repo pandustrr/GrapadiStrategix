@@ -16,6 +16,7 @@ import ProductService from "../components/BusinessPlan/ProductService/ProductSer
 import MarketingStrategies from "../components/BusinessPlan/MarketingStrategies/MarketingStrategies";
 import OperationalPlan from '../components/BusinessPlan/OperationalPlan/OperationalPlan';
 import TeamStructure from '../components/BusinessPlan/TeamStructure/TeamStructure';
+import FinancialPlan from '../components/BusinessPlan/FinancialPlan/FinancialPlan';
 
 const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
   const [view, setView] = useState("main");
@@ -188,6 +189,70 @@ const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
           </div>
         </div>
 
+        {/* Struktur Organisasi & Tim Card */}
+        <div
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group hover:border-indigo-300 dark:hover:border-indigo-600"
+          onClick={() => handleSubSectionClick('team-structure')}
+        >
+          <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/20 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+            <Users className="text-indigo-600 dark:text-indigo-400" size={24} />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            Struktur Organisasi & Tim
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+            Kelola struktur tim, jabatan, dan latar belakang anggota
+          </p>
+          <div className="flex items-center text-indigo-600 dark:text-indigo-400 text-sm font-medium">
+            <span>Kelola Tim</span>
+            <svg
+              className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </div>
+        </div>  
+
+        {/*Rencana Keuangan Card */}
+        <div
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group hover:border-emerald-300 dark:hover:border-emerald-600"
+          onClick={() => handleSubSectionClick('financial-plan')}
+        >
+          <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/20 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+            <DollarSign className="text-emerald-600 dark:text-emerald-400" size={24} />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            Rencana Keuangan
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+            Kelola sumber modal, estimasi biaya, pendapatan, dan analisis laba/rugi
+          </p>
+          <div className="flex items-center text-emerald-600 dark:text-emerald-400 text-sm font-medium">
+            <span>Kelola Keuangan</span>
+            <svg
+              className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </div>
+        </div>
+
         {/* Executive Summary Card */}
         <div
           className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group hover:border-teal-300 dark:hover:border-teal-600"
@@ -221,37 +286,7 @@ const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
           </div>
         </div>
 
-        {/* Struktur Organisasi & Tim Card */}
-        <div
-          className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group hover:border-indigo-300 dark:hover:border-indigo-600"
-          onClick={() => handleSubSectionClick('team-structure')}
-        >
-          <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/20 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-            <Users className="text-indigo-600 dark:text-indigo-400" size={24} />
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-            Struktur Organisasi & Tim
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-            Kelola struktur tim, jabatan, dan latar belakang anggota
-          </p>
-          <div className="flex items-center text-indigo-600 dark:text-indigo-400 text-sm font-medium">
-            <span>Kelola Tim</span>
-            <svg
-              className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
-          </div>
-        </div>
+
 
       </div>
     </div>
@@ -259,18 +294,20 @@ const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
 
   const renderSubSection = () => {
     switch (view) {
-      case "business-background":
+      case 'business-background':
         return <Background onBack={handleBackToMain} />;
-      case "market-analysis":
+      case 'market-analysis':
         return <MarketAnalysis onBack={handleBackToMain} />;
-      case "product-service":
+      case 'product-service':
         return <ProductService onBack={handleBackToMain} />;
-      case "operational-plan":
+      case 'operational-plan':
         return <OperationalPlan onBack={handleBackToMain} />;
       case 'marketing-strategies':
         return <MarketingStrategies onBack={handleBackToMain} />;
       case 'team-structure':
         return <TeamStructure onBack={handleBackToMain} />;
+      case 'financial-plan':
+        return <FinancialPlan onBack={handleBackToMain} />;
       default:
         return renderMainView();
     }

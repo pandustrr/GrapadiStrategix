@@ -21,8 +21,13 @@ return new class extends Migration
             $table->decimal('monthly_operational_cost', 15, 2)->default(0);
             $table->decimal('estimated_monthly_income', 15, 2)->default(0);
             $table->decimal('profit_loss_estimation', 15, 2)->default(0); // Auto dihitung
+            $table->text('notes')->nullable(); 
 
             $table->timestamps();
+
+            // Index untuk performa
+            $table->index(['user_id', 'business_background_id']);
+            $table->index('capital_source');
         });
     }
 

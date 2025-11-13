@@ -96,6 +96,7 @@ Route::prefix('team-structure')->group(function () {
 Route::prefix('financial-plans')->group(function () {
     Route::get('/', [FinancialPlanController::class, 'index']);
     Route::post('/', [FinancialPlanController::class, 'store']);
+    Route::get('/summary', [FinancialPlanController::class, 'getFinancialSummary']);
     Route::get('/{id}', [FinancialPlanController::class, 'show']);
     Route::put('/{id}', [FinancialPlanController::class, 'update']);
     Route::delete('/{id}', [FinancialPlanController::class, 'destroy']);
