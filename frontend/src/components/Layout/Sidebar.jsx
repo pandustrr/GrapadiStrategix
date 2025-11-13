@@ -13,6 +13,7 @@ import {
   Building,
   Package,
   FileChartColumnIncreasing,
+  Users, 
 } from "lucide-react";
 
 const Sidebar = ({
@@ -46,29 +47,30 @@ const Sidebar = ({
           label: "Latar Belakang Bisnis",
           icon: Building,
         },
-
-        { id: "market-analysis", 
+        { 
+          id: "market-analysis", 
           label: "Analisis Pasar", 
-          icon: BarChart3 },
-
-        { id: "product-service", 
+          icon: BarChart3 
+        },
+        { 
+          id: "product-service", 
           label: "Produk & Layanan", 
-          icon: Package },
-          
+          icon: Package 
+        },
         { 
           id: "marketing-strategies", 
           label: "Strategi Pemasaran", 
           icon: FileChartColumnIncreasing
         },
-        {
-          id: "operational-plan",
-          label: "Rencana Operasional",
-          icon: Workflow,
+        { 
+          id: 'operational-plan', 
+          label: 'Rencana Operasional', 
+          icon: Workflow 
         },
-        {
-          id: "executive-summary",
-          label: "Executive Summary",
-          icon: Files,
+        { 
+          id: 'team-structure', 
+          label: 'Struktur Organisasi & Tim', 
+          icon: Users 
         },
       ],
     },
@@ -126,16 +128,16 @@ const Sidebar = ({
       {/* Sidebar */}
       <div
         className={`
-                fixed lg:static inset-y-0 left-0 z-50
-                bg-white dark:bg-gray-800 shadow-lg lg:shadow-xl min-h-screen
-                transition-all duration-300 ease-in-out
-                ${
-                  isOpen
-                    ? "w-64 translate-x-0"
-                    : "-translate-x-full lg:translate-x-0 lg:w-20"
-                }
-                flex flex-col
-            `}
+          fixed lg:static inset-y-0 left-0 z-50
+          bg-white dark:bg-gray-800 shadow-lg lg:shadow-xl min-h-screen
+          transition-all duration-300 ease-in-out
+          ${
+            isOpen
+              ? "w-64 translate-x-0"
+              : "-translate-x-full lg:translate-x-0 lg:w-20"
+          }
+          flex flex-col
+        `}
       >
         {/* Logo Section */}
         <div className="p-4 lg:p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
@@ -221,14 +223,14 @@ const Sidebar = ({
                   {/* Menu Text */}
                   <div
                     className={`
-                                        text-left ml-3 flex-1
-                                        transition-all duration-200
-                                        ${
-                                          isOpen
-                                            ? "opacity-100 block"
-                                            : "lg:opacity-0 lg:absolute lg:-left-96"
-                                        }
-                                    `}
+                      text-left ml-3 flex-1
+                      transition-all duration-200
+                      ${
+                        isOpen
+                          ? "opacity-100 block"
+                          : "lg:opacity-0 lg:absolute lg:-left-96"
+                      }
+                    `}
                   >
                     <div className="font-medium">{item.label}</div>
                     {isOpen && item.description && (
@@ -260,14 +262,14 @@ const Sidebar = ({
                     <ChevronRight
                       size={16}
                       className={`
-                            shrink-0 transition-transform duration-200 ml-2
-                            ${
-                              isActive
-                                ? "text-green-600 dark:text-green-400 rotate-90"
-                                : "text-gray-400 dark:text-gray-500"
-                            }
-                            ${isOpen ? "opacity-100" : "lg:opacity-0"}
-                        `}
+                        shrink-0 transition-transform duration-200 ml-2
+                        ${
+                          isActive
+                            ? "text-green-600 dark:text-green-400 rotate-90"
+                            : "text-gray-400 dark:text-gray-500"
+                        }
+                        ${isOpen ? "opacity-100" : "lg:opacity-0"}
+                      `}
                     />
                   )}
                 </button>
@@ -363,14 +365,14 @@ const Sidebar = ({
             {/* Logout Text */}
             <span
               className={`
-                                font-medium text-left ml-3 
-                                transition-all duration-200
-                                ${
-                                  isOpen
-                                    ? "opacity-100 block"
-                                    : "lg:opacity-0 lg:absolute lg:-left-96"
-                                }
-                            `}
+                font-medium text-left ml-3 
+                transition-all duration-200
+                ${
+                  isOpen
+                    ? "opacity-100 block"
+                    : "lg:opacity-0 lg:absolute lg:-left-96"
+                }
+              `}
             >
               Keluar
             </span>
