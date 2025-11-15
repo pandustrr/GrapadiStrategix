@@ -16,6 +16,9 @@ class User extends Authenticatable
         'username',
         'phone',
         'password',
+        'password',
+        'profile_photo',
+        'account_status',
         'otp_code',
         'otp_expires_at',
         'reset_otp_code',
@@ -65,16 +68,16 @@ class User extends Authenticatable
     public function validateOtp($otp)
     {
         return $this->otp_code === $otp &&
-               $this->otp_expires_at &&
-               $this->otp_expires_at->isFuture();
+            $this->otp_expires_at &&
+            $this->otp_expires_at->isFuture();
     }
 
     // Validasi Reset OTP
     public function validateResetOtp($otp)
     {
         return $this->reset_otp_code === $otp &&
-               $this->reset_otp_expires_at &&
-               $this->reset_otp_expires_at->isFuture();
+            $this->reset_otp_expires_at &&
+            $this->reset_otp_expires_at->isFuture();
     }
 
     // Cek apakah nomor sudah diverifikasi
