@@ -47,6 +47,8 @@ class PdfBusinessPlanController extends Controller
             // Ambil semua data business plan
             $businessData = $this->getBusinessPlanData($userId, $businessBackgroundId);
 
+            $executiveSummary = $this->createExecutiveSummary($businessData);
+
             if (!$businessData['business_background']) {
                 return response()->json([
                     'status' => 'error',
@@ -71,7 +73,7 @@ class PdfBusinessPlanController extends Controller
                     'status' => 'success',
                     'data' => [
                         'preview_data' => $businessData,
-'                        filename' => "business-plan-" . Str::slug($businessData['business_background']->name) . "-" . now()->format('Y-m-d') . ".pdf",
+                        'filename' => "business-plan-" . Str::slug($businessData['business_background']->name) . "-" . now()->format('Y-m-d') . ".pdf",
                         'mode' => $mode
                     ],
                     'message' => 'Preview data generated successfully'
@@ -82,6 +84,7 @@ class PdfBusinessPlanController extends Controller
             $pdf = PDF::loadView('pdf.business-plan', [
                 'data' => $businessData,
                 'mode' => $mode,
+                'executiveSummary' => $executiveSummary, // TAMBAHKAN INI
                 'generated_at' => now()->format('d F Y H:i:s')
             ]);
 
@@ -95,12 +98,11 @@ class PdfBusinessPlanController extends Controller
             ]);
 
             $businessName = Str::slug($businessData['business_background']->name);
-            $filename = "business-plan-{$businessName}-".now()->format('Y-m-d').".pdf";
+            $filename = "business-plan-{$businessName}-" . now()->format('Y-m-d') . ".pdf";
 
             Log::info('PDF Generated Successfully', ['filename' => $filename]);
 
             return $pdf->download($filename);
-
         } catch (\Exception $e) {
             Log::error('Error generating PDF: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
@@ -165,7 +167,6 @@ class PdfBusinessPlanController extends Controller
                     ->where('business_background_id', $businessBackgroundId)
                     ->get()
             ];
-
         } catch (\Exception $e) {
             Log::error('Error getting business plan data: ' . $e->getMessage());
             throw $e;
@@ -208,7 +209,6 @@ class PdfBusinessPlanController extends Controller
                 ],
                 'message' => 'Executive summary generated successfully'
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error generating executive summary: ' . $e->getMessage());
             return response()->json([
@@ -245,8 +245,8 @@ class PdfBusinessPlanController extends Controller
 
         if ($financialPlan) {
             $summary .= "Dari aspek keuangan, bisnis ini memproyeksikan pendapatan bulanan sebesar Rp " .
-                       number_format($financialPlan->total_monthly_income ?? 0, 0, ',', '.') .
-                       " dengan ROI " . ($financialPlan->roi_percentage ?? 0) . "%.\n\n";
+                number_format($financialPlan->total_monthly_income ?? 0, 0, ',', '.') .
+                " dengan ROI " . ($financialPlan->roi_percentage ?? 0) . "%.\n\n";
         }
 
         if ($business->vision) {
@@ -290,7 +290,6 @@ class PdfBusinessPlanController extends Controller
                 ],
                 'message' => 'PDF statistics retrieved successfully'
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error getting PDF statistics: ' . $e->getMessage());
             return response()->json([
