@@ -5,6 +5,7 @@ import StatCards from "../components/Dashboard/StatCards";
 import RecentPlans from "../components/Dashboard/RecentPlans";
 import QuickActions from "../components/Dashboard/QuickActions";
 import BusinessPlan from "./BusinessPlan";
+import ManagementFinancial from "./ManagementFinancial"; // ← IMPORT YANG BENAR
 import { FileText } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import UserProfile from "../components/UserProfile/UserProfileView";
@@ -61,6 +62,16 @@ const Dashboard = ({ isDarkMode, toggleDarkMode }) => {
     if (activeSection === "business-plan") {
       return (
         <BusinessPlan
+          activeSubSection={activeSubSection}
+          setActiveSubSection={setActiveSubSection}
+        />
+      );
+    }
+
+    // Jika section management-financial aktif, tampilkan ManagementFinancial component
+    if (activeSection === "management-financial") {
+      return (
+        <ManagementFinancial
           activeSubSection={activeSubSection}
           setActiveSubSection={setActiveSubSection}
         />

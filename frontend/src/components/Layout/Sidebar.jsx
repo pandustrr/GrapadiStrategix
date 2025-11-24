@@ -1,3 +1,4 @@
+import React from "react";
 import {
   LayoutDashboard,
   FileText,
@@ -15,6 +16,7 @@ import {
   FileChartColumnIncreasing,
   Users,
   BanknoteArrowUp,
+  Folder,
 } from "lucide-react";
 
 const Sidebar = ({
@@ -78,24 +80,25 @@ const Sidebar = ({
           label: "Rencana Keuangan",
           icon: DollarSign,
         },
+        {
+          id: "pdf-business-plan",
+          label: "PDF Business Plan",
+          icon: FileText,
+        },
       ],
     },
     {
-      id: "financial-management",
+      id: "management-financial",
       label: "Manajemen Keuangan",
       icon: BanknoteArrowUp,
       description: "Kelola keuangan bisnis Anda",
       subItems: [
         {
-          id: "business-background",
-          label: "Latar Belakang Bisnis",
-          icon: Building,
+          id: "financial-categories",
+          label: "Kategori Keuangan",
+          icon: Folder,
         },
-        {
-          id: "business-background",
-          label: "Latar Belakang Bisnis",
-          icon: Building,
-        },
+        // Tambahkan sub items lainnya nanti
       ],
     },
     {
@@ -126,8 +129,9 @@ const Sidebar = ({
     }
   };
 
-  const handleSubMenuClick = (subItemId, e) => {
+  const handleSubMenuClick = (subItemId, e, parentId) => {
     e.stopPropagation();
+    setActiveSection(parentId); // Set active section ke parent menu
     setActiveSubSection(subItemId);
     if (isMobile) {
       onClose();
@@ -187,7 +191,7 @@ const Sidebar = ({
               {/* Toggle Button */}
               <button
                 onClick={onToggle}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
               >
                 {isOpen ? (
                   <ChevronLeft
@@ -206,7 +210,7 @@ const Sidebar = ({
               {isMobile && isOpen && (
                 <button
                   onClick={onClose}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors lg:hidden"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 lg:hidden"
                 >
                   <X size={20} className="text-gray-600 dark:text-gray-300" />
                 </button>
@@ -221,7 +225,6 @@ const Sidebar = ({
             const Icon = item.icon;
             const isActive = activeSection === item.id;
             const hasSubItems = item.subItems && item.subItems.length > 0;
-            const isBusinessPlanActive = activeSection === "business-plan";
             const hasActiveSubItem =
               hasSubItems && isAnySubItemActive(item.subItems);
 
@@ -301,9 +304,9 @@ const Sidebar = ({
                   )}
                 </button>
 
-                {/* Sub Menu Items - Show when business plan is active and sidebar is open */}
+                {/* Sub Menu Items - Show when parent is active and sidebar is open */}
                 {hasSubItems &&
-                  (isBusinessPlanActive || hasActiveSubItem) &&
+                  (isActive || hasActiveSubItem) &&
                   isOpen && (
                     <div className="ml-4 pl-3 border-l border-gray-200 dark:border-gray-600 space-y-1">
                       {item.subItems.map((subItem) => {
@@ -313,7 +316,7 @@ const Sidebar = ({
                         return (
                           <button
                             key={subItem.id}
-                            onClick={(e) => handleSubMenuClick(subItem.id, e)}
+                            onClick={(e) => handleSubMenuClick(subItem.id, e, item.id)}
                             className={`w-full flex items-center p-2 rounded-lg transition-all duration-200 group text-sm ${
                               isSubActive
                                 ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700"
@@ -420,7 +423,7 @@ const Sidebar = ({
       {!isOpen && !isMobile && (
         <button
           onClick={onToggle}
-          className="fixed top-6 left-6 z-40 p-2 bg-white dark:bg-gray-800 shadow-lg rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors hidden lg:flex items-center justify-center"
+          className="fixed top-6 left-6 z-40 p-2 bg-white dark:bg-gray-800 shadow-lg rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 hidden lg:flex items-center justify-center"
           aria-label="Buka sidebar"
         >
           <ChevronRight
