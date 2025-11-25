@@ -17,6 +17,7 @@ import {
   Users,
   BanknoteArrowUp,
   Folder,
+  Calendar,
 } from "lucide-react";
 
 const Sidebar = ({
@@ -98,6 +99,11 @@ const Sidebar = ({
           label: "Kategori Keuangan",
           icon: Folder,
         },
+        {
+          id: "financial-summaries",
+          label: "Ringkasan Keuangan Bulanan",
+          icon: Calendar,
+        },
         // Tambahkan sub items lainnya nanti
       ],
     },
@@ -158,6 +164,7 @@ const Sidebar = ({
           fixed lg:static inset-y-0 left-0 z-50
           bg-white dark:bg-gray-800 shadow-lg lg:shadow-xl min-h-screen
           transition-all duration-300 ease-in-out
+          border-r border-gray-200 dark:border-gray-700
           ${
             isOpen
               ? "w-64 translate-x-0"
@@ -167,7 +174,7 @@ const Sidebar = ({
         `}
       >
         {/* Logo Section */}
-        <div className="p-4 lg:p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+        <div className="p-4 lg:p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-white dark:bg-gray-800">
           {isOpen || !isMobile ? (
             <div
               className={`flex items-center justify-between w-full ${
@@ -176,7 +183,7 @@ const Sidebar = ({
             >
               {(isOpen || !isMobile) && (
                 <div className={`${!isOpen && "lg:hidden"}`}>
-                  <h1 className="text-xl lg:text-2xl font-bold text-gray-800 dark:text-white">
+                  <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
                     <span className="text-green-600 dark:text-green-400">
                       Smart
                     </span>
@@ -191,13 +198,10 @@ const Sidebar = ({
               {/* Toggle Button */}
               <button
                 onClick={onToggle}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 text-gray-600 dark:text-gray-300"
               >
                 {isOpen ? (
-                  <ChevronLeft
-                    size={20}
-                    className="text-gray-600 dark:text-gray-300"
-                  />
+                  <ChevronLeft size={20} />
                 ) : (
                   <ChevronRight
                     size={20}
@@ -210,9 +214,9 @@ const Sidebar = ({
               {isMobile && isOpen && (
                 <button
                   onClick={onClose}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 lg:hidden"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 lg:hidden text-gray-600 dark:text-gray-300"
                 >
-                  <X size={20} className="text-gray-600 dark:text-gray-300" />
+                  <X size={20} />
                 </button>
               )}
             </div>
@@ -235,8 +239,8 @@ const Sidebar = ({
                   onClick={() => handleMenuClick(item.id)}
                   className={`w-full flex items-center p-3 rounded-lg transition-all duration-200 group ${
                     isActive || (hasSubItems && hasActiveSubItem)
-                      ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800"
-                      : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+                      ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700"
+                      : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white"
                   }`}
                 >
                   <Icon
@@ -244,7 +248,7 @@ const Sidebar = ({
                     className={`shrink-0 ${
                       isActive || (hasSubItems && hasActiveSubItem)
                         ? "text-green-600 dark:text-green-400"
-                        : "text-gray-400 dark:text-gray-500"
+                        : "text-gray-500 dark:text-gray-400"
                     }`}
                   />
 
@@ -260,7 +264,7 @@ const Sidebar = ({
                       }
                     `}
                   >
-                    <div className="font-medium">{item.label}</div>
+                    <div className="font-medium text-sm">{item.label}</div>
                     {isOpen && item.description && (
                       <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                         {item.description}
@@ -270,10 +274,10 @@ const Sidebar = ({
 
                   {/* Tooltip for collapsed state */}
                   {!isOpen && !isMobile && (
-                    <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white dark:text-gray-200 text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50">
-                      <div>{item.label}</div>
+                    <div className="absolute left-full ml-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white dark:text-gray-200 text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 shadow-lg border border-gray-700">
+                      <div className="font-medium">{item.label}</div>
                       {item.description && (
-                        <div className="text-gray-300 text-xs">
+                        <div className="text-gray-300 text-xs mt-1 max-w-xs">
                           {item.description}
                         </div>
                       )}
@@ -320,24 +324,24 @@ const Sidebar = ({
                             className={`w-full flex items-center p-2 rounded-lg transition-all duration-200 group text-sm ${
                               isSubActive
                                 ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700"
-                                : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+                                : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white"
                             }`}
                           >
                             <SubIcon
                               size={16}
-                              className={`shrink-0 mr-2 ${
+                              className={`shrink-0 mr-3 ${
                                 isSubActive
                                   ? "text-blue-600 dark:text-blue-400"
-                                  : "text-gray-400 dark:text-gray-500"
+                                  : "text-gray-500 dark:text-gray-400"
                               }`}
                             />
-                            <span className="text-left truncate">
+                            <span className="text-left truncate flex-1">
                               {subItem.label}
                             </span>
 
                             {/* Active indicator for sub menu */}
                             {isSubActive && (
-                              <div className="ml-auto w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full"></div>
+                              <div className="ml-2 w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full"></div>
                             )}
                           </button>
                         );
@@ -350,7 +354,7 @@ const Sidebar = ({
         </nav>
 
         {/* User Info & Logout Section */}
-        <div className="p-4 border-t border-gray-100 dark:border-gray-700">
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           {/* User Info */}
           <div
             className={`flex items-center mb-4 ${
@@ -376,10 +380,13 @@ const Sidebar = ({
 
             {/* User Tooltip for collapsed state */}
             {!isOpen && !isMobile && (
-              <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white dark:text-gray-200 text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50">
-                <div>{user?.name || "User"}</div>
-                <div className="text-gray-300 text-xs">
+              <div className="absolute left-full ml-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white dark:text-gray-200 text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 shadow-lg border border-gray-700">
+                <div className="font-medium">{user?.name || "User"}</div>
+                <div className="text-gray-300 text-xs mt-1">
                   {user?.email || "user@example.com"}
+                </div>
+                <div className="text-green-400 text-xs font-medium mt-1">
+                  {user?.business_name || "Business Owner"}
                 </div>
               </div>
             )}
@@ -388,7 +395,7 @@ const Sidebar = ({
           {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className={`w-full flex items-center p-3 rounded-lg transition-all duration-200 group text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300 ${
+            className={`w-full flex items-center p-3 rounded-lg transition-all duration-200 group text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300 border border-transparent hover:border-red-200 dark:hover:border-red-800 ${
               !isOpen && "lg:justify-center"
             }`}
           >
@@ -411,7 +418,7 @@ const Sidebar = ({
 
             {/* Tooltip for collapsed state */}
             {!isOpen && !isMobile && (
-              <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white dark:text-gray-200 text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50">
+              <div className="absolute left-full ml-2 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white dark:text-gray-200 text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 shadow-lg border border-gray-700">
                 Keluar
               </div>
             )}
@@ -423,7 +430,7 @@ const Sidebar = ({
       {!isOpen && !isMobile && (
         <button
           onClick={onToggle}
-          className="fixed top-6 left-6 z-40 p-2 bg-white dark:bg-gray-800 shadow-lg rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 hidden lg:flex items-center justify-center"
+          className="fixed top-6 left-6 z-40 p-2 bg-white dark:bg-gray-800 shadow-lg rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 hidden lg:flex items-center justify-center border border-gray-200 dark:border-gray-600"
           aria-label="Buka sidebar"
         >
           <ChevronRight
