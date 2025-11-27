@@ -1,18 +1,21 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Calendar, Edit3, Save, X } from 'lucide-react';
+import { Plus, Trash2, Calendar, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 
-const YearManager = ({ 
+const YearManagement = ({ 
     availableYears, 
     selectedYear, 
     onYearChange, 
     onAddYear, 
     onDeleteYear,
-    summaries 
+    simulations 
 }) => {
     const [showAddModal, setShowAddModal] = useState(false);
     const [newYear, setNewYear] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [yearToDelete, setYearToDelete] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const currentYear = new Date().getFullYear();
 
@@ -27,8 +30,8 @@ const YearManager = ({
     const handleAddYear = async () => {
         const year = parseInt(newYear);
         
-        if (!year || year < 2020 || year > 2030) {
-            toast.error('Tahun harus antara 2020 - 2030');
+        if (!year) {
+            toast.error('Masukkan tahun yang valid');
             return;
         }
 
@@ -50,33 +53,32 @@ const YearManager = ({
         }
     };
 
-    const handleDeleteYear = async (yearToDelete) => {
-        if (yearToDelete === currentYear) {
+    const promptDeleteYear = (year) => {
+        if (year === currentYear) {
             toast.error('Tidak dapat menghapus tahun berjalan');
             return;
         }
 
-        const summariesInYear = summaries.filter(s => s.year === yearToDelete);
-        
-        if (summariesInYear.length > 0) {
-            const confirmDelete = window.confirm(
-                `Tahun ${yearToDelete} memiliki ${summariesInYear.length} data ringkasan. Data akan dihapus permanen. Yakin ingin menghapus?`
-            );
-            
-            if (!confirmDelete) return;
-        } else {
-            const confirmDelete = window.confirm(
-                `Hapus tahun ${yearToDelete} dari daftar?`
-            );
-            
-            if (!confirmDelete) return;
-        }
+        setYearToDelete(year);
+        setShowDeleteModal(true);
+    };
 
+    const confirmDeleteYear = async () => {
+        if (!yearToDelete) return;
+        const simulationsInYear = simulations.filter(s => s.year === yearToDelete);
+
+        setIsDeleting(true);
         try {
             await onDeleteYear(yearToDelete);
             toast.success(`Tahun ${yearToDelete} berhasil dihapus`);
+            setShowDeleteModal(false);
+            setYearToDelete(null);
         } catch (error) {
-            toast.error('Gagal menghapus tahun');
+            console.error('Error deleting year:', error);
+            const msg = error?.response?.data?.message || error?.message || 'Gagal menghapus tahun';
+            toast.error(msg);
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -84,9 +86,10 @@ const YearManager = ({
         return year !== currentYear && availableYears.length > 1;
     };
 
-    const getSummaryCount = (year) => {
-        return summaries.filter(s => s.year === year).length;
+    const getSimulationCount = (year) => {
+        return simulations.filter(s => s.year === year).length;
     };
+
 
     return (
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
@@ -101,7 +104,7 @@ const YearManager = ({
                             Tahun {selectedYear}
                         </h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                            {getSummaryCount(selectedYear)} ringkasan bulanan
+                            {getSimulationCount(selectedYear)} simulasi keuangan
                         </p>
                     </div>
                 </div>
@@ -135,7 +138,7 @@ const YearManager = ({
                 {/* Delete Year Button */}
                 {canDeleteYear(selectedYear) && (
                     <button
-                        onClick={() => handleDeleteYear(selectedYear)}
+                        onClick={() => promptDeleteYear(selectedYear)}
                         className="bg-red-600 text-white p-2 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
                         title="Hapus Tahun"
                     >
@@ -175,13 +178,10 @@ const YearManager = ({
                                     type="number"
                                     value={newYear}
                                     onChange={(e) => setNewYear(e.target.value)}
-                                    min="2020"
-                                    max="2030"
                                     placeholder="2024"
                                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
                                 />
-                                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    <span>Rentang: 2020 - 2030</span>
+                                <div className="flex justify-end text-xs text-gray-500 dark:text-gray-400 mt-1">
                                     <span>Tahun terakhir: {Math.max(...availableYears)}</span>
                                 </div>
                             </div>
@@ -192,7 +192,7 @@ const YearManager = ({
                                     <span className="font-medium">Info Tahun Baru</span>
                                 </div>
                                 <p className="text-blue-700 dark:text-blue-400 text-xs mt-1">
-                                    Tahun baru akan dibuat tanpa data ringkasan. Anda bisa menambahkan ringkasan bulanan secara manual.
+                                    Tahun baru akan dibuat tanpa data simulasi. Anda bisa menambahkan simulasi keuangan secara manual.
                                 </p>
                             </div>
 
@@ -226,8 +226,54 @@ const YearManager = ({
                     </div>
                 </div>
             )}
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 max-w-md w-full p-6">
+                        <div className="text-center">
+                            <div className="w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Trash2 className="w-6 h-6 text-red-600" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Konfirmasi Hapus Tahun</h3>
+                            <p className="text-gray-600 dark:text-gray-400 mb-4">
+                                Apakah Anda yakin ingin menghapus tahun <strong>{yearToDelete}</strong>?
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                                Terdapat {simulations.filter(s => s.year === yearToDelete).length} simulasi yang akan dihapus.
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => { setShowDeleteModal(false); setYearToDelete(null); }}
+                                    disabled={isDeleting}
+                                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    onClick={confirmDeleteYear}
+                                    disabled={isDeleting}
+                                    className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {isDeleting ? (
+                                        <>
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                            Menghapus...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Trash2 size={16} />
+                                            Hapus
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
 
-export default YearManager;
+export default YearManagement;

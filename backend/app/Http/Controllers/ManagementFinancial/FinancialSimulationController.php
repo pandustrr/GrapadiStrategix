@@ -56,6 +56,11 @@ class FinancialSimulationController extends Controller
                 $query->where('financial_category_id', $request->category_id);
             }
 
+            // Filter by year
+            if ($request->has('year') && $request->year) {
+                $query->where('year', $request->year);
+            }
+
             if ($request->has('month') && $request->month) {
                 $year = $request->year ?? now()->year;
                 $query->whereYear('simulation_date', $year)
@@ -127,6 +132,7 @@ class FinancialSimulationController extends Controller
             'type' => 'required|in:income,expense',
             'amount' => 'required|numeric|min:0',
             'simulation_date' => 'required|date',
+            'year' => 'nullable|integer|min:2020|max:2100',
             'description' => 'nullable|string|max:500',
             'payment_method' => 'required|in:cash,bank_transfer,credit_card,digital_wallet,other',
             'status' => 'required|in:planned,completed,cancelled',
@@ -147,6 +153,9 @@ class FinancialSimulationController extends Controller
             'amount.min' => 'Nominal tidak boleh kurang dari 0.',
             'simulation_date.required' => 'Tanggal simulasi wajib diisi.',
             'simulation_date.date' => 'Format tanggal tidak valid.',
+            'year.integer' => 'Tahun harus berupa angka.',
+            'year.min' => 'Tahun minimal 2020.',
+            'year.max' => 'Tahun maksimal 2100.',
             'payment_method.required' => 'Metode pembayaran wajib dipilih.',
             'status.required' => 'Status simulasi wajib dipilih.'
         ]);
@@ -195,6 +204,9 @@ class FinancialSimulationController extends Controller
                 ], 422);
             }
 
+            // Get year from request or extract from simulation_date
+            $year = $request->year ?? Carbon::parse($request->simulation_date)->year;
+
             $simulationData = [
                 'user_id' => $request->user_id,
                 'business_background_id' => $request->business_background_id,
@@ -203,6 +215,7 @@ class FinancialSimulationController extends Controller
                 'type' => $request->type,
                 'amount' => $request->amount,
                 'simulation_date' => $request->simulation_date,
+                'year' => $year,
                 'description' => $request->description,
                 'payment_method' => $request->payment_method,
                 'status' => $request->status,
@@ -270,6 +283,7 @@ class FinancialSimulationController extends Controller
             'type' => 'required|in:income,expense',
             'amount' => 'required|numeric|min:0',
             'simulation_date' => 'required|date',
+            'year' => 'nullable|integer|min:2020|max:2100',
             'description' => 'nullable|string|max:500',
             'payment_method' => 'required|in:cash,bank_transfer,credit_card,digital_wallet,other',
             'status' => 'required|in:planned,completed,cancelled',
@@ -285,6 +299,9 @@ class FinancialSimulationController extends Controller
             'amount.numeric' => 'Nominal harus berupa angka.',
             'amount.min' => 'Nominal tidak boleh kurang dari 0.',
             'simulation_date.required' => 'Tanggal simulasi wajib diisi.',
+            'year.integer' => 'Tahun harus berupa angka.',
+            'year.min' => 'Tahun minimal 2020.',
+            'year.max' => 'Tahun maksimal 2100.',
             'payment_method.required' => 'Metode pembayaran wajib dipilih.',
             'status.required' => 'Status simulasi wajib dipilih.'
         ]);
@@ -328,6 +345,7 @@ class FinancialSimulationController extends Controller
                 'type' => $request->type,
                 'amount' => $request->amount,
                 'simulation_date' => $request->simulation_date,
+                'year' => $request->year ?? Carbon::parse($request->simulation_date)->year,
                 'description' => $request->description,
                 'payment_method' => $request->payment_method,
                 'status' => $request->status,
@@ -430,11 +448,11 @@ class FinancialSimulationController extends Controller
             }
 
             $business_background_id = $request->business_background_id;
-            $year = $request->year ?? now()->year;
-            $month = $request->month ?? now()->month;
+            $year = (int) ($request->year ?? now()->year);
+            $month = $request->has('month') && $request->month ? (int) $request->month : null;
 
-            // Validate month and year
-            if ($month < 1 || $month > 12) {
+            // Validate month if provided
+            if ($month !== null && ($month < 1 || $month > 12)) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Bulan tidak valid'
@@ -442,53 +460,64 @@ class FinancialSimulationController extends Controller
             }
 
             // Total Income (completed)
-            $totalIncome = FinancialSimulation::where('user_id', $user_id)
+            $totalIncomeQuery = FinancialSimulation::where('user_id', $user_id)
                 ->where('business_background_id', $business_background_id)
                 ->where('type', 'income')
                 ->where('status', 'completed')
-                ->whereYear('simulation_date', $year)
-                ->whereMonth('simulation_date', $month)
-                ->sum('amount');
+                ->whereYear('simulation_date', $year);
+            if ($month) {
+                $totalIncomeQuery->whereMonth('simulation_date', $month);
+            }
+            $totalIncome = $totalIncomeQuery->sum('amount');
 
             // Total Expense (completed)
-            $totalExpense = FinancialSimulation::where('user_id', $user_id)
+            $totalExpenseQuery = FinancialSimulation::where('user_id', $user_id)
                 ->where('business_background_id', $business_background_id)
                 ->where('type', 'expense')
                 ->where('status', 'completed')
-                ->whereYear('simulation_date', $year)
-                ->whereMonth('simulation_date', $month)
-                ->sum('amount');
+                ->whereYear('simulation_date', $year);
+            if ($month) {
+                $totalExpenseQuery->whereMonth('simulation_date', $month);
+            }
+            $totalExpense = $totalExpenseQuery->sum('amount');
 
             // Planned Income
-            $plannedIncome = FinancialSimulation::where('user_id', $user_id)
+            $plannedIncomeQuery = FinancialSimulation::where('user_id', $user_id)
                 ->where('business_background_id', $business_background_id)
                 ->where('type', 'income')
                 ->where('status', 'planned')
-                ->whereYear('simulation_date', $year)
-                ->whereMonth('simulation_date', $month)
-                ->sum('amount');
+                ->whereYear('simulation_date', $year);
+            if ($month) {
+                $plannedIncomeQuery->whereMonth('simulation_date', $month);
+            }
+            $plannedIncome = $plannedIncomeQuery->sum('amount');
 
             // Planned Expense
-            $plannedExpense = FinancialSimulation::where('user_id', $user_id)
+            $plannedExpenseQuery = FinancialSimulation::where('user_id', $user_id)
                 ->where('business_background_id', $business_background_id)
                 ->where('type', 'expense')
                 ->where('status', 'planned')
-                ->whereYear('simulation_date', $year)
-                ->whereMonth('simulation_date', $month)
-                ->sum('amount');
+                ->whereYear('simulation_date', $year);
+            if ($month) {
+                $plannedExpenseQuery->whereMonth('simulation_date', $month);
+            }
+            $plannedExpense = $plannedExpenseQuery->sum('amount');
 
             // Net Cash Flow
             $netCashFlow = $totalIncome - $totalExpense;
             $projectedNetCashFlow = ($totalIncome + $plannedIncome) - ($totalExpense + $plannedExpense);
 
             // Category breakdown
-            $categoryBreakdown = FinancialSimulation::with(['category' => function ($query) {
+            $categoryBreakdownQuery = FinancialSimulation::with(['category' => function ($query) {
                 $query->select('id', 'name', 'type', 'color');
             }])
                 ->where('user_id', $user_id)
                 ->where('business_background_id', $business_background_id)
-                ->whereYear('simulation_date', $year)
-                ->whereMonth('simulation_date', $month)
+                ->whereYear('simulation_date', $year);
+            if ($month) {
+                $categoryBreakdownQuery->whereMonth('simulation_date', $month);
+            }
+            $categoryBreakdown = $categoryBreakdownQuery
                 ->selectRaw('type, financial_category_id, SUM(amount) as total_amount')
                 ->groupBy('type', 'financial_category_id')
                 ->get()
@@ -508,8 +537,8 @@ class FinancialSimulationController extends Controller
                     'category_breakdown' => $categoryBreakdown,
                     'period' => [
                         'year' => (int) $year,
-                        'month' => (int) $month,
-                        'month_name' => Carbon::create()->month($month)->monthName
+                        'month' => $month,
+                        'month_name' => $month ? Carbon::create()->month($month)->monthName : 'Tahunan'
                     ]
                 ]
             ], 200);
@@ -547,7 +576,7 @@ class FinancialSimulationController extends Controller
             }
 
             $business_background_id = $request->business_background_id;
-            $year = $request->year ?? now()->year;
+            $year = (int) ($request->year ?? now()->year);
 
             $monthlyData = FinancialSimulation::where('user_id', $user_id)
                 ->where('business_background_id', $business_background_id)
@@ -572,6 +601,55 @@ class FinancialSimulationController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Terjadi kesalahan saat mengambil perbandingan bulanan.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Get available years for business
+     */
+    public function getAvailableYears(Request $request)
+    {
+        try {
+            $user_id = $request->user_id;
+
+            if (!$user_id) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'User ID diperlukan'
+                ], 400);
+            }
+
+            if (!$request->has('business_background_id')) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Business Background ID diperlukan'
+                ], 400);
+            }
+
+            $years = FinancialSimulation::getAvailableYears(
+                $request->business_background_id,
+                $user_id
+            );
+
+            // Tambahkan tahun saat ini jika belum ada
+            $currentYear = now()->year;
+            if (!in_array($currentYear, $years)) {
+                $years[] = $currentYear;
+                sort($years);
+                rsort($years); // Sort descending
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $years,
+                'current_year' => $currentYear
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Error fetching available years: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat mengambil daftar tahun.'
             ], 500);
         }
     }

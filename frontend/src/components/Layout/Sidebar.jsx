@@ -103,14 +103,19 @@ const Sidebar = ({
           icon: Folder,
         },
         {
-          id: "financial-transactions",
-          label: "Transaksi Keuangan",
+          id: "financial-simulation",
+          label: "Simulasi Keuangan",
           icon: Wallet,
         },
         {
           id: "financial-summaries",
           label: "Ringkasan Keuangan Bulanan",
           icon: Calendar,
+        },
+        {
+          id: "monthly-reports",
+          label: "Laporan Bulanan",
+          icon: FileText,
         },
         // Tambahkan sub items lainnya nanti
       ],

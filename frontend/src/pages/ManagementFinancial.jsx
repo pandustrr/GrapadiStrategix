@@ -7,6 +7,7 @@ import { DollarSign, PieChart, TrendingUp, BarChart3, FileText, CreditCard, Sett
 import FinancialCategories from "../components/ManagementFinancial/FinancialCategories/FinancialCategories";
 import FinancialSummaries from "../components/ManagementFinancial/FinancialSummaries/FinancialSummaries";
 import FinancialSimulation from "../components/ManagementFinancial/FinancialSimulation/FinancialSimulation";
+import MonthlyReports from "../components/ManagementFinancial/MonthlyReports/MonthlyReports";
 
 const ManagementFinancial = ({ activeSubSection, setActiveSubSection }) => {
   const { user } = useAuth();
@@ -321,6 +322,8 @@ const ManagementFinancial = ({ activeSubSection, setActiveSubSection }) => {
         return <FinancialSimulation onBack={handleBackToMain} selectedBusiness={selectedBusiness} />;
       case "financial-summaries":
         return <FinancialSummaries onBack={handleBackToMain} selectedBusiness={selectedBusiness} />;
+      case "monthly-reports":
+        return <MonthlyReports onBack={handleBackToMain} selectedBusiness={selectedBusiness} />;
       default:
         return renderMainView();
     }

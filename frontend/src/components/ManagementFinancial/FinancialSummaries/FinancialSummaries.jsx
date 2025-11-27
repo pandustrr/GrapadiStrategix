@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import SummaryList from "./Summary-List";
 import SummaryView from "./Summary-View";
-import YearManager from "./Year-Manager";
+import YearDisplay from "./Year-Display";
 import { managementFinancialApi } from "../../../services/managementFinancial";
 import { toast } from "react-toastify";
 
@@ -25,8 +25,11 @@ const FinancialSummaries = ({ onBack, selectedBusiness }) => {
     }
   }, [summaries]);
 
-  // Fetch semua summaries
-  const fetchSummaries = async (year = selectedYear) => {
+  const currentMonth = new Date().getMonth() + 1;
+  const [selectedMonth, setSelectedMonth] = useState(null); // null = semua bulan
+
+  // Fetch semua summaries (support filter month - null untuk semua bulan)
+  const fetchSummaries = async (year = selectedYear, month = selectedMonth) => {
     try {
       setIsLoading(true);
       setError(null);
@@ -47,6 +50,11 @@ const FinancialSummaries = ({ onBack, selectedBusiness }) => {
         business_background_id: selectedBusiness.id,
         year: year,
       };
+
+      // Only add month if specified
+      if (month) {
+        params.month = month;
+      }
 
       console.log("Fetching financial summaries with params:", params);
       const response = await managementFinancialApi.summaries.getAll(params);
@@ -75,77 +83,77 @@ const FinancialSummaries = ({ onBack, selectedBusiness }) => {
   };
 
   useEffect(() => {
-    fetchSummaries(selectedYear);
-  }, [selectedYear, selectedBusiness]);
-
-  // Handler untuk year management
-  const handleAddYear = async (newYear) => {
-    if (!availableYears.includes(newYear)) {
-      setAvailableYears((prev) => [...prev, newYear].sort((a, b) => b - a));
-      setSelectedYear(newYear);
-
-      // Simpan ke localStorage untuk persistensi
-      const userYears = JSON.parse(localStorage.getItem("user_years") || "[]");
-      localStorage.setItem("user_years", JSON.stringify([...userYears, newYear]));
-    }
-  };
-
-  const handleDeleteYear = async (yearToDelete) => {
-    try {
-      const user = JSON.parse(localStorage.getItem("user"));
-
-      // Delete semua summary di tahun tersebut dari database
-      const summariesInYear = summaries.filter((s) => s.year === yearToDelete);
-      for (const summary of summariesInYear) {
-        await managementFinancialApi.summaries.delete(summary.id, user.id);
-      }
-
-      // Update available years
-      const newAvailableYears = availableYears.filter((year) => year !== yearToDelete);
-      setAvailableYears(newAvailableYears);
-
-      // Update selected year
-      const newSelectedYear = newAvailableYears.includes(currentYear) ? currentYear : newAvailableYears[0];
-      setSelectedYear(newSelectedYear);
-
-      // Update localStorage
-      localStorage.setItem("user_years", JSON.stringify(newAvailableYears));
-
-      // Refresh data
-      await fetchSummaries(newSelectedYear);
-    } catch (error) {
-      console.error("Error deleting year:", error);
-      throw error;
-    }
-  };
+    fetchSummaries(selectedYear, selectedMonth);
+  }, [selectedYear, selectedMonth, selectedBusiness]);
 
   const handleYearChange = (year) => {
     setSelectedYear(year);
     setError(null);
   };
 
-  // Load available years dari localStorage saat initial load
-  useEffect(() => {
-    const loadAvailableYears = () => {
+  const handleMonthChange = (month) => {
+    setSelectedMonth(month);
+    setError(null);
+  };
+
+  // Fetch available years from simulations API and merge with any local saved years
+  const fetchAvailableYears = async () => {
+    try {
+      if (!selectedBusiness) {
+        setAvailableYears([]);
+        return;
+      }
+
+      const user = JSON.parse(localStorage.getItem("user"));
+      const params = {
+        user_id: user?.id,
+        business_background_id: selectedBusiness.id,
+      };
+
+      const response = await managementFinancialApi.simulations.getAvailableYears(params);
+      let apiYears = [];
+      if (response?.data?.status === "success") {
+        apiYears = response.data.data || [];
+      }
+
+      // Merge years from API, simulation_local, and user_local
+      const savedUserYears = JSON.parse(localStorage.getItem("user_years") || "[]");
+      const simYears = JSON.parse(localStorage.getItem("simulation_years") || "[]");
+
+      const combined = Array.from(new Set([...(apiYears || []), ...(savedUserYears || []), ...(simYears || []), currentYear]));
+      const sorted = combined.sort((a, b) => b - a);
+      setAvailableYears(sorted);
+
+      // Persist combined list so both Summary and Simulation can read the same source
+      localStorage.setItem("user_years", JSON.stringify(sorted));
+
+      // Ensure selectedYear is valid
+      if (!sorted.includes(selectedYear)) {
+        setSelectedYear(sorted[0]);
+      }
+    } catch (error) {
+      console.error("Error fetching available years:", error);
+      // Fallback to localStorage if API fails
       try {
-        const savedYears = JSON.parse(localStorage.getItem("user_years"));
+        const savedYears = JSON.parse(localStorage.getItem("user_years") || "[]");
         if (savedYears && savedYears.length > 0) {
           setAvailableYears(savedYears.sort((a, b) => b - a));
         } else {
-          // Default years
           const defaultYears = [currentYear, currentYear - 1, currentYear + 1];
           setAvailableYears(defaultYears);
           localStorage.setItem("user_years", JSON.stringify(defaultYears));
         }
-      } catch (error) {
-        console.error("Error loading years from localStorage:", error);
+      } catch (e) {
+        console.error("Error loading years fallback:", e);
         const defaultYears = [currentYear, currentYear - 1, currentYear + 1];
         setAvailableYears(defaultYears);
       }
-    };
+    }
+  };
 
-    loadAvailableYears();
-  }, []);
+  useEffect(() => {
+    fetchAvailableYears();
+  }, [selectedBusiness]);
 
   // Handler functions
   const handleView = (summary) => {
@@ -272,8 +280,11 @@ const FinancialSummaries = ({ onBack, selectedBusiness }) => {
             onView={handleView}
             onDelete={handleDelete}
             onGenerateSummary={handleGenerateSummary}
+            onCreateNew={() => setView("create")}
             selectedYear={selectedYear}
+            selectedMonth={selectedMonth}
             onYearChange={handleYearChange}
+            onMonthChange={handleMonthChange}
             onBack={onBack}
             isLoading={isLoading}
             error={error}
@@ -289,8 +300,11 @@ const FinancialSummaries = ({ onBack, selectedBusiness }) => {
             onView={handleView}
             onDelete={handleDelete}
             onGenerateSummary={handleGenerateSummary}
+            onCreateNew={() => setView("create")}
             selectedYear={selectedYear}
+            selectedMonth={selectedMonth}
             onYearChange={handleYearChange}
+            onMonthChange={handleMonthChange}
             onBack={onBack}
             isLoading={isLoading}
             error={error}
@@ -303,8 +317,8 @@ const FinancialSummaries = ({ onBack, selectedBusiness }) => {
   return (
     <div className="min-h-screen py-6 bg-gray-50 dark:bg-gray-900">
       <div className="px-4 mx-auto space-y-6 max-w-7xl sm:px-6 lg:px-8">
-        {/* YearManager hanya untuk list view */}
-        {view === "list" && <YearManager availableYears={availableYears} selectedYear={selectedYear} onYearChange={handleYearChange} onAddYear={handleAddYear} onDeleteYear={handleDeleteYear} summaries={summaries} />}
+        {/* YearDisplay hanya untuk list view */}
+        {view === "list" && <YearDisplay availableYears={availableYears} selectedYear={selectedYear} onYearChange={handleYearChange} summaries={summaries} />}
 
         {renderView()}
       </div>

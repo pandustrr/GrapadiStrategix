@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { Calendar, TrendingUp, TrendingDown, DollarSign, Wallet, Eye, Trash2, RefreshCw, X, BarChart3, Target } from "lucide-react";
+import { Calendar, TrendingUp, TrendingDown, DollarSign, Wallet, Eye, Trash2, RefreshCw, X, BarChart3, Target, Plus } from "lucide-react";
 import { toast } from "react-toastify";
 import { managementFinancialApi } from "../../../services/managementFinancial";
 import SummaryChart from "./SummaryChart";
 
-const SummaryList = ({ summaries, onView, onDelete, onGenerateSummary, selectedYear, onYearChange, onBack, isLoading, error, onRetry }) => {
+const SummaryList = ({ summaries, onView, onDelete, onGenerateSummary, onCreateNew, selectedYear, selectedMonth, onYearChange, onMonthChange, onBack, isLoading, error, onRetry }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [summaryToDelete, setSummaryToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -90,8 +90,10 @@ const SummaryList = ({ summaries, onView, onDelete, onGenerateSummary, selectedY
   const avgMonthlyIncome = statistics?.avg_monthly_income || 0;
   const totalMonths = statistics?.total_months || 0;
 
-  // Get current month summary
-  const currentMonthSummary = summaries.find((summary) => summary.month === new Date().getMonth() + 1 && summary.year === selectedYear);
+  // Get current month summary based on selectedMonth
+  const currentMonthSummary = selectedMonth 
+    ? summaries.find((summary) => summary.month === selectedMonth && summary.year === selectedYear)
+    : null;
 
   // LOADING STATE
   if (isLoading) {
@@ -176,8 +178,24 @@ const SummaryList = ({ summaries, onView, onDelete, onGenerateSummary, selectedY
             <p className="mt-1 text-gray-600 dark:text-gray-400">Kelola semua ringkasan keuangan bulanan - Tahun {selectedYear}</p>
           </div>
         </div>
-        <div className="flex flex-col w-full gap-3 sm:flex-row sm:w-auto">
-          <button onClick={onGenerateSummary} className="flex items-center justify-center gap-2 px-4 py-3 text-white transition-colors bg-green-600 rounded-lg hover:bg-green-700">
+        <div className="flex flex-col w-full gap-3 sm:flex-row sm:w-auto sm:items-center">
+          <select value={selectedMonth || ''} onChange={(e) => onMonthChange(e.target.value ? parseInt(e.target.value) : null)} className="px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white border border-gray-200 rounded-lg shadow-sm transition-colors dark:bg-gray-800 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500">
+            <option value="">Semua Bulan</option>
+            <option value={1}>Januari</option>
+            <option value={2}>Februari</option>
+            <option value={3}>Maret</option>
+            <option value={4}>April</option>
+            <option value={5}>Mei</option>
+            <option value={6}>Juni</option>
+            <option value={7}>Juli</option>
+            <option value={8}>Agustus</option>
+            <option value={9}>September</option>
+            <option value={10}>Oktober</option>
+            <option value={11}>November</option>
+            <option value={12}>Desember</option>
+          </select>
+
+          <button onClick={onGenerateSummary} className="flex items-center justify-center gap-2 px-4 py-3 text-white transition-colors duration-200 bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
             <RefreshCw size={20} />
             <span>Generate dari Simulasi</span>
           </button>
@@ -388,9 +406,12 @@ const SummaryList = ({ summaries, onView, onDelete, onGenerateSummary, selectedY
             <div className="flex flex-col">
               <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Bulan Tercatat</span>
               <span className="text-xs font-semibold text-gray-900 dark:text-white">
-                {summaries
-                  .map((s) => s.month)
+                {Array.from(new Set(summaries.map(s => s.month)))
                   .sort((a, b) => a - b)
+                  .map(month => {
+                    const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+                    return monthNames[month - 1];
+                  })
                   .join(", ")}
               </span>
             </div>

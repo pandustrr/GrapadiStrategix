@@ -25,8 +25,9 @@ class FinancialSummaryController extends Controller
             // Validasi input
             $validator = Validator::make($request->all(), [
                 'user_id' => 'required|exists:users,id',
-                'business_id' => 'nullable|exists:business_backgrounds,id',
-                'year' => 'nullable|integer|min:2020|max:2030'
+                'business_background_id' => 'nullable|exists:business_backgrounds,id',
+                'year' => 'nullable|integer|min:2020|max:2030',
+                'month' => 'nullable|integer|between:1,12'
             ]);
 
             if ($validator->fails()) {
@@ -39,12 +40,14 @@ class FinancialSummaryController extends Controller
             }
 
             $user_id = $request->user_id;
-            $business_id = $request->business_id;
+            $business_id = $request->business_background_id;
             $year = $request->year ?? date('Y');
+            $month = $request->month ?? null;
 
             Log::info('FinancialSummaryController: Building query', [
                 'user_id' => $user_id,
                 'year' => $year,
+                'month' => $month,
                 'business_id' => $business_id
             ]);
 
@@ -54,6 +57,11 @@ class FinancialSummaryController extends Controller
 
             if ($business_id) {
                 $query->where('business_background_id', $business_id);
+            }
+
+            // Only filter by month if specified
+            if ($month) {
+                $query->where('month', $month);
             }
 
             $summaries = $query->orderBy('year', 'desc')

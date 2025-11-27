@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { TrendingUp, TrendingDown, Plus, List, DollarSign, Calendar, PieChart, BarChart3 } from "lucide-react";
 import { managementFinancialApi } from "../../../services/managementFinancial";
+import YearManagement from "./Year-Management";
 
-const SimulationDashboard = ({ simulations, categories, filters, onFilterChange, onViewSimulation, onEditSimulation, onDeleteSimulation, onCreateNew, onViewChange, isLoading, selectedBusiness }) => {
+const SimulationDashboard = ({ simulations, categories, filters, onFilterChange, onViewSimulation, onEditSimulation, onDeleteSimulation, onCreateNew, onViewChange, isLoading, selectedBusiness, availableYears = [], onAddYear, onDeleteYear }) => {
   const [cashFlowSummary, setCashFlowSummary] = useState(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
 
@@ -23,8 +24,12 @@ const SimulationDashboard = ({ simulations, categories, filters, onFilterChange,
         user_id: user.id,
         business_background_id: selectedBusiness.id,
         year: filters.year,
-        month: filters.month,
       };
+
+      // Only add month if it's specified
+      if (filters.month) {
+        params.month = filters.month;
+      }
 
       const response = await managementFinancialApi.simulations.getCashFlowSummary(params);
       if (response.data.status === "success") {
@@ -63,6 +68,20 @@ const SimulationDashboard = ({ simulations, categories, filters, onFilterChange,
     return months[month - 1] || "";
   };
 
+  const handleAddYear = async (year) => {
+    // Call parent handler to add year to availableYears and localStorage
+    await onAddYear(year);
+  };
+
+  const handleDeleteYear = async (year) => {
+    // Call parent handler to delete year
+    await onDeleteYear(year);
+  };
+
+  const handleYearChange = (year) => {
+    onFilterChange({ ...filters, year });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -83,36 +102,70 @@ const SimulationDashboard = ({ simulations, categories, filters, onFilterChange,
         </div>
       </div>
 
+      {/* Year Management */}
+      <YearManagement
+        availableYears={availableYears}
+        selectedYear={filters.year}
+        onYearChange={handleYearChange}
+        onAddYear={handleAddYear}
+        onDeleteYear={handleDeleteYear}
+        simulations={simulations}
+      />
+
       {/* Month Filter */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-        <div className="flex items-center gap-4">
-          <Calendar size={20} className="text-gray-600 dark:text-gray-400" />
-          <div className="flex gap-3">
-            <select
-              value={filters.month}
-              onChange={(e) => onFilterChange({ ...filters, month: e.target.value })}
-              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-            >
-              {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
-                <option key={month} value={month}>
-                  {getMonthName(month)}
-                </option>
-              ))}
-            </select>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <Calendar size={20} className="text-gray-600 dark:text-gray-400" />
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filter:</span>
+          </div>
+          <div className="flex gap-3 flex-wrap">
             <select
               value={filters.year}
-              onChange={(e) => onFilterChange({ ...filters, year: e.target.value })}
-              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+              onChange={(e) => onFilterChange({ ...filters, year: parseInt(e.target.value) })}
+              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white border border-gray-200 rounded-lg shadow-sm transition-colors dark:bg-gray-800 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
-              {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i).map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
+              {availableYears.length > 0 ? (
+                availableYears.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))
+              ) : (
+                Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i).map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))
+              )}
+            </select>
+            <select
+              value={filters.month}
+              onChange={(e) => onFilterChange({ ...filters, month: e.target.value ? parseInt(e.target.value) : '' })}
+              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white border border-gray-200 rounded-lg shadow-sm transition-colors dark:bg-gray-800 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500"
+            >
+              <option value="">Semua Bulan</option>
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => {
+                const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+                return (
+                  <option key={month} value={month}>
+                    {months[month - 1]}
+                  </option>
+                );
+              })}
             </select>
           </div>
         </div>
       </div>
+
+      {/* Filter Helper Text */}
+      {filters.year && (
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3">
+          <p className="text-sm text-blue-700 dark:text-blue-300">
+            <span className="font-medium">Filter aktif:</span> Tahun {filters.year}{filters.month && ` • Bulan ${["", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"][filters.month]}`}
+          </p>
+        </div>
+      )}
 
       {/* Cash Flow Summary */}
       {!summaryLoading && cashFlowSummary && (
@@ -178,7 +231,7 @@ const SimulationDashboard = ({ simulations, categories, filters, onFilterChange,
       )}
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
@@ -206,6 +259,26 @@ const SimulationDashboard = ({ simulations, categories, filters, onFilterChange,
               <p className="text-2xl font-bold text-green-600 dark:text-green-400">{simulations.filter((s) => s.status === "completed").length}</p>
             </div>
             <TrendingUp className="text-green-600" size={24} />
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+          <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">Bulan Tercatat</p>
+          <div className="flex flex-wrap gap-1">
+            {simulations.length > 0 ? (
+              Array.from(new Set(simulations.map(s => new Date(s.simulation_date).getMonth() + 1)))
+                .sort((a, b) => a - b)
+                .map(month => {
+                  const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+                  return (
+                    <span key={month} className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded text-xs font-medium">
+                      {monthNames[month - 1]}
+                    </span>
+                  );
+                })
+            ) : (
+              <p className="text-gray-500 dark:text-gray-400 text-xs">-</p>
+            )}
           </div>
         </div>
       </div>

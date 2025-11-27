@@ -144,6 +144,11 @@ Route::middleware(['auth:sanctum', 'cors'])->group(function () {
         // Dashboard Stats
         Route::get('/dashboard-stats', [ManagementFinancialController::class, 'getDashboardStats']);
 
+        // Monthly Reports
+        Route::prefix('reports')->group(function () {
+            Route::get('/monthly', [\App\Http\Controllers\ManagementFinancial\MonthlyReportController::class, 'getMonthlyReport']);
+        });
+
         // Financial Categories Routes
         Route::prefix('categories')->group(function () {
             Route::get('/', [ManagementFinancialController::class, 'indexCategories']);
@@ -168,9 +173,10 @@ Route::middleware(['auth:sanctum', 'cors'])->group(function () {
 
         // Financial Simulations Routes
         Route::prefix('simulations')->group(function () {
-            Route::get('/', [FinancialSimulationController::class, 'index']);
+            Route::get('/available-years', [FinancialSimulationController::class, 'getAvailableYears']);
             Route::get('/cash-flow-summary', [FinancialSimulationController::class, 'getCashFlowSummary']);
             Route::get('/monthly-comparison', [FinancialSimulationController::class, 'getMonthlyComparison']);
+            Route::get('/', [FinancialSimulationController::class, 'index']);
             Route::get('/{id}', [FinancialSimulationController::class, 'show']);
             Route::post('/', [FinancialSimulationController::class, 'store']);
             Route::put('/{id}', [FinancialSimulationController::class, 'update']);
