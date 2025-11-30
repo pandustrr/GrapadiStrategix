@@ -74,11 +74,14 @@ class FinancialSimulationSeeder extends Seeder
                     // Random status (mayoritas completed)
                     $status = $statuses[array_rand($statuses)];
 
+                    // Generate unique simulation code: SIM + timestamp + random suffix
+                    $simulationCode = 'SIM' . $randomDate->format('YmdHis') . str_pad($i, 3, '0', STR_PAD_LEFT) . $user->id;
+
                     FinancialSimulation::create([
                         'user_id' => $user->id,
                         'business_background_id' => 1,
                         'financial_category_id' => $category->id,
-                        'simulation_code' => 'SIM' . now()->format('YmdHis') . rand(1000, 9999),
+                        'simulation_code' => $simulationCode,
                         'type' => $category->type,
                         'amount' => $amount,
                         'simulation_date' => $randomDate,
@@ -98,12 +101,15 @@ class FinancialSimulationSeeder extends Seeder
                 ->whereIn('name', ['Gaji Karyawan', 'Sewa Tempat', 'Listrik & Air'])
                 ->take(3);
 
+            $recurringIndex = 0;
             foreach ($recurringCategories as $category) {
+                $recurringSimulationCode = 'SIM' . Carbon::now()->format('YmdHis') . str_pad($recurringIndex, 3, '0', STR_PAD_LEFT) . 'REC' . $user->id;
+                
                 FinancialSimulation::create([
                     'user_id' => $user->id,
                     'business_background_id' => 1,
                     'financial_category_id' => $category->id,
-                    'simulation_code' => 'SIM' . now()->format('YmdHis') . rand(1000, 9999),
+                    'simulation_code' => $recurringSimulationCode,
                     'type' => 'expense',
                     'amount' => $category->name === 'Gaji Karyawan' ? 5000000 : ($category->name === 'Sewa Tempat' ? 3000000 : 1000000),
                     'simulation_date' => Carbon::now()->startOfMonth(),
@@ -115,6 +121,7 @@ class FinancialSimulationSeeder extends Seeder
                     'recurring_end_date' => Carbon::now()->addYear(),
                     'notes' => 'Pembayaran otomatis setiap bulan',
                 ]);
+                $recurringIndex++;
             }
         }
     }

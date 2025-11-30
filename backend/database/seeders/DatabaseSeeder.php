@@ -28,6 +28,10 @@ class DatabaseSeeder extends Seeder
             FinancialCategorySeeder::class,
             FinancialSimulationSeeder::class,
             FinancialSummarySeeder::class,
+            // Affiliate Seeders
+            AffiliateLinkSeeder::class,
+            AffiliateTrackSeeder::class,
+            AffiliateLeadSeeder::class,
         ]);
     }
 }
