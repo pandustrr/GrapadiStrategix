@@ -11,23 +11,41 @@ Status: **Production Ready**
 
 Setelah menjalankan `php artisan migrate:fresh --seed`, berikut adalah ringkasan data yang berhasil dibuat:
 
-| Tabel | Jumlah Record | Status |
-|-------|---------------|--------|
-| Users | 1 | ✅ |
-| Business Backgrounds | 1 | ✅ |
-| Market Analysis | 1 | ✅ |
-| Market Analysis Competitors | 3 | ✅ |
-| Product Services | 3 | ✅ |
-| Marketing Strategies | 1 | ✅ |
-| Operational Plans | 1 | ✅ |
-| Team Structures | 4 | ✅ |
-| Financial Plans | 1 | ✅ |
-| Financial Categories | 12 | ✅ |
-| Financial Simulations | 123 | ✅ |
-| Financial Summaries | 3 | ✅ |
-| **Affiliate Links** | **1** | ✅ |
-| **Affiliate Tracks** | **10** | ✅ |
-| **Affiliate Leads** | **5** | ✅ |
+| Tabel | Jumlah Record | Kalkulasi | Status |
+|-------|---------------|-----------|--------|
+| Users | 1 | - | ✅ |
+| Business Backgrounds | 1 | - | ✅ |
+| Market Analysis | 1 | - | ✅ |
+| Market Analysis Competitors | 3 | - | ✅ |
+| Product Services | 3 | - | ✅ |
+| Marketing Strategies | 1 | - | ✅ |
+| Operational Plans | 1 | - | ✅ |
+| Team Structures | 4 | - | ✅ |
+| Financial Plans | 1 | - | ✅ |
+| Financial Categories | 12 | 3 income + 9 expense | ✅ |
+| Financial Simulations | **123** | **(3+9) × 10 + 3 = 123** | ✅ |
+| Financial Summaries | 3 | 3 bulan | ✅ |
+| **Affiliate Links** | **1** | - | ✅ |
+| **Affiliate Tracks** | **10** | 10 click events | ✅ |
+| **Affiliate Leads** | **5** | 5 sample leads | ✅ |
+
+### 📐 Kalkulasi Konsisten Financial Simulations
+
+**Formula:**
+```
+Per User:
+  Income Categories: 3 × 10 simulasi = 30
+  Expense Categories: 9 × 10 simulasi = 90
+  Recurring Transactions: 3 (Gaji, Sewa, Listrik) = 3
+  
+  TOTAL = 30 + 90 + 3 = 123 simulasi per user
+```
+
+**Penjelasan:**
+- Setiap kategori income/expense mendapat tepat 10 simulasi
+- 3 kategori recurring ditambahkan di akhir
+- Dengan 1 user: total = 123 (sesuai ringkasan)
+- Dengan N users: total = 123 × N
 
 ---
 

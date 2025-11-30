@@ -160,12 +160,26 @@ Masing-masing: team_category, position, experience, photo
 **File:** `database/seeders/FinancialSimulationSeeder.php`
 **Fungsi:** Membuat data simulasi transaksi keuangan
 
+**Breakdown Konsisten:**
+```
+Per User (dengan 12 financial categories):
+  - Income categories: 3 × 10 simulasi = 30
+  - Expense categories: 9 × 10 simulasi = 90
+  - Recurring transactions: 3 (Gaji, Sewa, Listrik) = 3
+  
+  TOTAL PER USER = 30 + 90 + 3 = 123 simulasi
+
+Jika 1 user → 123 total
+Jika 2 users → 246 total
+```
+
 **Data yang dibuat:**
 - 10 simulasi per kategori (income & expense)
-- Dalam 3 bulan terakhir
-- Amount: Income 500rb-10jt, Expense 200rb-5jt
+- Amount: Income 500rb-10jt, Expense 200rb-5jt (variasi per kategori)
 - Payment method: cash, bank_transfer, credit_card, digital_wallet
 - Status: 80% completed, 20% planned
+- Date range: 3 bulan terakhir
+- Recurring: 3 monthly transactions (Gaji, Sewa, Listrik)
 
 ### 12. FinancialSummarySeeder
 **File:** `database/seeders/FinancialSummarySeeder.php`
