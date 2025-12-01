@@ -12,6 +12,7 @@ class BusinessBackground extends Model
     protected $fillable = [
         'user_id',
         'logo',
+        'background_image',
         'name',
         'category',
         'description',

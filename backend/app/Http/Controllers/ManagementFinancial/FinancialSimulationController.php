@@ -10,6 +10,7 @@ use App\Models\ManagementFinancial\FinancialSimulation;
 use App\Models\ManagementFinancial\FinancialCategory;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class FinancialSimulationController extends Controller
@@ -24,7 +25,8 @@ class FinancialSimulationController extends Controller
     public function index(Request $request)
     {
         try {
-            $user_id = $request->user_id;
+            // Get user ID from authenticated user or request parameter
+            $user_id = Auth::user()->id ?? $request->user_id;
 
             if (!$user_id) {
                 return response()->json([

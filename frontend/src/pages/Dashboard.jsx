@@ -5,7 +5,9 @@ import StatCards from "../components/Dashboard/StatCards";
 import RecentPlans from "../components/Dashboard/RecentPlans";
 import QuickActions from "../components/Dashboard/QuickActions";
 import BusinessPlan from "./BusinessPlan";
-import ManagementFinancial from "./ManagementFinancial"; // ← IMPORT YANG BENAR
+import ManagementFinancial from "./ManagementFinancial";
+import Forecast from "./Forecast"; // ← NEW: Import Forecast
+import Affiliate from "./Affiliate";
 import { FileText } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import UserProfile from "../components/UserProfile/UserProfileView";
@@ -72,6 +74,26 @@ const Dashboard = ({ isDarkMode, toggleDarkMode }) => {
     if (activeSection === "management-financial") {
       return (
         <ManagementFinancial
+          activeSubSection={activeSubSection}
+          setActiveSubSection={setActiveSubSection}
+        />
+      );
+    }
+
+    // Jika section forecast aktif, tampilkan Forecast component
+    if (activeSection === "forecast") {
+      return (
+        <Forecast
+          activeSubSection={activeSubSection}
+          setActiveSubSection={setActiveSubSection}
+        />
+      );
+    }
+
+    // Jika section affiliate aktif, tampilkan Affiliate component
+    if (activeSection === "affiliate") {
+      return (
+        <Affiliate
           activeSubSection={activeSubSection}
           setActiveSubSection={setActiveSubSection}
         />

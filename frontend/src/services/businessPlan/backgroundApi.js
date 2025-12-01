@@ -23,23 +23,31 @@ export const backgroundApi = {
     },
 
     update: (id, businessData) => {
-        // Jika ada file baru atau logo dihapus (null), gunakan FormData
-        if (businessData.logo instanceof File || businessData.logo === null) {
+        // Cek apakah ada file untuk upload
+        const hasLogo = businessData.logo instanceof File;
+        const hasBackground = businessData.background_image instanceof File;
+        const hasLogoDelete = businessData.logo === null;
+        const hasBackgroundDelete = businessData.background_image === null;
+
+        if (hasLogo || hasBackground || hasLogoDelete || hasBackgroundDelete) {
             const formData = new FormData();
             
             Object.keys(businessData).forEach((key) => {
                 // Jangan append field yang undefined
                 if (businessData[key] !== undefined) {
-                    if (key === 'logo' && businessData[key] === null) {
-                        // Kirim string kosong untuk hapus logo
+                    if ((key === 'logo' || key === 'background_image') && businessData[key] === null) {
+                        // Kirim string kosong untuk hapus file
                         formData.append(key, '');
-                    } else {
+                    } else if (businessData[key] instanceof File) {
+                        formData.append(key, businessData[key]);
+                    } else if (businessData[key] !== null) {
                         formData.append(key, businessData[key]);
                     }
                 }
             });
             
             formData.append("_method", "PUT");
+            console.log('Sending FormData to PUT:', Array.from(formData.entries()));
             return api.post(`/business-background/${id}`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
@@ -47,7 +55,8 @@ export const backgroundApi = {
             });
         }
         
-        // Jika tidak ada perubahan logo, gunakan PUT biasa
+        // Jika tidak ada file, gunakan PUT biasa
+        console.log('Sending regular PUT:', businessData);
         return api.put(`/business-background/${id}`, businessData);
     },
 

@@ -19,6 +19,10 @@ import {
   Folder,
   Calendar,
   Wallet,
+  Link2,
+  BarChart2,
+  Users2,
+  TrendingUpIcon,
 } from "lucide-react";
 
 const Sidebar = ({
@@ -120,19 +124,55 @@ const Sidebar = ({
         // Tambahkan sub items lainnya nanti
       ],
     },
-    
+
     {
       id: "forecast",
-      label: "Forecast",
+      label: "Forecast Keuangan",
       icon: TrendingUp,
-      description: "Prediksi dan perencanaan masa depan",
+      description: "Prediksi dan analisis keuangan masa depan",
+      subItems: [
+        {
+          id: "daftar-forecast",
+          label: "Daftar Forecast",
+          icon: FileText,
+        },
+        {
+          id: "buat-forecast",
+          label: "Buat Forecast Baru",
+          icon: TrendingUp,
+        },
+        {
+          id: "hasil-forecast",
+          label: "Hasil & Insights",
+          icon: BarChart3,
+        },
+      ],
     },
+    
     {
-      id: "analytics",
-      label: "Analisis & Grafik",
-      icon: BarChart3,
-      description: "Analisis data bisnis",
+      id: "affiliate",
+      label: "Affiliate & Lead",
+      icon: Link2,
+      description: "Kelola link affiliate dan lead",
+      subItems: [
+        {
+          id: "affiliate-link",
+          label: "Link Affiliate",
+          icon: Link2,
+        },
+        {
+          id: "affiliate-tracking",
+          label: "Tracking & Analytics",
+          icon: BarChart2,
+        },
+        {
+          id: "affiliate-leads",
+          label: "Lead Management",
+          icon: Users2,
+        },
+      ],
     },
+
     {
       id: "profile",
       label: "Profil Pengguna",
@@ -199,9 +239,9 @@ const Sidebar = ({
                 <div className={`${!isOpen && "lg:hidden"}`}>
                   <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
                     <span className="text-green-600 dark:text-green-400">
-                      Smart
+                      Grapadi
                     </span>
-                    Plan
+                    Strategix
                   </h1>
                   <p className="text-xs lg:text-sm text-gray-500 dark:text-gray-400 mt-1 lg:block hidden">
                     Business Management

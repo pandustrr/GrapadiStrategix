@@ -40,6 +40,20 @@ const BackgroundView = ({ business, onBack, onEdit }) => {
 
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-8">
                 
+                {/* Background Image Section */}
+                {business.background_image && (
+                    <div className="pb-6 border-b border-gray-200 dark:border-gray-700">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Background Bisnis</h3>
+                        <div className="w-full h-64 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
+                            <img 
+                                src={`http://localhost:8000/storage/${business.background_image}`} 
+                                alt="Background"
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
+                    </div>
+                )}
+                
                 {/* Header dengan Logo */}
                 <div className="flex items-start gap-6 pb-6 border-b border-gray-200 dark:border-gray-700">
                     <div className="flex-shrink-0">

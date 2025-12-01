@@ -7,7 +7,9 @@ import { toast } from 'react-toastify';
 const BackgroundEdit = ({ business, onBack, onSuccess }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [logoPreview, setLogoPreview] = useState(null);
+    const [backgroundPreview, setBackgroundPreview] = useState(null);
     const [currentLogo, setCurrentLogo] = useState(null);
+    const [currentBackground, setCurrentBackground] = useState(null);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -21,7 +23,8 @@ const BackgroundEdit = ({ business, onBack, onSuccess }) => {
         vision: '',
         mission: '',
         contact: '',
-        logo: undefined // Gunakan undefined bukan null
+        logo: undefined,
+        background_image: undefined
     });
 
     useEffect(() => {
@@ -38,12 +41,18 @@ const BackgroundEdit = ({ business, onBack, onSuccess }) => {
                 vision: business.vision || '',
                 mission: business.mission || '',
                 contact: business.contact || '',
-                logo: undefined // Tetap undefined
+                logo: undefined,
+                background_image: undefined
             });
             
             if (business.logo) {
                 setLogoPreview(`http://localhost:8000/storage/${business.logo}`);
                 setCurrentLogo(business.logo);
+            }
+
+            if (business.background_image) {
+                setBackgroundPreview(`http://localhost:8000/storage/${business.background_image}`);
+                setCurrentBackground(business.background_image);
             }
         }
     }, [business]);
@@ -53,19 +62,29 @@ const BackgroundEdit = ({ business, onBack, onSuccess }) => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleFileChange = (e) => {
+    const handleFileChange = (e, fileType) => {
         const file = e.target.files[0];
         if (file) {
-            if (file.size > 2 * 1024 * 1024) {
-                toast.error('Ukuran file maksimal 2MB');
+            const maxSize = fileType === 'background' ? 5 * 1024 * 1024 : 2 * 1024 * 1024;
+            if (file.size > maxSize) {
+                const sizeInMB = maxSize / (1024 * 1024);
+                toast.error(`Ukuran file maksimal ${sizeInMB}MB`);
                 return;
             }
             
-            setFormData(prev => ({ ...prev, logo: file }));
+            if (fileType === 'logo') {
+                setFormData(prev => ({ ...prev, logo: file }));
+            } else if (fileType === 'background') {
+                setFormData(prev => ({ ...prev, background_image: file }));
+            }
             
             const reader = new FileReader();
             reader.onload = (e) => {
-                setLogoPreview(e.target.result);
+                if (fileType === 'logo') {
+                    setLogoPreview(e.target.result);
+                } else if (fileType === 'background') {
+                    setBackgroundPreview(e.target.result);
+                }
             };
             reader.readAsDataURL(file);
         }
@@ -75,6 +94,12 @@ const BackgroundEdit = ({ business, onBack, onSuccess }) => {
         setFormData(prev => ({ ...prev, logo: null }));
         setLogoPreview(null);
         setCurrentLogo(null);
+    };
+
+    const removeBackground = () => {
+        setFormData(prev => ({ ...prev, background_image: null }));
+        setBackgroundPreview(null);
+        setCurrentBackground(null);
     };
 
     const handleSubmit = async (e) => {
@@ -92,17 +117,18 @@ const BackgroundEdit = ({ business, onBack, onSuccess }) => {
             const submitData = {
                 ...formData,
                 user_id: user.id,
-                // Jika logo undefined, jangan kirim field logo sama sekali
-                // Jika logo null, kirim null (hapus logo)
-                // Jika logo File, kirim file
             };
 
-            // Hapus field logo jika undefined (biarkan logo tetap)
+            // Hapus field jika undefined (biarkan tetap), tapi jangan hapus user_id
             if (submitData.logo === undefined) {
                 delete submitData.logo;
             }
+            if (submitData.background_image === undefined) {
+                delete submitData.background_image;
+            }
 
             console.log('Updating business data:', submitData);
+            console.log('Form data before submit:', formData);
 
             const response = await backgroundApi.update(business.id, submitData);
 
@@ -114,6 +140,7 @@ const BackgroundEdit = ({ business, onBack, onSuccess }) => {
             }
         } catch (error) {
             console.error('Error updating business:', error);
+            console.error('Error response:', error.response?.data);
             
             let errorMessage = 'Terjadi kesalahan saat memperbarui data bisnis';
             if (error.response?.data?.message) {
@@ -143,10 +170,12 @@ const BackgroundEdit = ({ business, onBack, onSuccess }) => {
             subtitle="Perbarui informasi bisnis"
             formData={formData}
             logoPreview={logoPreview || (currentLogo ? `http://localhost:8000/storage/${currentLogo}` : null)}
+            backgroundPreview={backgroundPreview || (currentBackground ? `http://localhost:8000/storage/${currentBackground}` : null)}
             isLoading={isLoading}
             onInputChange={handleInputChange}
             onFileChange={handleFileChange}
             onRemoveLogo={removeLogo}
+            onRemoveBackground={removeBackground}
             onSubmit={handleSubmit}
             onBack={onBack}
             submitButtonText="Perbarui Bisnis"

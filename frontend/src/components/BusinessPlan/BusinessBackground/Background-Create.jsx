@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 const BackgroundCreate = ({ onBack, onSuccess }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [logoPreview, setLogoPreview] = useState(null);
+    const [backgroundPreview, setBackgroundPreview] = useState(null);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -20,7 +21,8 @@ const BackgroundCreate = ({ onBack, onSuccess }) => {
         vision: '',
         mission: '',
         contact: '',
-        logo: null
+        logo: null,
+        background_image: null
     });
 
     const handleInputChange = (e) => {
@@ -28,21 +30,31 @@ const BackgroundCreate = ({ onBack, onSuccess }) => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleFileChange = (e) => {
+    const handleFileChange = (e, fileType) => {
         const file = e.target.files[0];
         if (file) {
-            // Validate file size (2MB max)
-            if (file.size > 2 * 1024 * 1024) {
-                toast.error('Ukuran file maksimal 2MB');
+            // Validate file size
+            const maxSize = fileType === 'background' ? 5 * 1024 * 1024 : 2 * 1024 * 1024; // 5MB for background, 2MB for logo
+            if (file.size > maxSize) {
+                const sizeInMB = maxSize / (1024 * 1024);
+                toast.error(`Ukuran file maksimal ${sizeInMB}MB`);
                 return;
             }
             
-            setFormData(prev => ({ ...prev, logo: file }));
+            if (fileType === 'logo') {
+                setFormData(prev => ({ ...prev, logo: file }));
+            } else if (fileType === 'background') {
+                setFormData(prev => ({ ...prev, background_image: file }));
+            }
             
             // Create preview
             const reader = new FileReader();
             reader.onload = (e) => {
-                setLogoPreview(e.target.result);
+                if (fileType === 'logo') {
+                    setLogoPreview(e.target.result);
+                } else if (fileType === 'background') {
+                    setBackgroundPreview(e.target.result);
+                }
             };
             reader.readAsDataURL(file);
         }
@@ -51,6 +63,11 @@ const BackgroundCreate = ({ onBack, onSuccess }) => {
     const removeLogo = () => {
         setFormData(prev => ({ ...prev, logo: null }));
         setLogoPreview(null);
+    };
+
+    const removeBackground = () => {
+        setFormData(prev => ({ ...prev, background_image: null }));
+        setBackgroundPreview(null);
     };
 
     const handleSubmit = async (e) => {
@@ -103,10 +120,12 @@ const BackgroundCreate = ({ onBack, onSuccess }) => {
             subtitle="Isi formulir untuk menambahkan bisnis baru"
             formData={formData}
             logoPreview={logoPreview}
+            backgroundPreview={backgroundPreview}
             isLoading={isLoading}
             onInputChange={handleInputChange}
             onFileChange={handleFileChange}
             onRemoveLogo={removeLogo}
+            onRemoveBackground={removeBackground}
             onSubmit={handleSubmit}
             onBack={onBack}
             submitButtonText="Simpan Bisnis"

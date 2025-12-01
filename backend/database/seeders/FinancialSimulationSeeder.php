@@ -31,7 +31,7 @@ class FinancialSimulationSeeder extends Seeder
                 ->get();
 
             foreach ($categories as $category) {
-                // 10 simulasi per kategori
+                // Exactly 10 simulasi per kategori (KONSISTEN)
                 for ($i = 0; $i < 10; $i++) {
                     // Random tanggal dalam 3 bulan terakhir
                     $randomDate = Carbon::createFromTimestamp(
@@ -74,18 +74,21 @@ class FinancialSimulationSeeder extends Seeder
                     // Random status (mayoritas completed)
                     $status = $statuses[array_rand($statuses)];
 
+                    // Generate unique simulation code: SIM + date + index + user_id
+                    $simulationCode = 'SIM' . $randomDate->format('YmdHis') . str_pad($i, 3, '0', STR_PAD_LEFT) . $user->id;
+
                     FinancialSimulation::create([
                         'user_id' => $user->id,
                         'business_background_id' => 1,
                         'financial_category_id' => $category->id,
-                        'simulation_code' => 'SIM' . now()->format('YmdHis') . rand(1000, 9999),
+                        'simulation_code' => $simulationCode,
                         'type' => $category->type,
                         'amount' => $amount,
                         'simulation_date' => $randomDate,
                         'description' => $descriptions[array_rand($descriptions)],
                         'payment_method' => $paymentMethods[array_rand($paymentMethods)],
                         'status' => $status,
-                        'is_recurring' => false, // Untuk seeder, tidak pakai recurring
+                        'is_recurring' => false,
                         'recurring_frequency' => null,
                         'recurring_end_date' => null,
                         'notes' => $status === 'planned' ? 'Simulasi yang direncanakan' : null,
@@ -93,28 +96,39 @@ class FinancialSimulationSeeder extends Seeder
                 }
             }
 
-            // Tambahkan beberapa recurring simulation
-            $recurringCategories = $categories->where('type', 'expense')
-                ->whereIn('name', ['Gaji Karyawan', 'Sewa Tempat', 'Listrik & Air'])
-                ->take(3);
+            // Tambahkan 3 recurring simulation (Gaji Karyawan, Sewa Tempat, Listrik & Air)
+            // Total simulasi per user = (3 income + 9 expense) × 10 + 3 recurring = 123
+            $recurringCategories = [
+                'Gaji Karyawan' => 5000000,
+                'Sewa Tempat' => 3000000,
+                'Listrik & Air' => 1000000,
+            ];
 
-            foreach ($recurringCategories as $category) {
-                FinancialSimulation::create([
-                    'user_id' => $user->id,
-                    'business_background_id' => 1,
-                    'financial_category_id' => $category->id,
-                    'simulation_code' => 'SIM' . now()->format('YmdHis') . rand(1000, 9999),
-                    'type' => 'expense',
-                    'amount' => $category->name === 'Gaji Karyawan' ? 5000000 : ($category->name === 'Sewa Tempat' ? 3000000 : 1000000),
-                    'simulation_date' => Carbon::now()->startOfMonth(),
-                    'description' => 'Biaya bulanan ' . strtolower($category->name),
-                    'payment_method' => 'bank_transfer',
-                    'status' => 'completed',
-                    'is_recurring' => true,
-                    'recurring_frequency' => 'monthly',
-                    'recurring_end_date' => Carbon::now()->addYear(),
-                    'notes' => 'Pembayaran otomatis setiap bulan',
-                ]);
+            $recurringIndex = 0;
+            foreach ($recurringCategories as $categoryName => $amount) {
+                $category = $categories->firstWhere('name', $categoryName);
+
+                if ($category) {
+                    $recurringSimulationCode = 'SIM' . Carbon::now()->format('YmdHis') . str_pad($recurringIndex, 3, '0', STR_PAD_LEFT) . 'REC' . $user->id;
+
+                    FinancialSimulation::create([
+                        'user_id' => $user->id,
+                        'business_background_id' => 1,
+                        'financial_category_id' => $category->id,
+                        'simulation_code' => $recurringSimulationCode,
+                        'type' => 'expense',
+                        'amount' => $amount,
+                        'simulation_date' => Carbon::now()->startOfMonth(),
+                        'description' => 'Biaya bulanan ' . strtolower($categoryName),
+                        'payment_method' => 'bank_transfer',
+                        'status' => 'completed',
+                        'is_recurring' => true,
+                        'recurring_frequency' => 'monthly',
+                        'recurring_end_date' => Carbon::now()->addYear(),
+                        'notes' => 'Pembayaran otomatis setiap bulan',
+                    ]);
+                    $recurringIndex++;
+                }
             }
         }
     }

@@ -1,0 +1,748 @@
+import React, { useState, useEffect } from 'react';
+import { Loader, Plus, TrendingUp, ChevronDown, ChevronUp, Save, CheckCircle } from 'lucide-react';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { financialSimulationApi } from '../../services/ManagementFinancial/financialSimulationApi';
+import { forecastResultsApi } from '../../services/ManagementFinancial/forecastApi';
+
+const ForecastList = ({ onCreateNew, onViewGeneratedForecast }) => {
+    const [simulationsData, setSimulationsData] = useState([]);
+    const [yearGroups, setYearGroups] = useState({}); // { 2024: [monthGroups], 2025: [monthGroups] }
+    const [loading, setLoading] = useState(true);
+    const [availableYears, setAvailableYears] = useState([]);
+    const [availableMonths, setAvailableMonths] = useState([]);
+    const [filters, setFilters] = useState({
+        year: '',
+        month: '',
+    });
+    const [expandedYearKey, setExpandedYearKey] = useState(null);
+    const [expandedMonthKey, setExpandedMonthKey] = useState(null);
+    const [generatedResults, setGeneratedResults] = useState({});
+    const [generatingForecastId, setGeneratingForecastId] = useState(null);
+    const [selectedMethod, setSelectedMethod] = useState('auto');
+    const [forecastDuration, setForecastDuration] = useState(12);
+    const [savingForecastId, setSavingForecastId] = useState(null);
+    const [savedForecasts, setSavedForecasts] = useState(new Set());
+
+    useEffect(() => {
+        loadSimulations();
+    }, [filters]);
+
+    const loadSimulations = async () => {
+        try {
+            setLoading(true);
+            const params = {
+                ...(filters.year && { year: filters.year }),
+            };
+
+            const response = await financialSimulationApi.getList(params);
+            
+            // Handle response format: { status: 'success', data: [...] }
+            const simulationList = Array.isArray(response.data) ? response.data : [];
+            
+            // Group by year and month
+            const grouped = {};
+            const monthsSet = new Set();
+            const yearsSet = new Set();
+            
+            simulationList.forEach((sim) => {
+                const year = sim.year;
+                const month = sim.simulation_date ? new Date(sim.simulation_date).getMonth() + 1 : 1;
+                const monthKey = `${year}-${month}`;
+                
+                if (!grouped[monthKey]) {
+                    grouped[monthKey] = {
+                        year,
+                        month,
+                        monthName: getMonthName(month),
+                        simulations: [],
+                    };
+                }
+                grouped[monthKey].simulations.push(sim);
+                monthsSet.add(month);
+                yearsSet.add(year);
+            });
+
+            // Filter by selected month if specified
+            let filteredGrouped = grouped;
+            if (filters.month) {
+                filteredGrouped = Object.keys(grouped).reduce((acc, key) => {
+                    if (grouped[key].month === parseInt(filters.month)) {
+                        acc[key] = grouped[key];
+                    }
+                    return acc;
+                }, {});
+            }
+
+            // Reorganize by year
+            const yearGrouped = {};
+            Object.values(filteredGrouped).forEach((monthGroup) => {
+                if (!yearGrouped[monthGroup.year]) {
+                    yearGrouped[monthGroup.year] = [];
+                }
+                yearGrouped[monthGroup.year].push(monthGroup);
+            });
+
+            // Sort months within each year
+            Object.keys(yearGrouped).forEach((year) => {
+                yearGrouped[year].sort((a, b) => a.month - b.month);
+            });
+
+            setYearGroups(yearGrouped);
+            setSimulationsData(Object.values(filteredGrouped).sort((a, b) => {
+                if (a.year !== b.year) return b.year - a.year;
+                return a.month - b.month;
+            }));
+
+            const years = Array.from(yearsSet).sort((a, b) => b - a);
+            const months = Array.from(monthsSet).sort((a, b) => a - b);
+            
+            setAvailableYears(years);
+            setAvailableMonths(months);
+        } catch (error) {
+            console.error('Error loading simulations:', error);
+            setSimulationsData([]);
+            setYearGroups({});
+            setAvailableYears([]);
+            setAvailableMonths([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleGenerateForecast = async (monthGroup) => {
+        try {
+            const key = `${monthGroup.year}-${monthGroup.month}`;
+            setGeneratingForecastId(key);
+            
+            // Get first simulation ID for this month
+            const firstSimId = monthGroup.simulations[0].id;
+            
+            // Generate forecast with selected method and duration
+            const response = await forecastResultsApi.generateFromSimulation(firstSimId, { 
+                forecast_months: forecastDuration,
+                method: selectedMethod,
+                year: monthGroup.year,
+                month: monthGroup.month,
+            });
+            
+            setGeneratedResults((prev) => ({
+                ...prev,
+                [key]: response.data?.data || response.data || response,
+            }));
+            setExpandedMonthKey(key);
+        } catch (error) {
+            console.error('Error generating forecast:', error);
+            alert('Gagal membuat forecast. Silakan coba lagi.');
+        } finally {
+            setGeneratingForecastId(null);
+        }
+    };
+
+    const handleGenerateYearForecast = async (year) => {
+        try {
+            const key = `year-${year}`;
+            setGeneratingForecastId(key);
+            
+            // Get all simulations for this year
+            const monthGroupsInYear = yearGroups[year] || [];
+            if (monthGroupsInYear.length === 0) {
+                alert('Tidak ada data untuk tahun ini');
+                return;
+            }
+            
+            // Use first simulation's ID from first month of year
+            const firstSimId = monthGroupsInYear[0].simulations[0].id;
+            
+            // Generate forecast without specifying month (will aggregate entire year)
+            const response = await forecastResultsApi.generateFromSimulation(firstSimId, { 
+                forecast_months: forecastDuration,
+                method: selectedMethod,
+                year: year,
+                month: null, // No specific month - aggregate entire year
+            });
+            
+            setGeneratedResults((prev) => ({
+                ...prev,
+                [key]: response.data?.data || response.data || response,
+            }));
+            setExpandedYearKey(year);
+        } catch (error) {
+            console.error('Error generating year forecast:', error);
+            alert('Gagal membuat forecast untuk tahun ini. Silakan coba lagi.');
+        } finally {
+            setGeneratingForecastId(null);
+        }
+    };
+
+    const handleSaveForecast = async (monthGroup, forecastData) => {
+        try {
+            const key = `${monthGroup.year}-${monthGroup.month}`;
+            setSavingForecastId(key);
+            
+            // Data sudah otomatis tersimpan dari generateFromSimulation
+            // Cek di backend apakah sudah ada forecast_data_id
+            if (forecastData.forecast_data_id) {
+                // Tandai sebagai sudah disimpan
+                setSavedForecasts((prev) => new Set([...prev, key]));
+                alert('Forecast berhasil disimpan ke database!');
+            }
+        } catch (error) {
+            console.error('Error saving forecast:', error);
+            alert('Gagal menyimpan forecast.');
+        } finally {
+            setSavingForecastId(null);
+        }
+    };
+
+    const handleFilterChange = (key, value) => {
+        setFilters((prev) => ({
+            ...prev,
+            [key]: value,
+        }));
+    };
+
+    const getMonthName = (monthNumber) => {
+        const months = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
+                       'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        return months[monthNumber] || '-';
+    };
+
+    const getStatusBadge = (status) => {
+        const statusStyles = {
+            completed: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
+            planned: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400',
+            cancelled: 'bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-400',
+        };
+
+        const statusLabels = {
+            completed: 'Selesai',
+            planned: 'Rencana',
+            cancelled: 'Batal',
+        };
+
+        return (
+            <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${statusStyles[status] || statusStyles.planned}`}>
+                {statusLabels[status] || status}
+            </span>
+        );
+    };
+
+    const getTypeBadge = (type) => {
+        const typeStyles = {
+            income: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
+            expense: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+        };
+
+        const typeLabels = {
+            income: 'Pendapatan',
+            expense: 'Pengeluaran',
+        };
+
+        return (
+            <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${typeStyles[type] || typeStyles.expense}`}>
+                {typeLabels[type] || type}
+            </span>
+        );
+    };
+
+    return (
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                        Data Simulasi Keuangan
+                    </h2>
+                    <p className="text-gray-600 dark:text-gray-400">
+                        Kelola semua data simulasi keuangan bisnis Anda
+                    </p>
+                </div>
+                <button
+                    onClick={onCreateNew}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 font-medium"
+                >
+                    <Plus size={20} />
+                    Tambah Simulasi
+                </button>
+            </div>
+
+            {/* Filter Section */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-4">
+                {/* Filter Baris 1: Tahun dan Bulan */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label htmlFor="year-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Tahun
+                        </label>
+                        <select
+                            id="year-filter"
+                            value={filters.year}
+                            onChange={(e) => handleFilterChange('year', e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                            <option value="">Semua Tahun ({availableYears.length})</option>
+                            {availableYears.map((year) => (
+                                <option key={year} value={year}>
+                                    {year}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label htmlFor="month-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Bulan
+                        </label>
+                        <select
+                            id="month-filter"
+                            value={filters.month}
+                            onChange={(e) => handleFilterChange('month', e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                            <option value="">Semua Bulan ({availableMonths.length})</option>
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((month) => (
+                                availableMonths.includes(month) && (
+                                    <option key={month} value={month}>
+                                        {getMonthName(month)}
+                                    </option>
+                                )
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="flex items-end">
+                        <button
+                            onClick={() => setFilters({ year: '', month: '' })}
+                            className="w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg transition-colors duration-200 font-medium"
+                        >
+                            Reset Filter
+                        </button>
+                    </div>
+                </div>
+
+                {/* Forecast Settings Baris 2 */}
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Pengaturan Forecast</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label htmlFor="method-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Metode Prediksi
+                            </label>
+                            <select
+                                id="method-select"
+                                value={selectedMethod}
+                                onChange={(e) => setSelectedMethod(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="auto">Auto (ARIMA)</option>
+                                <option value="arima">ARIMA</option>
+                                <option value="exponential_smoothing">Exponential Smoothing</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label htmlFor="duration-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Durasi Forecast
+                            </label>
+                            <select
+                                id="duration-select"
+                                value={forecastDuration}
+                                onChange={(e) => setForecastDuration(parseInt(e.target.value))}
+                                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="3">3 Bulan</option>
+                                <option value="6">6 Bulan</option>
+                                <option value="12">12 Bulan (1 Tahun)</option>
+                                <option value="24">24 Bulan (2 Tahun)</option>
+                                <option value="36">36 Bulan (3 Tahun)</option>
+                                <option value="60">60 Bulan (5 Tahun)</option>
+                            </select>
+                        </div>
+
+                        <div className="flex items-end">
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                Metode: <span className="font-medium">{selectedMethod === 'auto' ? 'ARIMA Otomatis' : selectedMethod === 'arima' ? 'ARIMA' : 'Exponential Smoothing'}</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Table Section */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                {loading ? (
+                    <div className="flex flex-col items-center justify-center py-12">
+                        <Loader className="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin mb-3" />
+                        <p className="text-gray-600 dark:text-gray-400">Memuat data simulasi keuangan...</p>
+                    </div>
+                ) : simulationsData.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12">
+                        <p className="text-gray-600 dark:text-gray-400 mb-4">Belum ada data simulasi keuangan</p>
+                        <button
+                            onClick={onCreateNew}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 font-medium"
+                        >
+                            <Plus size={18} />
+                            Buat Simulasi Pertama
+                        </button>
+                    </div>
+                ) : (
+                    <div className="space-y-0">
+                        {Object.keys(yearGroups).sort((a, b) => b - a).map((year) => {
+                            const yearKey = `year-${year}`;
+                            const isYearExpanded = expandedYearKey === parseInt(year);
+                            const yearMonths = yearGroups[year] || [];
+                            const yearYearForecast = generatedResults[yearKey];
+                            
+                            // Jika filter tahun dipilih (dan bulan kosong), tampilkan hanya bulan tanpa tahun header
+                            const shouldShowYearHeader = !filters.year;
+                            const shouldShowYearForecast = !filters.year && !filters.month;
+                            
+                            return (
+                                <div key={year} className="border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+                                    {/* Year Header Row - Tampil hanya jika tidak ada filter tahun */}
+                                    {shouldShowYearHeader && (
+                                    <div className="bg-gradient-to-r from-purple-50 to-transparent dark:from-purple-900/20 dark:to-transparent">
+                                        <div className="px-6 py-4 flex items-center justify-between cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
+                                            onClick={() => setExpandedYearKey(isYearExpanded ? null : parseInt(year))}>
+                                            <div className="flex items-center gap-4 flex-1">
+                                                <div>
+                                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                                                        Tahun {year}
+                                                    </h3>
+                                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                                        {yearMonths.length} bulan • {yearMonths.reduce((sum, m) => sum + m.simulations.length, 0)} transaksi
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleGenerateYearForecast(parseInt(year));
+                                                    }}
+                                                    disabled={generatingForecastId === yearKey}
+                                                    className="inline-flex items-center gap-1 px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
+                                                    title="Generate Forecast untuk seluruh tahun"
+                                                >
+                                                    {generatingForecastId === yearKey ? (
+                                                        <>
+                                                            <Loader size={16} className="animate-spin" />
+                                                            Generating Year...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <TrendingUp size={16} />
+                                                            Generate Tahun
+                                                        </>
+                                                    )}
+                                                </button>
+                                                {isYearExpanded ? (
+                                                    <ChevronUp size={24} className="text-gray-500" />
+                                                ) : (
+                                                    <ChevronDown size={24} className="text-gray-500" />
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    )}
+
+                                    {/* Year Expanded Content - Show Forecast Results - Tampil hanya jika tidak ada filter tahun */}
+                                    {shouldShowYearForecast && isYearExpanded && yearYearForecast && (
+                                        <div className="bg-gray-50 dark:bg-gray-700/30 px-6 py-4 space-y-4 border-b border-gray-200 dark:border-gray-700">
+                                            <div>
+                                                <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Hasil Forecast {year}</h4>
+                                                <div className="text-xs text-gray-600 dark:text-gray-400 mb-3 p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600">
+                                                    ℹ️ Forecast untuk tahun {year} didasarkan pada agregasi data dari semua bulan
+                                                </div>
+                                                {savedForecasts.has(yearKey) ? (
+                                                    <div className="flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-lg text-green-700 dark:text-green-400 text-xs font-medium w-fit">
+                                                        <CheckCircle size={14} />
+                                                        Tersimpan
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => handleSaveForecast({ year, month: null }, yearYearForecast)}
+                                                        disabled={savingForecastId === yearKey}
+                                                        className="flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-medium"
+                                                    >
+                                                        {savingForecastId === yearKey ? (
+                                                            <>
+                                                                <Loader size={14} className="animate-spin" />
+                                                                Menyimpan...
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Save size={14} />
+                                                                Simpan
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                )}
+                                            </div>
+                                            {yearYearForecast.results && yearYearForecast.results.length > 0 ? (
+                                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                                    {/* Income Chart */}
+                                                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 p-4">
+                                                        <h5 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3">Prediksi Pendapatan Tahun {year}</h5>
+                                                        <ResponsiveContainer width="100%" height={200}>
+                                                            <LineChart data={yearYearForecast.results}>
+                                                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                                                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                                                                <YAxis tick={{ fontSize: 12 }} />
+                                                                <Tooltip formatter={(value) => `Rp ${parseFloat(value).toLocaleString('id-ID')}`} contentStyle={{ backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '8px' }} />
+                                                                <Line type="monotone" dataKey="forecast_income" stroke="#10b981" dot={false} strokeWidth={2} />
+                                                            </LineChart>
+                                                        </ResponsiveContainer>
+                                                    </div>
+
+                                                    {/* Expense Chart */}
+                                                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 p-4">
+                                                        <h5 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3">Prediksi Pengeluaran Tahun {year}</h5>
+                                                        <ResponsiveContainer width="100%" height={200}>
+                                                            <LineChart data={yearYearForecast.results}>
+                                                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                                                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                                                                <YAxis tick={{ fontSize: 12 }} />
+                                                                <Tooltip formatter={(value) => `Rp ${parseFloat(value).toLocaleString('id-ID')}`} contentStyle={{ backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '8px' }} />
+                                                                <Line type="monotone" dataKey="forecast_expense" stroke="#ef4444" dot={false} strokeWidth={2} />
+                                                            </LineChart>
+                                                        </ResponsiveContainer>
+                                                    </div>
+
+                                                    {/* Profit Chart */}
+                                                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 p-4">
+                                                        <h5 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3">Prediksi Laba Tahun {year}</h5>
+                                                        <ResponsiveContainer width="100%" height={200}>
+                                                            <BarChart data={yearYearForecast.results}>
+                                                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                                                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                                                                <YAxis tick={{ fontSize: 12 }} />
+                                                                <Tooltip formatter={(value) => `Rp ${parseFloat(value).toLocaleString('id-ID')}`} contentStyle={{ backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '8px' }} />
+                                                                <Bar dataKey="forecast_profit" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                                                            </BarChart>
+                                                        </ResponsiveContainer>
+                                                    </div>
+
+                                                    {/* Margin Chart */}
+                                                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 p-4">
+                                                        <h5 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3">Margin Profit Tahun {year} (%)</h5>
+                                                        <ResponsiveContainer width="100%" height={200}>
+                                                            <LineChart data={yearYearForecast.results}>
+                                                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                                                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                                                                <YAxis tick={{ fontSize: 12 }} />
+                                                                <Tooltip formatter={(value) => `${parseFloat(value).toFixed(2)}%`} contentStyle={{ backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '8px' }} />
+                                                                <Line type="monotone" dataKey="forecast_margin" stroke="#8b5cf6" dot={false} strokeWidth={2} />
+                                                            </LineChart>
+                                                        </ResponsiveContainer>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <p className="text-gray-600 dark:text-gray-400">Belum ada hasil forecast</p>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Months Under Year - Tampil otomatis jika filter tahun ada, atau jika tahun di-expand */}
+                                    {(shouldShowYearHeader ? isYearExpanded : true) && (
+                                        <div className="bg-gray-50 dark:bg-gray-700/20 space-y-0">
+                                            {yearMonths.map((monthGroup) => {
+                                                const monthKey = `${monthGroup.year}-${monthGroup.month}`;
+                                                const isMonthExpanded = expandedMonthKey === monthKey;
+                                                const hasResults = generatedResults[monthKey];
+                                                
+                                                return (
+                                                    <div key={monthKey} className="border-t border-gray-200 dark:border-gray-700">
+                                                        {/* Month Header */}
+                                                        <div className="bg-gradient-to-r from-blue-50 to-transparent dark:from-blue-900/10 dark:to-transparent">
+                                                            <div className={`${shouldShowYearHeader ? 'px-8' : 'px-6'} py-3 flex items-center justify-between cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/20 transition-colors`}
+                                                                onClick={() => setExpandedMonthKey(isMonthExpanded ? null : monthKey)}>
+                                                                <div className="flex items-center gap-3 flex-1">
+                                                                    <div>
+                                                                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                                                            {monthGroup.monthName}
+                                                                        </h4>
+                                                                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                                                                            {monthGroup.simulations.length} transaksi
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleGenerateForecast(monthGroup);
+                                                                        }}
+                                                                        disabled={generatingForecastId === monthKey}
+                                                                        className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-xs"
+                                                                    >
+                                                                        {generatingForecastId === monthKey ? (
+                                                                            <>
+                                                                                <Loader size={12} className="animate-spin" />
+                                                                                Gen...
+                                                                            </>
+                                                                        ) : (
+                                                                            <>
+                                                                                <TrendingUp size={12} />
+                                                                                Generate
+                                                                            </>
+                                                                        )}
+                                                                    </button>
+                                                                    {isMonthExpanded ? (
+                                                                        <ChevronUp size={18} className="text-gray-500" />
+                                                                    ) : (
+                                                                        <ChevronDown size={18} className="text-gray-500" />
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Month Expanded Content */}
+                                                        {isMonthExpanded && (
+                                                            <div className={`bg-white dark:bg-gray-800 ${shouldShowYearHeader ? 'px-8' : 'px-6'} py-3 space-y-3 border-t border-gray-200 dark:border-gray-700`}
+                                                                style={{ marginLeft: '0px' }}>
+                                                                {/* Transactions Table - Simpler */}
+                                                                <div>
+                                                                    <div className="flex justify-between items-center mb-2">
+                                                                        <h5 className="text-xs font-semibold text-gray-700 dark:text-gray-300">Transaksi {monthGroup.monthName}</h5>
+                                                                        <div className="flex gap-2 text-xs">
+                                                                            <span className="text-green-600 dark:text-green-400">
+                                                                                In: Rp {monthGroup.simulations
+                                                                                    .filter(s => s.type === 'income')
+                                                                                    .reduce((sum, s) => sum + parseFloat(s.amount), 0)
+                                                                                    .toLocaleString('id-ID')}
+                                                                            </span>
+                                                                            <span className="text-red-600 dark:text-red-400">
+                                                                                Out: Rp {monthGroup.simulations
+                                                                                    .filter(s => s.type === 'expense')
+                                                                                    .reduce((sum, s) => sum + parseFloat(s.amount), 0)
+                                                                                    .toLocaleString('id-ID')}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="overflow-x-auto">
+                                                                        <table className="w-full text-xs">
+                                                                            <thead className="bg-gray-100 dark:bg-gray-700">
+                                                                                <tr>
+                                                                                    <th className="px-2 py-1 text-left text-gray-700 dark:text-gray-300">Tanggal</th>
+                                                                                    <th className="px-2 py-1 text-left text-gray-700 dark:text-gray-300">Tipe</th>
+                                                                                    <th className="px-2 py-1 text-left text-gray-700 dark:text-gray-300">Kategori</th>
+                                                                                    <th className="px-2 py-1 text-right text-gray-700 dark:text-gray-300">Nominal</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
+                                                                                {monthGroup.simulations.map((sim) => (
+                                                                                    <tr key={sim.id} className="hover:bg-gray-100 dark:hover:bg-gray-600/50">
+                                                                                        <td className="px-2 py-1 text-gray-600 dark:text-gray-300">
+                                                                                            {sim.simulation_date ? new Date(sim.simulation_date).toLocaleDateString('id-ID', { month: 'short', day: 'numeric' }) : '-'}
+                                                                                        </td>
+                                                                                        <td className="px-2 py-1">{getTypeBadge(sim.type)}</td>
+                                                                                        <td className="px-2 py-1 text-gray-600 dark:text-gray-300 text-xs">{sim.category?.name || '-'}</td>
+                                                                                        <td className="px-2 py-1 text-right font-medium text-gray-900 dark:text-white text-xs">
+                                                                                            Rp {parseFloat(sim.amount).toLocaleString('id-ID')}
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                ))}
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Month Forecast Results */}
+                                                                {hasResults && (
+                                                                    <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+                                                                        <div className="flex items-center justify-between mb-2">
+                                                                            <h5 className="text-xs font-semibold text-gray-700 dark:text-gray-300">Forecast {monthGroup.monthName}</h5>
+                                                                            {savedForecasts.has(monthKey) ? (
+                                                                                <div className="flex items-center gap-1 px-2 py-0.5 bg-green-100 dark:bg-green-900/30 rounded text-green-700 dark:text-green-400 text-xs font-medium">
+                                                                                    <CheckCircle size={12} />
+                                                                                    Tersimpan
+                                                                                </div>
+                                                                            ) : (
+                                                                                <button
+                                                                                    onClick={() => handleSaveForecast(monthGroup, hasResults)}
+                                                                                    disabled={savingForecastId === monthKey}
+                                                                                    className="flex items-center gap-0.5 px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors duration-200 disabled:opacity-50 text-xs font-medium"
+                                                                                >
+                                                                                    {savingForecastId === monthKey ? (
+                                                                                        <>
+                                                                                            <Loader size={12} className="animate-spin" />
+                                                                                        </>
+                                                                                    ) : (
+                                                                                        <>
+                                                                                            <Save size={12} />
+                                                                                        </>
+                                                                                    )}
+                                                                                </button>
+                                                                            )}
+                                                                        </div>
+                                                                        {hasResults.results && hasResults.results.length > 0 ? (
+                                                                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                                                                                {/* Simplified Charts - Mini versions */}
+                                                                                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 p-2">
+                                                                                    <h6 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Pendapatan</h6>
+                                                                                    <ResponsiveContainer width="100%" height={80}>
+                                                                                        <LineChart data={hasResults.results}>
+                                                                                            <Line type="monotone" dataKey="forecast_income" stroke="#10b981" dot={false} strokeWidth={1.5} isAnimationActive={false} />
+                                                                                        </LineChart>
+                                                                                    </ResponsiveContainer>
+                                                                                </div>
+
+                                                                                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 p-2">
+                                                                                    <h6 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Pengeluaran</h6>
+                                                                                    <ResponsiveContainer width="100%" height={80}>
+                                                                                        <LineChart data={hasResults.results}>
+                                                                                            <Line type="monotone" dataKey="forecast_expense" stroke="#ef4444" dot={false} strokeWidth={1.5} isAnimationActive={false} />
+                                                                                        </LineChart>
+                                                                                    </ResponsiveContainer>
+                                                                                </div>
+
+                                                                                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 p-2">
+                                                                                    <h6 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Laba</h6>
+                                                                                    <ResponsiveContainer width="100%" height={80}>
+                                                                                        <BarChart data={hasResults.results}>
+                                                                                            <Bar dataKey="forecast_profit" fill="#3b82f6" radius={[2, 2, 0, 0]} isAnimationActive={false} />
+                                                                                        </BarChart>
+                                                                                    </ResponsiveContainer>
+                                                                                </div>
+
+                                                                                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 p-2">
+                                                                                    <h6 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Margin (%)</h6>
+                                                                                    <ResponsiveContainer width="100%" height={80}>
+                                                                                        <LineChart data={hasResults.results}>
+                                                                                            <Line type="monotone" dataKey="forecast_margin" stroke="#8b5cf6" dot={false} strokeWidth={1.5} isAnimationActive={false} />
+                                                                                        </LineChart>
+                                                                                    </ResponsiveContainer>
+                                                                                </div>
+                                                                            </div>
+                                                                        ) : null}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
+
+            {/* Info Card */}
+            {Object.keys(yearGroups).length > 0 && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+                    <p className="text-sm text-blue-700 dark:text-blue-400">
+                        Menampilkan <span className="font-semibold">{Object.keys(yearGroups).length}</span> tahun dengan <span className="font-semibold">{simulationsData.length}</span> bulan ({simulationsData.reduce((sum, m) => sum + m.simulations.length, 0)} transaksi)
+                    </p>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default ForecastList;
