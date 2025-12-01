@@ -22,6 +22,9 @@ class FinancialProjection extends Model
         'inflation_rate',
         'discount_rate',
         'initial_investment',
+        'current_cash_balance',
+        'accumulated_income',
+        'accumulated_expense',
         'base_revenue',
         'base_cost',
         'base_net_profit',
@@ -39,6 +42,9 @@ class FinancialProjection extends Model
         'inflation_rate' => 'decimal:2',
         'discount_rate' => 'decimal:2',
         'initial_investment' => 'decimal:2',
+        'current_cash_balance' => 'decimal:2',
+        'accumulated_income' => 'decimal:2',
+        'accumulated_expense' => 'decimal:2',
         'base_revenue' => 'decimal:2',
         'base_cost' => 'decimal:2',
         'base_net_profit' => 'decimal:2',
@@ -49,6 +55,17 @@ class FinancialProjection extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime'
+    ];
+
+    /**
+     * Append formatted attributes to JSON
+     */
+    protected $appends = [
+        'display_scenario',
+        'formatted_roi',
+        'formatted_npv',
+        'formatted_irr',
+        'formatted_payback'
     ];
 
     /**
@@ -138,57 +155,82 @@ class FinancialProjection extends Model
             return false;
         }
 
-        $projections = $this->yearly_projections;
-        $discountRate = $this->discount_rate / 100;
-        $initialInvestment = $this->initial_investment;
+        try {
+            $projections = $this->yearly_projections;
+            $discountRate = $this->discount_rate / 100;
 
-        // Calculate NPV
-        $npv = -$initialInvestment; // Initial investment is negative cash flow
-        foreach ($projections as $projection) {
-            $year = $projection['year'];
-            $cashFlow = $projection['net_profit'];
-            $npv += $cashFlow / pow(1 + $discountRate, $year);
-        }
+            // PERBAIKAN: Gunakan current_cash_balance sebagai starting point, bukan initial_investment
+            // NPV = PV of future cash flows - Current cash position
+            $currentCashPosition = $this->current_cash_balance ?? $this->initial_investment;
 
-        // Calculate ROI (simple ROI based on total net profit)
-        $totalNetProfit = array_sum(array_column($projections, 'net_profit'));
-        $roi = $initialInvestment > 0 ? (($totalNetProfit - $initialInvestment) / $initialInvestment) * 100 : 0;
-
-        // Calculate Payback Period
-        $cumulativeCashFlow = -$initialInvestment;
-        $paybackPeriod = null;
-        foreach ($projections as $projection) {
-            $cumulativeCashFlow += $projection['net_profit'];
-            if ($cumulativeCashFlow > 0 && !$paybackPeriod) {
-                $paybackPeriod = $projection['year'];
-                break;
+            // Calculate NPV
+            // NPV mengukur nilai sekarang dari proyeksi dikurangi posisi kas saat ini
+            $npv = 0; // Mulai dari 0
+            foreach ($projections as $projection) {
+                $year = $projection['year'];
+                $cashFlow = $projection['net_profit'];
+                $npv += $cashFlow / pow(1 + $discountRate, $year);
             }
+            // NPV final = PV of projected cash flows - starting cash position
+            $npv = $npv - $currentCashPosition;
+
+            // Calculate ROI
+            // ROI = (Total Projected Profit) / Current Cash Position * 100
+            $totalNetProfit = array_sum(array_column($projections, 'net_profit'));
+            $roi = $currentCashPosition > 0 ? ($totalNetProfit / $currentCashPosition) * 100 : 0;
+
+            // Calculate Payback Period
+            // Berapa tahun untuk ROI mencapai break-even dari posisi kas saat ini
+            $cumulativeCashFlow = 0; // Mulai dari 0, bukan dari -investment
+            $paybackPeriod = null;
+            foreach ($projections as $projection) {
+                $cumulativeCashFlow += $projection['net_profit'];
+                if ($cumulativeCashFlow >= $currentCashPosition && !$paybackPeriod) {
+                    $paybackPeriod = $projection['year'];
+                    break;
+                }
+            }
+
+            // If not paid back in projection period
+            if (!$paybackPeriod && count($projections) > 0) {
+                $paybackPeriod = count($projections) + 1; // Beyond projection period
+            }
+
+            // Calculate IRR
+            $irr = $this->calculateIRR($projections, $currentCashPosition);
+
+            $this->update([
+                'npv' => $npv,
+                'roi' => $roi,
+                'payback_period' => $paybackPeriod,
+                'irr' => $irr
+            ]);
+
+            \Log::info("Calculated metrics for projection ID {$this->id}: NPV={$npv}, ROI={$roi}, IRR={$irr}, Payback={$paybackPeriod}");
+
+            return true;
+        } catch (\Exception $e) {
+            \Log::error("Error calculating metrics for projection ID {$this->id}: " . $e->getMessage());
+            return false;
         }
-
-        // Simple IRR calculation (approximation)
-        $irr = $this->calculateIRR($projections, $initialInvestment);
-
-        $this->update([
-            'npv' => $npv,
-            'roi' => $roi,
-            'payback_period' => $paybackPeriod,
-            'irr' => $irr
-        ]);
-
-        return true;
     }
 
     /**
      * Calculate IRR using Newton-Raphson method (simplified)
      */
-    private function calculateIRR($projections, $initialInvestment)
+    private function calculateIRR($projections, $currentCashPosition)
     {
+        // Skip IRR calculation if no investment
+        if ($currentCashPosition <= 0) {
+            return 0;
+        }
+
         $rate = 0.1; // Initial guess 10%
         $maxIterations = 100;
         $tolerance = 0.0001;
 
         for ($i = 0; $i < $maxIterations; $i++) {
-            $npv = -$initialInvestment;
+            $npv = -$currentCashPosition;
             $derivative = 0;
 
             foreach ($projections as $projection) {
@@ -201,7 +243,7 @@ class FinancialProjection extends Model
             if (abs($npv) < $tolerance) {
                 return $rate * 100; // Return as percentage
 
-       }
+            }
 
             if ($derivative == 0) {
                 break;

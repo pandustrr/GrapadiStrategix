@@ -188,7 +188,7 @@ const FinancialProjections = ({ selectedBusiness, onBack }) => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="bg-white border border-gray-200 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700">
+          <div className="bg-white border border-gray-200 shadow-sm rounded-xl dark:bg-gray-800 dark:border-gray-700">
             <div className="p-6 space-y-6">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Parameter Proyeksi</h3>
 
@@ -281,32 +281,69 @@ const FinancialProjections = ({ selectedBusiness, onBack }) => {
 
           {/* Baseline Data */}
           {baseline && (
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 dark:bg-blue-900/20 dark:border-blue-800">
-              <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-4">Data Baseline Tahun {baseline.base_year}</h3>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div>
-                  <p className="text-sm text-blue-700 dark:text-blue-300">Total Pendapatan</p>
-                  <p className="text-xl font-bold text-blue-900 dark:text-blue-100">{currency(baseline.total_revenue)}</p>
+            <div className="p-6 border border-blue-200 bg-blue-50 rounded-xl dark:bg-blue-900/20 dark:border-blue-800">
+              <h3 className="mb-4 text-lg font-semibold text-blue-900 dark:text-blue-100">📊 Data Baseline & Posisi Kas Terkini</h3>
+
+              {/* Cash Position Summary */}
+              <div className="p-4 mb-4 bg-white border border-blue-300 rounded-lg dark:bg-gray-800 dark:border-blue-700">
+                <h4 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Posisi Kas Saat Ini</h4>
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+                  <div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Modal Awal</p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-white">{currency(baseline.initial_investment || 0)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-green-600 dark:text-green-400">Total Pendapatan</p>
+                    <p className="text-lg font-bold text-green-600 dark:text-green-400">+{currency(baseline.accumulated_income || 0)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-red-600 dark:text-red-400">Total Pengeluaran</p>
+                    <p className="text-lg font-bold text-red-600 dark:text-red-400">-{currency(baseline.accumulated_expense || 0)}</p>
+                  </div>
+                  <div className="p-3 text-white rounded-lg bg-gradient-to-br from-blue-500 to-blue-600">
+                    <p className="text-xs opacity-90">💰 Kas Terkini</p>
+                    <p className="text-xl font-bold">{currency(baseline.current_cash_balance || 0)}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-blue-700 dark:text-blue-300">Total Biaya</p>
-                  <p className="text-xl font-bold text-blue-900 dark:text-blue-100">{currency(baseline.total_cost)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-blue-700 dark:text-blue-300">Laba Bersih</p>
-                  <p className="text-xl font-bold text-blue-900 dark:text-blue-100">{currency(baseline.net_profit)}</p>
-                </div>
+                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">Dari {baseline.all_simulation_count || 0} total transaksi simulasi</p>
               </div>
-              <p className="mt-2 text-xs text-blue-600 dark:text-blue-400">Berdasarkan {baseline.simulation_count} transaksi simulasi</p>
+
+              {/* Baseline Year Performance */}
+              <div className="p-4 bg-white border border-blue-200 rounded-lg dark:bg-gray-800 dark:border-blue-700">
+                <h4 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Performa Tahun {baseline.base_year} (Baseline untuk Proyeksi)</h4>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <div>
+                    <p className="text-sm text-blue-700 dark:text-blue-300">Pendapatan Tahun Ini</p>
+                    <p className="text-xl font-bold text-blue-900 dark:text-blue-100">{currency(baseline.total_revenue)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-blue-700 dark:text-blue-300">Biaya Tahun Ini</p>
+                    <p className="text-xl font-bold text-blue-900 dark:text-blue-100">{currency(baseline.total_cost)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-blue-700 dark:text-blue-300">Laba Bersih</p>
+                    <p className="text-xl font-bold text-blue-900 dark:text-blue-100">{currency(baseline.net_profit)}</p>
+                  </div>
+                </div>
+                <p className="mt-2 text-xs text-blue-600 dark:text-blue-400">
+                  Berdasarkan {baseline.simulation_count} transaksi di tahun {baseline.base_year}
+                </p>
+              </div>
+
+              <div className="p-3 mt-3 border border-yellow-200 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-800">
+                <p className="text-xs text-yellow-800 dark:text-yellow-200">
+                  💡 <strong>Catatan:</strong> Proyeksi NPV akan dihitung berdasarkan <strong>Kas Terkini ({currency(baseline.current_cash_balance || 0)})</strong>, bukan modal awal. Ini mencerminkan kondisi riil bisnis Anda saat ini.
+                </p>
+              </div>
             </div>
           )}
 
           {/* Submit Button */}
           <div className="flex gap-3">
-            <button type="button" onClick={() => setView("list")} className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700" disabled={isLoading}>
+            <button type="button" onClick={() => setView("list")} className="px-6 py-3 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700" disabled={isLoading}>
               Batal
             </button>
-            <button type="submit" className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50" disabled={isLoading || !baseline}>
+            <button type="submit" className="flex items-center gap-2 px-6 py-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50" disabled={isLoading || !baseline}>
               <Calculator size={16} />
               {isLoading ? "Membuat Proyeksi..." : "Buat Proyeksi"}
             </button>
@@ -339,18 +376,18 @@ const FinancialProjections = ({ selectedBusiness, onBack }) => {
             <p className="text-sm text-gray-600 dark:text-gray-400">Analisis proyeksi berdasarkan data historis</p>
           </div>
         </div>
-        <button onClick={() => setView("create")} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        <button onClick={() => setView("create")} className="flex items-center gap-2 px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700">
           <Plus size={16} />
           Buat Proyeksi
         </button>
       </div>
 
       {/* Error State */}
-      {error && <div className="p-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg dark:bg-red-900/20 dark:text-red-300 dark:border-red-800">{error}</div>}
+      {error && <div className="p-4 text-sm text-red-700 border border-red-200 rounded-lg bg-red-50 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800">{error}</div>}
 
       {/* Loading State */}
       {isLoading && (
-        <div className="text-center py-12">
+        <div className="py-12 text-center">
           <div className="inline-flex items-center gap-2">
             <div className="w-4 h-4 bg-blue-600 rounded-full animate-bounce"></div>
             <span className="text-gray-600 dark:text-gray-300">Memuat data proyeksi...</span>
@@ -362,11 +399,11 @@ const FinancialProjections = ({ selectedBusiness, onBack }) => {
       {!isLoading && !error && (
         <div className="space-y-4">
           {projections.length === 0 ? (
-            <div className="text-center py-12">
-              <BarChart3 size={64} className="mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Belum ada proyeksi</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">Mulai dengan membuat proyeksi keuangan pertama Anda</p>
-              <button onClick={() => setView("create")} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 mx-auto">
+            <div className="py-12 text-center">
+              <BarChart3 size={64} className="mx-auto mb-4 text-gray-400" />
+              <h3 className="mb-2 text-lg font-medium text-gray-900 dark:text-white">Belum ada proyeksi</h3>
+              <p className="mb-4 text-gray-600 dark:text-gray-400">Mulai dengan membuat proyeksi keuangan pertama Anda</p>
+              <button onClick={() => setView("create")} className="flex items-center gap-2 px-4 py-2 mx-auto text-white bg-blue-600 rounded-lg hover:bg-blue-700">
                 <Plus size={16} />
                 Buat Proyeksi Pertama
               </button>
@@ -411,7 +448,7 @@ const ProjectionCard = ({ projection, onView, onDelete }) => {
   };
 
   return (
-    <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700 hover:shadow-md transition-shadow">
+    <div className="p-6 transition-shadow bg-white border border-gray-200 shadow-sm rounded-xl dark:bg-gray-800 dark:border-gray-700 hover:shadow-md">
       <div className="flex items-start justify-between mb-4">
         <div>
           <h3 className="font-semibold text-gray-900 dark:text-white line-clamp-2">{safeProjection.projection_name}</h3>
@@ -420,7 +457,7 @@ const ProjectionCard = ({ projection, onView, onDelete }) => {
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getScenarioColor(safeProjection.scenario_type)}`}>{safeProjection.display_scenario}</span>
       </div>
 
-      <div className="space-y-3 mb-4">
+      <div className="mb-4 space-y-3">
         <div className="flex items-center gap-2 text-sm">
           <DollarSign size={16} className="text-gray-400" />
           <span className="text-gray-600 dark:text-gray-400">NPV:</span>
@@ -439,11 +476,11 @@ const ProjectionCard = ({ projection, onView, onDelete }) => {
       </div>
 
       <div className="flex gap-2">
-        <button onClick={() => onView(safeProjection)} className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+        <button onClick={() => onView(safeProjection)} className="flex items-center justify-center flex-1 gap-1 px-3 py-2 text-sm text-white bg-blue-600 rounded hover:bg-blue-700">
           <Eye size={14} />
           Detail
         </button>
-        <button onClick={() => onDelete(safeProjection.id)} className="flex items-center justify-center gap-1 px-3 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700">
+        <button onClick={() => onDelete(safeProjection.id)} className="flex items-center justify-center gap-1 px-3 py-2 text-sm text-white bg-red-600 rounded hover:bg-red-700">
           <Trash2 size={14} />
         </button>
       </div>
@@ -467,6 +504,9 @@ const ProjectionDetail = ({ projection, onBack }) => {
     inflation_rate: parseFloat(projection?.inflation_rate) || 0,
     discount_rate: parseFloat(projection?.discount_rate) || 0,
     initial_investment: parseFloat(projection?.initial_investment) || 0,
+    current_cash_balance: parseFloat(projection?.current_cash_balance) || 0,
+    accumulated_income: parseFloat(projection?.accumulated_income) || 0,
+    accumulated_expense: parseFloat(projection?.accumulated_expense) || 0,
   };
 
   return (
@@ -490,7 +530,7 @@ const ProjectionDetail = ({ projection, onBack }) => {
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-        <div className="p-4 bg-green-50 border border-green-200 rounded-lg dark:bg-green-900/20 dark:border-green-800">
+        <div className="p-4 border border-green-200 rounded-lg bg-green-50 dark:bg-green-900/20 dark:border-green-800">
           <div className="flex items-center gap-2">
             <Target className="text-green-600 dark:text-green-400" size={20} />
             <div>
@@ -500,7 +540,7 @@ const ProjectionDetail = ({ projection, onBack }) => {
           </div>
         </div>
 
-        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-900/20 dark:border-blue-800">
+        <div className="p-4 border border-blue-200 rounded-lg bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800">
           <div className="flex items-center gap-2">
             <TrendingUp className="text-blue-600 dark:text-blue-400" size={20} />
             <div>
@@ -510,7 +550,7 @@ const ProjectionDetail = ({ projection, onBack }) => {
           </div>
         </div>
 
-        <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg dark:bg-purple-900/20 dark:border-purple-800">
+        <div className="p-4 border border-purple-200 rounded-lg bg-purple-50 dark:bg-purple-900/20 dark:border-purple-800">
           <div className="flex items-center gap-2">
             <Calculator className="text-purple-600 dark:text-purple-400" size={20} />
             <div>
@@ -520,7 +560,7 @@ const ProjectionDetail = ({ projection, onBack }) => {
           </div>
         </div>
 
-        <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg dark:bg-orange-900/20 dark:border-orange-800">
+        <div className="p-4 border border-orange-200 rounded-lg bg-orange-50 dark:bg-orange-900/20 dark:border-orange-800">
           <div className="flex items-center gap-2">
             <Clock className="text-orange-600 dark:text-orange-400" size={20} />
             <div>
@@ -532,19 +572,19 @@ const ProjectionDetail = ({ projection, onBack }) => {
       </div>
 
       {/* Yearly Projections Table */}
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm dark:bg-gray-800 dark:border-gray-700">
+      <div className="bg-white border border-gray-200 shadow-sm rounded-xl dark:bg-gray-800 dark:border-gray-700">
         <div className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
             Proyeksi 5 Tahun ({safeProjection.base_year + 1} - {safeProjection.base_year + 5})
           </h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
-                  <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Tahun</th>
-                  <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Pendapatan</th>
-                  <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Biaya</th>
-                  <th className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">Laba Bersih</th>
+                <tr className="border-b border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                  <th className="px-4 py-3 font-semibold text-left text-gray-900 dark:text-white">Tahun</th>
+                  <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Pendapatan</th>
+                  <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Biaya</th>
+                  <th className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">Laba Bersih</th>
                 </tr>
               </thead>
               <tbody>
@@ -553,7 +593,7 @@ const ProjectionDetail = ({ projection, onBack }) => {
                     <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">Tahun {data.year}</td>
                     <td className="px-4 py-3 text-right text-gray-700 dark:text-gray-300">{currency(data.revenue)}</td>
                     <td className="px-4 py-3 text-right text-gray-700 dark:text-gray-300">{currency(data.cost)}</td>
-                    <td className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">{currency(data.net_profit)}</td>
+                    <td className="px-4 py-3 font-semibold text-right text-gray-900 dark:text-white">{currency(data.net_profit)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -563,9 +603,35 @@ const ProjectionDetail = ({ projection, onBack }) => {
       </div>
 
       {/* Assumptions */}
-      <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 dark:bg-gray-700/50 dark:border-gray-700">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Asumsi Proyeksi</h3>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="p-6 border border-gray-200 bg-gray-50 rounded-xl dark:bg-gray-700/50 dark:border-gray-700">
+        <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Asumsi & Posisi Awal</h3>
+
+        {/* Cash Position */}
+        <div className="p-4 mb-4 border border-blue-200 rounded-lg bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700">
+          <h4 className="mb-3 text-sm font-semibold text-blue-900 dark:text-blue-100">💰 Posisi Kas</h4>
+          <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
+            <div>
+              <p className="text-gray-600 dark:text-gray-400">Modal Awal</p>
+              <p className="font-semibold text-gray-900 dark:text-white">{currency(safeProjection.initial_investment)}</p>
+            </div>
+            <div>
+              <p className="text-green-600 dark:text-green-400">Akumulasi Pendapatan</p>
+              <p className="font-semibold text-green-700 dark:text-green-300">+{currency(safeProjection.accumulated_income)}</p>
+            </div>
+            <div>
+              <p className="text-red-600 dark:text-red-400">Akumulasi Pengeluaran</p>
+              <p className="font-semibold text-red-700 dark:text-red-300">-{currency(safeProjection.accumulated_expense)}</p>
+            </div>
+            <div className="p-2 text-white rounded-lg bg-gradient-to-br from-blue-500 to-blue-600">
+              <p className="text-xs opacity-90">Kas Terkini</p>
+              <p className="text-lg font-bold">{currency(safeProjection.current_cash_balance)}</p>
+            </div>
+          </div>
+          <p className="mt-2 text-xs text-blue-700 dark:text-blue-300">ℹ️ NPV dihitung dari posisi kas terkini, mencerminkan kondisi riil bisnis</p>
+        </div>
+
+        {/* Projection Assumptions */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           <div>
             <p className="text-sm text-gray-600 dark:text-gray-400">Pertumbuhan Revenue</p>
             <p className="font-medium text-gray-900 dark:text-white">{percentage(safeProjection.growth_rate)}</p>
@@ -577,10 +643,6 @@ const ProjectionDetail = ({ projection, onBack }) => {
           <div>
             <p className="text-sm text-gray-600 dark:text-gray-400">Discount Rate</p>
             <p className="font-medium text-gray-900 dark:text-white">{percentage(safeProjection.discount_rate)}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Investasi Awal</p>
-            <p className="font-medium text-gray-900 dark:text-white">{currency(safeProjection.initial_investment)}</p>
           </div>
         </div>
       </div>

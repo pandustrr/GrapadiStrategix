@@ -9,6 +9,7 @@ import FinancialSummaries from "../components/ManagementFinancial/FinancialSumma
 import FinancialSimulation from "../components/ManagementFinancial/FinancialSimulation/FinancialSimulation";
 import MonthlyReports from "../components/ManagementFinancial/MonthlyReports/MonthlyReports";
 import FinancialProjections from "../components/ManagementFinancial/FinancialProjections/FinancialProjections";
+import ExportPDF from "../components/ManagementFinancial/ExportPDF/ExportPDF";
 
 const ManagementFinancial = ({ activeSubSection, setActiveSubSection }) => {
   const { user } = useAuth();
@@ -311,6 +312,24 @@ const ManagementFinancial = ({ activeSubSection, setActiveSubSection }) => {
                 </svg>
               </div>
             </div>
+
+            {/* Export PDF Laporan Keuangan Card */}
+            <div
+              className="p-6 transition-all duration-300 bg-white border border-gray-200 shadow-sm cursor-pointer dark:bg-gray-800 rounded-xl dark:border-gray-700 hover:shadow-lg group hover:border-red-300 dark:hover:border-red-600"
+              onClick={() => handleSubSectionClick("export-pdf-financial")}
+            >
+              <div className="flex items-center justify-center w-12 h-12 mb-4 transition-transform duration-300 bg-red-100 rounded-lg dark:bg-red-900/20 group-hover:scale-110">
+                <FileText className="text-red-600 dark:text-red-400" size={24} />
+              </div>
+              <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">Export PDF Laporan Keuangan</h3>
+              <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">Unduh laporan keuangan lengkap dengan ringkasan, proyeksi, dan grafik dalam format PDF</p>
+              <div className="flex items-center text-sm font-medium text-red-600 dark:text-red-400">
+                <span>Export PDF</span>
+                <svg className="w-4 h-4 ml-1 transition-transform transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
           </div>
 
           {/* Workflow Guide */}
@@ -363,6 +382,8 @@ const ManagementFinancial = ({ activeSubSection, setActiveSubSection }) => {
         return <MonthlyReports onBack={handleBackToMain} selectedBusiness={selectedBusiness} />;
       case "financial-projections":
         return <FinancialProjections onBack={handleBackToMain} selectedBusiness={selectedBusiness} />;
+      case "export-pdf-financial":
+        return <ExportPDF onBack={handleBackToMain} selectedBusiness={selectedBusiness} />;
       default:
         return renderMainView();
     }

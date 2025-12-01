@@ -55,8 +55,12 @@ class FinancialSimulationSeeder extends Seeder
                     $year = $monthData['year'];
                     $month = $monthData['month'];
 
-                    // 2-5 transaksi per kategori per bulan
-                    $transactionCount = rand(2, 5);
+                    // Lebih banyak transaksi income daripada expense
+                    if ($category->type === 'income') {
+                        $transactionCount = rand(5, 10); // 5-10 transaksi income per bulan
+                    } else {
+                        $transactionCount = rand(2, 4); // 2-4 transaksi expense per bulan
+                    }
 
                     for ($i = 0; $i < $transactionCount; $i++) {
                         // Random tanggal dalam bulan tersebut
@@ -71,9 +75,9 @@ class FinancialSimulationSeeder extends Seeder
                         // Amount berdasarkan category_subtype dan tipe kategori
                         if ($category->type === 'income') {
                             if ($category->category_subtype === 'operating_revenue') {
-                                $amount = rand(1000000, 15000000); // 1jt - 15jt
+                                $amount = rand(2000000, 20000000); // 2jt - 20jt (dinaikkan)
                             } else { // non_operating_revenue
-                                $amount = rand(100000, 2000000); // 100rb - 2jt
+                                $amount = rand(500000, 5000000); // 500rb - 5jt (dinaikkan)
                             }
 
                             $descriptions = [
@@ -84,30 +88,30 @@ class FinancialSimulationSeeder extends Seeder
                                 'Pendapatan ' . $category->name,
                             ];
                         } else {
-                            // Expense amounts berdasarkan category_subtype
+                            // Expense amounts berdasarkan category_subtype (dikurangi)
                             switch ($category->category_subtype) {
                                 case 'cogs':
-                                    $amount = rand(2000000, 8000000); // 2jt - 8jt
+                                    $amount = rand(1000000, 5000000); // 1jt - 5jt (dikurangi dari 2-8jt)
                                     break;
                                 case 'operating_expense':
                                     if (str_contains(strtolower($category->name), 'gaji')) {
-                                        $amount = rand(3000000, 15000000); // 3jt - 15jt
+                                        $amount = rand(2000000, 8000000); // 2jt - 8jt (dikurangi dari 3-15jt)
                                     } elseif (str_contains(strtolower($category->name), 'sewa')) {
-                                        $amount = rand(2000000, 8000000); // 2jt - 8jt
+                                        $amount = rand(1000000, 4000000); // 1jt - 4jt (dikurangi dari 2-8jt)
                                     } elseif (str_contains(strtolower($category->name), 'listrik')) {
-                                        $amount = rand(500000, 2000000); // 500rb - 2jt
+                                        $amount = rand(300000, 1000000); // 300rb - 1jt (dikurangi dari 500rb-2jt)
                                     } else {
-                                        $amount = rand(500000, 5000000); // 500rb - 5jt
+                                        $amount = rand(300000, 2000000); // 300rb - 2jt (dikurangi dari 500rb-5jt)
                                     }
                                     break;
                                 case 'interest_expense':
-                                    $amount = rand(200000, 1500000); // 200rb - 1.5jt
+                                    $amount = rand(100000, 800000); // 100rb - 800rb (dikurangi dari 200rb-1.5jt)
                                     break;
                                 case 'tax_expense':
-                                    $amount = rand(500000, 3000000); // 500rb - 3jt
+                                    $amount = rand(300000, 1500000); // 300rb - 1.5jt (dikurangi dari 500rb-3jt)
                                     break;
                                 default: // other
-                                    $amount = rand(100000, 2000000); // 100rb - 2jt
+                                    $amount = rand(50000, 1000000); // 50rb - 1jt (dikurangi dari 100rb-2jt)
                             }
 
                             $descriptions = [
@@ -148,22 +152,22 @@ class FinancialSimulationSeeder extends Seeder
                 }
             }
 
-            // Tambahkan beberapa recurring simulation untuk pengeluaran rutin
+            // Tambahkan beberapa recurring simulation untuk pengeluaran rutin (dikurangi)
             $recurringCategories = $categories->where('type', 'expense')
                 ->where('category_subtype', 'operating_expense')
-                ->take(3);
+                ->take(2); // Dikurangi dari 3 ke 2
 
             foreach ($recurringCategories as $category) {
-                // Recurring simulation untuk tahun 2025
+                // Recurring simulation dengan amount lebih kecil
                 $recurringAmount = 0;
                 if (str_contains(strtolower($category->name), 'gaji')) {
-                    $recurringAmount = 5000000; // 5jt
+                    $recurringAmount = 3000000; // 3jt (dikurangi dari 5jt)
                 } elseif (str_contains(strtolower($category->name), 'sewa')) {
-                    $recurringAmount = 3000000; // 3jt
+                    $recurringAmount = 2000000; // 2jt (dikurangi dari 3jt)
                 } elseif (str_contains(strtolower($category->name), 'listrik')) {
-                    $recurringAmount = 1000000; // 1jt
+                    $recurringAmount = 500000; // 500rb (dikurangi dari 1jt)
                 } else {
-                    $recurringAmount = 2000000; // 2jt default
+                    $recurringAmount = 1000000; // 1jt (dikurangi dari 2jt)
                 }
 
                 $simulationCode = 'SIM' . Carbon::now()->format('YmdHis') . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);

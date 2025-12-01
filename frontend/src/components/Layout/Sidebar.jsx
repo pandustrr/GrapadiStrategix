@@ -114,6 +114,11 @@ const Sidebar = ({ activeSection, setActiveSection, activeSubSection, setActiveS
           label: "Proyeksi Keuangan 5 Tahun",
           icon: Calculator,
         },
+        {
+          id: "export-pdf-financial",
+          label: "Export PDF Laporan Keuangan",
+          icon: FileText,
+        },
       ],
     },
 
@@ -219,19 +224,19 @@ const Sidebar = ({ activeSection, setActiveSection, activeSubSection, setActiveS
         <div className="flex items-center justify-between p-4 bg-white border-b border-gray-200 lg:p-6 dark:border-gray-700 dark:bg-gray-800">
           {isOpen || !isMobile ? (
             <div className={`flex items-center justify-between w-full ${!isOpen && "lg:justify-center"}`}>
-                {(isOpen || !isMobile) && (
-                  <div className={`${!isOpen && "lg:hidden"}`}>
-                    <h1 className="text-xl font-bold text-gray-900 lg:text-2xl dark:text-white">
-                      <span className="text-green-600 dark:text-green-400">Grapadi</span>
-                      Strategix
-                    </h1>
-                    <p className="hidden mt-1 text-xs text-gray-500 lg:text-sm dark:text-gray-400 lg:block">Business Management</p>
-                  </div>
-                )}              {/* Toggle Button */}
+              {(isOpen || !isMobile) && (
+                <div className={`${!isOpen && "lg:hidden"}`}>
+                  <h1 className="text-xl font-bold text-gray-900 lg:text-2xl dark:text-white">
+                    <span className="text-green-600 dark:text-green-400">Grapadi</span>
+                    Strategix
+                  </h1>
+                  <p className="hidden mt-1 text-xs text-gray-500 lg:text-sm dark:text-gray-400 lg:block">Business Management</p>
+                </div>
+              )}{" "}
+              {/* Toggle Button */}
               <button onClick={onToggle} className="p-2 text-gray-600 transition-colors duration-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300">
                 {isOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} className="hidden text-gray-600 dark:text-gray-300 lg:block" />}
               </button>
-
               {/* Close button for mobile */}
               {isMobile && isOpen && (
                 <button onClick={onClose} className="p-2 text-gray-600 transition-colors duration-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 lg:hidden dark:text-gray-300">

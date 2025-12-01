@@ -14,6 +14,7 @@ use App\Http\Controllers\ManagementFinancial\ManagementFinancialController;
 use App\Http\Controllers\ManagementFinancial\FinancialCategoryController;
 use App\Http\Controllers\ManagementFinancial\FinancialSimulationController;
 use App\Http\Controllers\ManagementFinancial\FinancialSummaryController;
+use App\Http\Controllers\ManagementFinancial\PdfFinancialReportController;
 use App\Http\Controllers\Forecast\ForecastDataController;
 use App\Http\Controllers\Forecast\ForecastResultController;
 use App\Http\Controllers\Affiliate\AffiliateLinkController;
@@ -196,6 +197,12 @@ Route::middleware(['auth:sanctum', 'cors'])->group(function () {
             Route::get('/{id}', [\App\Http\Controllers\ManagementFinancial\FinancialProjectionController::class, 'show']);
             Route::post('/', [\App\Http\Controllers\ManagementFinancial\FinancialProjectionController::class, 'store']);
             Route::delete('/{id}', [\App\Http\Controllers\ManagementFinancial\FinancialProjectionController::class, 'destroy']);
+        });
+
+        // Financial Report PDF Routes
+        Route::prefix('pdf')->group(function () {
+            Route::post('/generate', [\App\Http\Controllers\ManagementFinancial\PdfFinancialReportController::class, 'generatePdf']);
+            Route::get('/statistics', [\App\Http\Controllers\ManagementFinancial\PdfFinancialReportController::class, 'getStatistics']);
         });
 
         // Forecast Routes

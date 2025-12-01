@@ -96,7 +96,24 @@ class FinancialProjectionController extends Controller
 
             $baseYear = $request->base_year ?? date('Y');
 
-            // Get simulations for base year
+            // Get ALL completed simulations to calculate current cash balance
+            $allSimulations = FinancialSimulation::where('user_id', $request->user_id)
+                ->where('business_background_id', $request->business_background_id)
+                ->where('status', 'completed')
+                ->get();
+
+            // Calculate accumulated totals from ALL simulations
+            $accumulatedIncome = $allSimulations->where('type', 'income')->sum('amount');
+            $accumulatedExpense = $allSimulations->where('type', 'expense')->sum('amount');
+
+            // Get initial investment from business background
+            $businessBackground = \App\Models\BusinessBackground::find($request->business_background_id);
+            $initialInvestment = $businessBackground ? $businessBackground->initial_capital : 0;
+
+            // Current cash balance = Initial Investment + Total Income - Total Expense
+            $currentCashBalance = $initialInvestment + $accumulatedIncome - $accumulatedExpense;
+
+            // Get simulations for base year only (for baseline calculation)
             $simulations = FinancialSimulation::with('category')
                 ->where('user_id', $request->user_id)
                 ->where('business_background_id', $request->business_background_id)
@@ -111,7 +128,7 @@ class FinancialProjectionController extends Controller
                 ], 404);
             }
 
-            // Calculate baseline totals
+            // Calculate baseline totals (for projection baseline)
             $totalRevenue = $simulations->where('type', 'income')->sum('amount');
             $totalCost = $simulations->where('type', 'expense')->sum('amount');
             $netProfit = $totalRevenue - $totalCost;
@@ -154,11 +171,16 @@ class FinancialProjectionController extends Controller
                 'status' => 'success',
                 'data' => [
                     'base_year' => $baseYear,
+                    'initial_investment' => $initialInvestment,
+                    'accumulated_income' => $accumulatedIncome,
+                    'accumulated_expense' => $accumulatedExpense,
+                    'current_cash_balance' => $currentCashBalance,
                     'total_revenue' => $totalRevenue,
                     'total_cost' => $totalCost,
                     'net_profit' => $netProfit,
                     'breakdown' => $breakdown,
-                    'simulation_count' => $simulations->count()
+                    'simulation_count' => $simulations->count(),
+                    'all_simulation_count' => $allSimulations->count()
                 ],
                 'message' => 'Data baseline berhasil diambil'
             ], 200);
@@ -261,7 +283,10 @@ class FinancialProjectionController extends Controller
                     'growth_rate' => $scenarioRates['growth_rate'],
                     'inflation_rate' => $scenarioRates['inflation_rate'],
                     'discount_rate' => $request->discount_rate,
-                    'initial_investment' => $request->initial_investment,
+                    'initial_investment' => $baseline->initial_investment ?? $request->initial_investment,
+                    'current_cash_balance' => $baseline->current_cash_balance ?? $request->initial_investment,
+                    'accumulated_income' => $baseline->accumulated_income ?? 0,
+                    'accumulated_expense' => $baseline->accumulated_expense ?? 0,
                     'base_revenue' => $baseline->total_revenue,
                     'base_cost' => $baseline->total_cost,
                     'base_net_profit' => $baseline->net_profit,
