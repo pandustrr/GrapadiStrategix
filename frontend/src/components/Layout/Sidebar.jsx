@@ -22,6 +22,7 @@ import {
   Link2,
   BarChart2,
   Users2,
+  TrendingUpIcon,
 } from "lucide-react";
 
 const Sidebar = ({
@@ -123,6 +124,30 @@ const Sidebar = ({
         // Tambahkan sub items lainnya nanti
       ],
     },
+
+    {
+      id: "forecast",
+      label: "Forecast Keuangan",
+      icon: TrendingUp,
+      description: "Prediksi dan analisis keuangan masa depan",
+      subItems: [
+        {
+          id: "daftar-forecast",
+          label: "Daftar Forecast",
+          icon: FileText,
+        },
+        {
+          id: "buat-forecast",
+          label: "Buat Forecast Baru",
+          icon: TrendingUp,
+        },
+        {
+          id: "hasil-forecast",
+          label: "Hasil & Insights",
+          icon: BarChart3,
+        },
+      ],
+    },
     
     {
       id: "affiliate",
@@ -148,12 +173,6 @@ const Sidebar = ({
       ],
     },
 
-    {
-      id: "forecast",
-      label: "Forecast",
-      icon: TrendingUp,
-      description: "Prediksi dan perencanaan masa depan",
-    },
     {
       id: "profile",
       label: "Profil Pengguna",

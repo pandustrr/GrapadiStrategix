@@ -14,6 +14,8 @@ use App\Http\Controllers\ManagementFinancial\ManagementFinancialController;
 use App\Http\Controllers\ManagementFinancial\FinancialCategoryController;
 use App\Http\Controllers\ManagementFinancial\FinancialSimulationController;
 use App\Http\Controllers\ManagementFinancial\FinancialSummaryController;
+use App\Http\Controllers\Forecast\ForecastDataController;
+use App\Http\Controllers\Forecast\ForecastResultController;
 use App\Http\Controllers\Affiliate\AffiliateLinkController;
 use App\Http\Controllers\Affiliate\AffiliateTrackController;
 use App\Http\Controllers\Affiliate\AffiliateLeadController;
@@ -185,6 +187,23 @@ Route::middleware(['auth:sanctum', 'cors'])->group(function () {
             Route::post('/', [FinancialSimulationController::class, 'store']);
             Route::put('/{id}', [FinancialSimulationController::class, 'update']);
             Route::delete('/{id}', [FinancialSimulationController::class, 'destroy']);
+        });
+
+        // Forecast Routes (NEW)
+        Route::prefix('forecast')->group(function () {
+            Route::get('/available-years', [ForecastResultController::class, 'getAvailableYears']);
+            Route::get('/', [ForecastDataController::class, 'index']);
+            Route::post('/', [ForecastDataController::class, 'store']);
+            Route::get('/{forecastData}', [ForecastDataController::class, 'show']);
+            Route::put('/{forecastData}', [ForecastDataController::class, 'update']);
+            Route::delete('/{forecastData}', [ForecastDataController::class, 'destroy']);
+
+            // Generate and get results
+            Route::post('/{forecastData}/generate', [ForecastResultController::class, 'generate']);
+            Route::get('/{forecastData}/results', [ForecastResultController::class, 'getResults']);
+
+            // Compare scenarios
+            Route::post('/compare', [ForecastResultController::class, 'compare']);
         });
     });
 
