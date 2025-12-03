@@ -254,7 +254,18 @@ class PdfFinancialReportController extends Controller
         // Calculate current cash balance
         $accumulatedIncome = $allSimulations->where('type', 'income')->sum('amount');
         $accumulatedExpense = $allSimulations->where('type', 'expense')->sum('amount');
-        $initialCapital = $businessBackground ? $businessBackground->initial_capital : 0;
+
+        // Get initial investment from latest financial projection (preferably realistic scenario)
+        $initialCapital = 0;
+        if ($businessBackground) {
+            $projection = FinancialProjection::where('business_background_id', $businessBackground->id)
+                ->orderByRaw("CASE WHEN scenario_type = 'realistic' THEN 1 WHEN scenario_type = 'optimistic' THEN 2 ELSE 3 END")
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            $initialCapital = $projection ? $projection->initial_investment : $businessBackground->initial_capital;
+        }
+
         $currentCashBalance = $initialCapital + $accumulatedIncome - $accumulatedExpense;
 
         return [

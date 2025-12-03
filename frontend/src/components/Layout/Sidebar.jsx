@@ -23,6 +23,7 @@ import {
   Link2,
   BarChart2,
   Users2,
+  Layers,
 } from "lucide-react";
 
 const Sidebar = ({ activeSection, setActiveSection, activeSubSection, setActiveSubSection, isOpen, onToggle, onClose, isMobile, isDarkMode, onLogout, user }) => {
@@ -120,6 +121,13 @@ const Sidebar = ({ activeSection, setActiveSection, activeSubSection, setActiveS
           icon: FileText,
         },
       ],
+    },
+
+    {
+      id: "export-pdf-lengkap",
+      label: "Export PDF Lengkap",
+      icon: Layers,
+      description: "Unduh Business Plan + Laporan Keuangan",
     },
 
     {

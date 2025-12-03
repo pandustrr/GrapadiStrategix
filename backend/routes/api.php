@@ -203,6 +203,7 @@ Route::middleware(['auth:sanctum', 'cors'])->group(function () {
         // Financial Report PDF Routes
         Route::prefix('pdf')->group(function () {
             Route::post('/generate', [\App\Http\Controllers\ManagementFinancial\PdfFinancialReportController::class, 'generatePdf']);
+            Route::post('/generate-combined', [\App\Http\Controllers\ManagementFinancial\CombinedPdfController::class, 'generateCombinedPdf']);
             Route::get('/statistics', [\App\Http\Controllers\ManagementFinancial\PdfFinancialReportController::class, 'getStatistics']);
         });
 

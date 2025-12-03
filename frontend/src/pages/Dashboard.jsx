@@ -4,6 +4,7 @@ import Header from "../components/Layout/Header";
 import QuickActions from "../components/Dashboard/QuickActions";
 import BusinessPlan from "./BusinessPlan";
 import ManagementFinancial from "./ManagementFinancial";
+import ExportPDFLengkap from "./ExportPDFLengkap";
 import Forecast from "./Forecast"; // ← NEW: Import Forecast
 import Affiliate from "./Affiliate";
 import { FileText, BarChart3, TrendingUp } from "lucide-react";
@@ -60,42 +61,27 @@ const Dashboard = ({ isDarkMode, toggleDarkMode }) => {
   const renderContent = () => {
     // Jika section business-plan aktif, tampilkan BusinessPlan component
     if (activeSection === "business-plan") {
-      return (
-        <BusinessPlan
-          activeSubSection={activeSubSection}
-          setActiveSubSection={setActiveSubSection}
-        />
-      );
+      return <BusinessPlan activeSubSection={activeSubSection} setActiveSubSection={setActiveSubSection} />;
     }
 
     // Jika section management-financial aktif, tampilkan ManagementFinancial component
     if (activeSection === "management-financial") {
-      return (
-        <ManagementFinancial
-          activeSubSection={activeSubSection}
-          setActiveSubSection={setActiveSubSection}
-        />
-      );
+      return <ManagementFinancial activeSubSection={activeSubSection} setActiveSubSection={setActiveSubSection} />;
+    }
+
+    // Jika section export-pdf-lengkap aktif, tampilkan ExportPDFLengkap component
+    if (activeSection === "export-pdf-lengkap") {
+      return <ExportPDFLengkap activeSubSection={activeSubSection} setActiveSubSection={setActiveSubSection} />;
     }
 
     // Jika section forecast aktif, tampilkan Forecast component
     if (activeSection === "forecast") {
-      return (
-        <Forecast
-          activeSubSection={activeSubSection}
-          setActiveSubSection={setActiveSubSection}
-        />
-      );
+      return <Forecast activeSubSection={activeSubSection} setActiveSubSection={setActiveSubSection} />;
     }
 
     // Jika section affiliate aktif, tampilkan Affiliate component
     if (activeSection === "affiliate") {
-      return (
-        <Affiliate
-          activeSubSection={activeSubSection}
-          setActiveSubSection={setActiveSubSection}
-        />
-      );
+      return <Affiliate activeSubSection={activeSubSection} setActiveSubSection={setActiveSubSection} />;
     }
 
     // Main section
@@ -105,12 +91,8 @@ const Dashboard = ({ isDarkMode, toggleDarkMode }) => {
           <div className="space-y-6">
             {/* Welcome Header */}
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                Dashboard Utama
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400">
-                Selamat datang kembali! Kelola semua aspek bisnis Anda dari satu tempat.
-              </p>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Dashboard Utama</h1>
+              <p className="text-gray-600 dark:text-gray-400">Selamat datang! Lihat ringkasan bisnis Anda.</p>
             </div>
 
             {/* Module Overview Cards */}
@@ -222,20 +204,11 @@ const Dashboard = ({ isDarkMode, toggleDarkMode }) => {
       case "financial":
         return (
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-              Manajemen Keuangan
-            </h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Manajemen Keuangan</h1>
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center">
-              <FileText
-                size={48}
-                className="mx-auto text-gray-400 dark:text-gray-500 mb-4"
-              />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                Modul Manajemen Keuangan
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                Fitur ini sedang dalam pengembangan
-              </p>
+              <FileText size={48} className="mx-auto text-gray-400 dark:text-gray-500 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Modul Manajemen Keuangan</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">Fitur ini sedang dalam pengembangan</p>
             </div>
           </div>
         );
@@ -243,20 +216,11 @@ const Dashboard = ({ isDarkMode, toggleDarkMode }) => {
       case "forecast":
         return (
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-              Forecast
-            </h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Forecast</h1>
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center">
-              <FileText
-                size={48}
-                className="mx-auto text-gray-400 dark:text-gray-500 mb-4"
-              />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                Modul Forecast
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                Fitur ini sedang dalam pengembangan
-              </p>
+              <FileText size={48} className="mx-auto text-gray-400 dark:text-gray-500 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Modul Forecast</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">Fitur ini sedang dalam pengembangan</p>
             </div>
           </div>
         );
@@ -264,20 +228,11 @@ const Dashboard = ({ isDarkMode, toggleDarkMode }) => {
       case "analytics":
         return (
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-              Analisis & Grafik Bisnis
-            </h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Analisis & Grafik Bisnis</h1>
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center">
-              <FileText
-                size={48}
-                className="mx-auto text-gray-400 dark:text-gray-500 mb-4"
-              />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                Modul Analisis & Grafik
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                Fitur ini sedang dalam pengembangan
-              </p>
+              <FileText size={48} className="mx-auto text-gray-400 dark:text-gray-500 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Modul Analisis & Grafik</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">Fitur ini sedang dalam pengembangan</p>
             </div>
           </div>
         );
@@ -297,18 +252,10 @@ const Dashboard = ({ isDarkMode, toggleDarkMode }) => {
       default:
         return (
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-              {activeSection.charAt(0).toUpperCase() +
-                activeSection.slice(1).replace("-", " ")}
-            </h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{activeSection.charAt(0).toUpperCase() + activeSection.slice(1).replace("-", " ")}</h1>
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center">
-              <FileText
-                size={48}
-                className="mx-auto text-gray-400 dark:text-gray-500 mb-4"
-              />
-              <p className="text-gray-600 dark:text-gray-400">
-                Fitur ini sedang dalam pengembangan
-              </p>
+              <FileText size={48} className="mx-auto text-gray-400 dark:text-gray-500 mb-4" />
+              <p className="text-gray-600 dark:text-gray-400">Fitur ini sedang dalam pengembangan</p>
             </div>
           </div>
         );
@@ -333,18 +280,8 @@ const Dashboard = ({ isDarkMode, toggleDarkMode }) => {
       />
 
       {/* Main Content */}
-      <div
-        className={`flex-1 flex flex-col transition-all duration-300 ${
-          isSidebarOpen && !isMobile ? "lg:ml-0" : "ml-0"
-        }`}
-      >
-        <Header
-          onToggleSidebar={toggleSidebar}
-          isMobile={isMobile}
-          isDarkMode={isDarkMode}
-          toggleDarkMode={toggleDarkMode}
-          user={user}
-        />
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarOpen && !isMobile ? "lg:ml-0" : "ml-0"}`}>
+        <Header onToggleSidebar={toggleSidebar} isMobile={isMobile} isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} user={user} />
 
         <main className="flex-1 p-4 lg:p-6 overflow-auto">
           <div className="max-w-7xl mx-auto w-full">{renderContent()}</div>
@@ -352,12 +289,7 @@ const Dashboard = ({ isDarkMode, toggleDarkMode }) => {
       </div>
 
       {/* Overlay for mobile */}
-      {isSidebarOpen && isMobile && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-40 lg:hidden"
-          onClick={closeSidebar}
-        />
-      )}
+      {isSidebarOpen && isMobile && <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-40 lg:hidden" onClick={closeSidebar} />}
     </div>
   );
 };
