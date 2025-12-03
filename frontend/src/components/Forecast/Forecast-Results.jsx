@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Loader, ArrowLeft, TrendingUp, AlertCircle, Trash2 } from 'lucide-react';
+import { Loader, ArrowLeft, TrendingUp, AlertCircle, Trash2, Download } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { forecastDataApi } from '../../services/forecast/forecastApi';
+import { pdfForecastApi } from '../../services/forecast/forecastApi';
 import { toast } from 'react-toastify';
 import ForecastView from './Forecast-View';
+import ForecastExport from './Forecast-Export';
 
 const ForecastResults = ({ onBack }) => {
     const [forecasts, setForecasts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [exportingAllPdf, setExportingAllPdf] = useState(false);
     const [selectedForecast, setSelectedForecast] = useState(null);
-    const [viewMode, setViewMode] = useState('list'); // 'list' atau 'detail'
+    const [viewMode, setViewMode] = useState('list'); // 'list', 'detail', atau 'export'
     const [deletingId, setDeletingId] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [modalData, setModalData] = useState({ title: "", message: "", type: "info" });
@@ -77,6 +80,49 @@ const ForecastResults = ({ onBack }) => {
         setSelectedForecast(null);
     };
 
+    const handleExportAllToPdf = async () => {
+        if (forecasts.length === 0) {
+            alert('Tidak ada forecast data untuk diekspor');
+            return;
+        }
+
+        setExportingAllPdf(true);
+        try {
+            // Gunakan forecast ID pertama sebagai reference untuk export all data
+            // Backend akan mengambil semua forecast dari semua tahun
+            const response = await pdfForecastApi.generatePdf('all', 'free', false);
+            
+            if (response.status === 'success' && response.data.pdf_base64) {
+                // Convert base64 to blob
+                const binaryString = window.atob(response.data.pdf_base64);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                const blob = new Blob([bytes], { type: 'application/pdf' });
+
+                // Create download link
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = response.data.filename || 'forecast-report-all.pdf';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+
+                toast.success(`✓ PDF berhasil diunduh: ${response.data.filename}`);
+            } else {
+                toast.error(response.message || 'Gagal generate PDF');
+            }
+        } catch (error) {
+            console.error('Error exporting PDF:', error);
+            toast.error(error.message || 'Gagal mengexport PDF');
+        } finally {
+            setExportingAllPdf(false);
+        }
+    };
+
     const handleDeleteForecast = async (forecastId) => {
         // Tampilkan modal konfirmasi
         setModalData({
@@ -122,6 +168,16 @@ const ForecastResults = ({ onBack }) => {
         return months[monthNumber] || '-';
     };
 
+    if (viewMode === 'export' && selectedForecast) {
+        return (
+            <ForecastExport
+                forecastData={selectedForecast}
+                generatedResults={selectedForecast.results_with_insights || {}}
+                onBack={handleBackToList}
+            />
+        );
+    }
+
     if (viewMode === 'detail' && selectedForecast) {
         return (
             <ForecastView
@@ -136,21 +192,43 @@ const ForecastResults = ({ onBack }) => {
         <>
             <div className="space-y-6">
                 {/* Header */}
-                <div className="flex items-center gap-4 mb-6">
-                    <button
-                        onClick={onBack}
-                        className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                    >
-                        <ArrowLeft size={24} className="text-gray-600 dark:text-gray-400" />
-                    </button>
-                    <div>
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                            Hasil & Insights Forecast
-                        </h2>
-                        <p className="text-gray-600 dark:text-gray-400">
-                            Kelola semua hasil forecast dan insights yang telah disimpan
-                        </p>
+                <div className="flex items-center justify-between gap-4 mb-6">
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={onBack}
+                            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                        >
+                            <ArrowLeft size={24} className="text-gray-600 dark:text-gray-400" />
+                        </button>
+                        <div>
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                                Hasil & Insights Forecast
+                            </h2>
+                            <p className="text-gray-600 dark:text-gray-400">
+                                Kelola semua hasil forecast dan insights yang telah disimpan
+                            </p>
+                        </div>
                     </div>
+                    {!loading && forecasts.length > 0 && (
+                        <button
+                            onClick={handleExportAllToPdf}
+                            disabled={exportingAllPdf}
+                            className="inline-flex items-center gap-2 px-6 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-semibold rounded-lg transition-colors whitespace-nowrap"
+                            title="Export semua forecast (2024 & 2025) ke PDF"
+                        >
+                            {exportingAllPdf ? (
+                                <>
+                                    <Loader size={18} className="animate-spin" />
+                                    Memproses...
+                                </>
+                            ) : (
+                                <>
+                                    <Download size={18} />
+                                    Export Semua ke PDF
+                                </>
+                            )}
+                        </button>
+                    )}
                 </div>
 
                 {/* Loading State */}

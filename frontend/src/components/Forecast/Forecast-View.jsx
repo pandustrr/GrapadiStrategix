@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { AlertCircle, TrendingUp, TrendingDown, AlertTriangle, Zap, DollarSign, Percent } from 'lucide-react';
-import ForecastExportPDF from './Forecast-ExportPDF';
+import { AlertCircle, TrendingUp, TrendingDown, AlertTriangle, Zap, DollarSign, Percent, Loader } from 'lucide-react';
 
 const ForecastView = ({ forecastData, generatedResults, onBack }) => {
     const [results, setResults] = useState(null);
@@ -62,11 +61,6 @@ const ForecastView = ({ forecastData, generatedResults, onBack }) => {
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <ForecastExportPDF 
-                        forecastData={forecastData}
-                        generatedResults={generatedResults}
-                        chartRefs={chartRefs}
-                    />
                     <button
                         onClick={onBack}
                         className="px-4 py-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium flex items-center gap-2"
@@ -146,7 +140,7 @@ const ForecastView = ({ forecastData, generatedResults, onBack }) => {
                                                     <CartesianGrid strokeDasharray="3 3" />
                                                     <XAxis dataKey="month" />
                                                     <YAxis />
-                                                    <Tooltip formatter={(value) => `Rp ${value.toLocaleString('id-ID')}`} />
+                                                    <Tooltip formatter={(value) => typeof value === 'number' ? `Rp ${value.toLocaleString('id-ID')}` : value} />
                                                     <Line type="monotone" dataKey="forecast_income" stroke="#10b981" dot={false} />
                                                 </LineChart>
                                             </ResponsiveContainer>
@@ -160,7 +154,7 @@ const ForecastView = ({ forecastData, generatedResults, onBack }) => {
                                                     <CartesianGrid strokeDasharray="3 3" />
                                                     <XAxis dataKey="month" />
                                                     <YAxis />
-                                                    <Tooltip formatter={(value) => `Rp ${value.toLocaleString('id-ID')}`} />
+                                                    <Tooltip formatter={(value) => typeof value === 'number' ? `Rp ${value.toLocaleString('id-ID')}` : value} />
                                                     <Line type="monotone" dataKey="forecast_expense" stroke="#ef4444" dot={false} />
                                                 </LineChart>
                                             </ResponsiveContainer>
@@ -174,7 +168,7 @@ const ForecastView = ({ forecastData, generatedResults, onBack }) => {
                                                     <CartesianGrid strokeDasharray="3 3" />
                                                     <XAxis dataKey="month" />
                                                     <YAxis />
-                                                    <Tooltip formatter={(value) => `Rp ${value.toLocaleString('id-ID')}`} />
+                                                    <Tooltip formatter={(value) => typeof value === 'number' ? `Rp ${value.toLocaleString('id-ID')}` : value} />
                                                     <Bar dataKey="forecast_profit" fill="#3b82f6" />
                                                 </BarChart>
                                             </ResponsiveContainer>
@@ -188,7 +182,7 @@ const ForecastView = ({ forecastData, generatedResults, onBack }) => {
                                                     <CartesianGrid strokeDasharray="3 3" />
                                                     <XAxis dataKey="month" />
                                                     <YAxis />
-                                                    <Tooltip formatter={(value) => `${value.toFixed(2)}%`} />
+                                                    <Tooltip formatter={(value) => typeof value === 'number' ? `${value.toFixed(2)}%` : value} />
                                                     <Line type="monotone" dataKey="forecast_margin" stroke="#8b5cf6" dot={false} />
                                                 </LineChart>
                                             </ResponsiveContainer>

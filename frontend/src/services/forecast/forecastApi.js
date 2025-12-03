@@ -181,3 +181,43 @@ export default {
     forecastDataApi,
     forecastResultsApi,
 };
+
+// PDF Export API
+export const pdfForecastApi = {
+    /**
+     * Generate PDF Forecast Report
+     * Backend akan mengambil semua forecast results dari database
+     */
+    generatePdf: async (forecastDataId, mode = 'free', preview = false) => {
+        try {
+            const payload = {
+                forecast_data_id: forecastDataId,
+                mode: mode,
+                preview: preview,
+            };
+
+            const response = await apiClient.post(`/${forecastDataId}/export-pdf`, payload, {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                timeout: 60000, // 60 seconds
+            });
+
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || error;
+        }
+    },
+
+    /**
+     * Get PDF statistics
+     */
+    getStatistics: async () => {
+        try {
+            const response = await apiClient.get('/export-pdf/statistics');
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || error;
+        }
+    },
+};

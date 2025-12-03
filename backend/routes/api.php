@@ -17,6 +17,7 @@ use App\Http\Controllers\ManagementFinancial\FinancialSummaryController;
 use App\Http\Controllers\ManagementFinancial\PdfFinancialReportController;
 use App\Http\Controllers\Forecast\ForecastDataController;
 use App\Http\Controllers\Forecast\ForecastResultController;
+use App\Http\Controllers\Forecast\PdfForecastController;
 use App\Http\Controllers\Affiliate\AffiliateLinkController;
 use App\Http\Controllers\Affiliate\AffiliateTrackController;
 use App\Http\Controllers\Affiliate\AffiliateLeadController;
@@ -223,6 +224,10 @@ Route::middleware(['auth:sanctum', 'cors'])->group(function () {
 
             // Compare scenarios
             Route::post('/compare', [ForecastResultController::class, 'compare']);
+
+            // PDF Export Routes
+            Route::post('/{forecastData}/export-pdf', [PdfForecastController::class, 'generatePdf']);
+            Route::get('/export-pdf/statistics', [PdfForecastController::class, 'getPdfStatistics']);
         });
     });
 

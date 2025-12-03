@@ -5,6 +5,7 @@ namespace App\Models\ManagementFinancial;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Log;
 
 class FinancialProjection extends Model
 {
@@ -206,11 +207,11 @@ class FinancialProjection extends Model
                 'irr' => $irr
             ]);
 
-            \Log::info("Calculated metrics for projection ID {$this->id}: NPV={$npv}, ROI={$roi}, IRR={$irr}, Payback={$paybackPeriod}");
+            Log::info("Calculated metrics for projection ID {$this->id}: NPV={$npv}, ROI={$roi}, IRR={$irr}, Payback={$paybackPeriod}");
 
             return true;
         } catch (\Exception $e) {
-            \Log::error("Error calculating metrics for projection ID {$this->id}: " . $e->getMessage());
+            Log::error("Error calculating metrics for projection ID {$this->id}: " . $e->getMessage());
             return false;
         }
     }

@@ -1,451 +1,294 @@
-import React, { useState, useRef } from 'react';
-import { Download, Loader, AlertCircle } from 'lucide-react';
-import jsPDF from 'jspdf';
-import { toast } from 'react-toastify';
-import html2canvas from 'html2canvas';
+import React, { useState, useEffect } from 'react';
+import { Download, Loader, Eye, AlertCircle, FileText } from 'lucide-react';
+import { pdfForecastApi } from '../../services/forecast/forecastApi';
+import ForecastChartCaptureRenderer from './Forecast-ChartCaptureRenderer';
 
-const ForecastExportPDF = ({ forecastData, generatedResults, chartRefs = {} }) => {
-    const [isExporting, setIsExporting] = useState(false);
-    const [showModal, setShowModal] = useState(false);
+const ForecastExportPDF = ({ forecastData, generatedResults, chartRefs }) => {
+    const [mode, setMode] = useState('free');
+    const [loading, setLoading] = useState(false);
+    const [previewOpen, setPreviewOpen] = useState(false);
+    const [previewData, setPreviewData] = useState(null);
+    const [message, setMessage] = useState({ type: '', text: '' });
+    const [isCapturingCharts, setIsCapturingCharts] = useState(false);
+    const [chartImages, setChartImages] = useState(null);
 
-    const getMonthName = (monthNumber) => {
-        const months = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
-                       'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-        return months[monthNumber] || '-';
-    };
+    const handleGeneratePdf = async (preview = false) => {
+        if (!forecastData || !forecastData.id) {
+            setMessage({ type: 'error', text: 'Data forecast tidak tersedia' });
+            return;
+        }
 
-    const formatCurrency = (value) => {
-        return new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0
-        }).format(value);
-    };
+        setLoading(true);
+        setMessage({ type: '', text: '' });
 
-    const formatPercentage = (value) => {
-        return `${parseFloat(value).toFixed(2)}%`;
-    };
-
-    const exportToPDF = async () => {
         try {
-            setIsExporting(true);
+            let charts = null;
 
-            const doc = new jsPDF();
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const pageHeight = doc.internal.pageSize.getHeight();
-            let yPosition = 20;
+            // Capture charts jika ada hasil forecast
+            if (generatedResults?.results && generatedResults.results.length > 0 && !preview) {
+                console.log('Starting chart capture...');
+                setMessage({ type: 'info', text: 'Memproses grafik...' });
+                setIsCapturingCharts(true);
 
-            // Header - Title
-            doc.setFontSize(20);
-            doc.setTextColor(30, 41, 59);
-            doc.text('Laporan Forecast Keuangan', pageWidth / 2, yPosition, { align: 'center' });
-            yPosition += 10;
+                // Tunggu hingga charts di-capture
+                charts = await new Promise((resolve, reject) => {
+                    window.__forecastChartCaptureComplete = (capturedCharts) => {
+                        console.log('Charts captured:', capturedCharts);
+                        resolve(capturedCharts);
+                    };
+                    window.__forecastChartCaptureError = reject;
 
-            // Subtitle with date
-            doc.setFontSize(11);
-            doc.setTextColor(100, 116, 139);
-            const generatedDate = new Date().toLocaleDateString('id-ID', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-            doc.text(`Dihasilkan: ${generatedDate}`, pageWidth / 2, yPosition, { align: 'center' });
-            yPosition += 15;
+                    setTimeout(() => {
+                        reject(new Error('Timeout capturing charts'));
+                    }, 30000);
+                });
 
-            // Forecast Info
-            doc.setFontSize(12);
-            doc.setTextColor(30, 41, 59);
-            doc.text('Informasi Forecast', 15, yPosition);
-            yPosition += 8;
+                setIsCapturingCharts(false);
+                setChartImages(charts);
+                console.log('Charts ready:', charts);
+            }
 
-            doc.setFontSize(10);
-            doc.setTextColor(71, 85, 105);
-            const forecastType = !forecastData.month || forecastData.month === null ? 'Forecast Tahun' : `Forecast ${getMonthName(forecastData.month)}`;
-            doc.text(`Tipe: ${forecastType} ${forecastData.year}`, 20, yPosition);
-            yPosition += 6;
-            doc.text(`Dibuat: ${new Date(forecastData.created_at).toLocaleDateString('id-ID')}`, 20, yPosition);
-            yPosition += 10;
-
-            // Annual Summary
-            if (generatedResults?.annual_summary) {
-                const summary = generatedResults.annual_summary;
+            if (preview) {
+                const response = await pdfForecastApi.generatePdf(forecastData.id, mode, null, true);
+                if (response.status === 'success') {
+                    setPreviewData(response.data);
+                    setPreviewOpen(true);
+                }
+            } else {
+                setMessage({ type: 'info', text: 'Membuat PDF...' });
                 
-                doc.setFontSize(12);
-                doc.setTextColor(30, 41, 59);
-                doc.text('Ringkasan Tahunan', 15, yPosition);
-                yPosition += 8;
-
-                // Draw table manually
-                const colWidth = 85;
-                const rowHeight = 7;
-                const startX = 15;
-
-                // Header
-                doc.setFillColor(59, 130, 246);
-                doc.setTextColor(255, 255, 255);
-                doc.rect(startX, yPosition, colWidth, rowHeight, 'F');
-                doc.rect(startX + colWidth, yPosition, colWidth, rowHeight, 'F');
-                doc.setFontSize(9);
-                doc.setFont(undefined, 'bold');
-                doc.text('Metrik', startX + 2, yPosition + 5);
-                doc.text('Nilai', startX + colWidth + 2, yPosition + 5);
-                yPosition += rowHeight;
-
-                // Data rows
-                doc.setFont(undefined, 'normal');
-                doc.setTextColor(71, 85, 105);
-                const summaryRows = [
-                    ['Total Pendapatan', String(formatCurrency(summary.total_income || 0))],
-                    ['Total Pengeluaran', String(formatCurrency(summary.total_expense || 0))],
-                    ['Total Laba', String(formatCurrency(summary.total_profit || 0))],
-                    ['Rata-rata Margin', String(formatPercentage(summary.avg_margin || 0))],
-                    ['Rata-rata Confidence', String(formatPercentage(summary.avg_confidence || 0))]
-                ];
-
-                summaryRows.forEach((row, idx) => {
-                    if (idx % 2 === 1) {
-                        doc.setFillColor(241, 245, 249);
-                        doc.rect(startX, yPosition, colWidth * 2, rowHeight, 'F');
-                    }
-                    doc.text(String(row[0]), startX + 2, yPosition + 5);
-                    doc.text(String(row[1]), startX + colWidth + 2, yPosition + 5);
-                    doc.rect(startX, yPosition, colWidth, rowHeight);
-                    doc.rect(startX + colWidth, yPosition, colWidth, rowHeight);
-                    yPosition += rowHeight;
-                });
-
-                yPosition += 5;
-            }
-
-            // Forecast Results Table
-            if (generatedResults?.results && generatedResults.results.length > 0) {
-                // Check if new page is needed
-                if (yPosition > pageHeight - 60) {
-                    doc.addPage();
-                    yPosition = 20;
-                }
-
-                doc.setFontSize(12);
-                doc.setTextColor(30, 41, 59);
-                doc.text('Detail Forecast Bulanan', 15, yPosition);
-                yPosition += 8;
-
-                // Table headers
-                const headers = ['Bulan', 'Pendapatan', 'Pengeluaran', 'Laba', 'Margin', 'Conf'];
-                const colWidths = [20, 28, 28, 25, 22, 22];
-                const rowHeight = 6;
-                let currentX = 15;
-
-                doc.setFillColor(79, 70, 229);
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(8);
-                doc.setFont(undefined, 'bold');
-
-                headers.forEach((header, idx) => {
-                    doc.rect(currentX, yPosition, colWidths[idx], rowHeight, 'F');
-                    doc.text(header, currentX + 1, yPosition + 4);
-                    currentX += colWidths[idx];
-                });
-                yPosition += rowHeight;
-
-                // Table data
-                doc.setFont(undefined, 'normal');
-                doc.setTextColor(71, 85, 105);
-                doc.setFontSize(7);
-
-                generatedResults.results.forEach((result, rowIdx) => {
-                    if (yPosition > pageHeight - 20) {
-                        doc.addPage();
-                        yPosition = 20;
-                    }
-
-                    currentX = 15;
-                    if (rowIdx % 2 === 1) {
-                        doc.setFillColor(241, 245, 249);
-                        doc.rect(15, yPosition, 165, rowHeight, 'F');
-                    }
-
-                    const rowData = [
-                        String(result.month || '-'),
-                        String(formatCurrency(result.forecast_income || 0)),
-                        String(formatCurrency(result.forecast_expense || 0)),
-                        String(formatCurrency(result.forecast_profit || 0)),
-                        String(formatPercentage(result.forecast_margin || 0)),
-                        String(formatPercentage(result.confidence_level || 0))
-                    ];
-
-                    rowData.forEach((data, idx) => {
-                        doc.text(String(data), currentX + 1, yPosition + 4);
-                        doc.rect(currentX, yPosition, colWidths[idx], rowHeight);
-                        currentX += colWidths[idx];
-                    });
-
-                    yPosition += rowHeight;
-                });
-
-                yPosition += 5;
-            }
-
-            // Charts Section
-            if (chartRefs.income || chartRefs.expense || chartRefs.profit) {
-                // Check if new page is needed
-                if (yPosition > pageHeight - 100) {
-                    doc.addPage();
-                    yPosition = 20;
-                }
-
-                doc.setFontSize(12);
-                doc.setTextColor(30, 41, 59);
-                doc.text('Grafik Prediksi Keuangan', 15, yPosition);
-                yPosition += 10;
-
-                // Capture charts
-                const chartNames = ['income', 'expense', 'profit'];
-                const chartImages = {};
-
-                for (const chartName of chartNames) {
-                    const chartRef = chartRefs[chartName];
-                    const chartElement = chartRef?.current;
+                const response = await pdfForecastApi.generatePdf(forecastData.id, mode, charts, false);
+                
+                if (response.status === 'success') {
+                    const { filename, pdf_base64 } = response.data;
                     
-                    if (chartElement) {
-                        try {
-                            // Create a wrapper with white background
-                            const wrapper = document.createElement('div');
-                            wrapper.style.position = 'absolute';
-                            wrapper.style.left = '-9999px';
-                            wrapper.style.top = '-9999px';
-                            wrapper.style.backgroundColor = 'white';
-                            wrapper.style.padding = '30px 40px';
-                            wrapper.style.width = '900px';
-                            wrapper.style.borderRadius = '8px';
-                            wrapper.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
-                            wrapper.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif';
-                            
-                            // Clone the chart element
-                            const clonedChart = chartElement.cloneNode(true);
-                            
-                            // Remove dark mode classes and add light background
-                            const cleanElement = (el) => {
-                                if (el.classList) {
-                                    el.classList.remove('dark');
-                                    // Remove dark: prefixed classes
-                                    Array.from(el.classList).forEach(cls => {
-                                        if (cls.includes('dark:')) {
-                                            el.classList.remove(cls);
-                                        }
-                                    });
-                                }
-                                // Force light colors for text and backgrounds
-                                el.style.color = 'rgb(0, 0, 0)';
-                                el.style.backgroundColor = 'rgb(255, 255, 255)';
-                                
-                                // Process SVG elements
-                                if (el.tagName === 'svg') {
-                                    el.style.backgroundColor = 'white';
-                                }
-                                
-                                // Recursively process children
-                                Array.from(el.children).forEach(child => cleanElement(child));
-                            };
-                            
-                            cleanElement(clonedChart);
-                            wrapper.appendChild(clonedChart);
-                            document.body.appendChild(wrapper);
-                            
-                            // Wait for rendering
-                            await new Promise(resolve => setTimeout(resolve, 300));
-                            
-                            // Capture with specific settings for better quality
-                            const canvas = await html2canvas(wrapper, {
-                                scale: 2.5,
-                                useCORS: true,
-                                logging: false,
-                                backgroundColor: '#ffffff',
-                                allowTaint: true,
-                                foreignObjectRendering: false,
-                                imageTimeout: 8000,
-                                width: 900,
-                                height: 400,
-                                windowHeight: 400,
-                                windowWidth: 900
-                            });
-                            
-                            chartImages[chartName] = canvas.toDataURL('image/png', 1.0);
-                            document.body.removeChild(wrapper);
-                        } catch (err) {
-                            console.warn(`Failed to capture ${chartName} chart:`, err);
-                            // Try fallback without clone
-                            try {
-                                const canvas = await html2canvas(chartElement, {
-                                    scale: 2,
-                                    useCORS: true,
-                                    logging: false,
-                                    backgroundColor: '#ffffff',
-                                    allowTaint: true
-                                });
-                                chartImages[chartName] = canvas.toDataURL('image/png');
-                            } catch (fallbackErr) {
-                                console.warn(`Fallback also failed for ${chartName}:`, fallbackErr);
-                            }
-                        }
+                    // Convert base64 ke blob
+                    const byteCharacters = atob(pdf_base64);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
                     }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: 'application/pdf' });
+                    
+                    // Create download link
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+
+                    setMessage({ type: 'success', text: 'PDF berhasil diunduh' });
+                } else {
+                    throw new Error(response.message || 'Failed to generate PDF');
                 }
-
-                // Add charts to PDF
-                let chartsPerPage = 0;
-                const chartLabels = {
-                    income: 'Prediksi Pendapatan',
-                    expense: 'Prediksi Pengeluaran',
-                    profit: 'Prediksi Laba'
-                };
-
-                for (const [chartName, imageData] of Object.entries(chartImages)) {
-                    if (yPosition > pageHeight - 90) {
-                        doc.addPage();
-                        yPosition = 20;
-                        chartsPerPage = 0;
-                    }
-
-                    // Add chart label with better styling
-                    doc.setFontSize(11);
-                    doc.setFont(undefined, 'bold');
-                    doc.setTextColor(30, 41, 59);
-                    doc.text(chartLabels[chartName], 15, yPosition);
-                    yPosition += 7;
-
-                    // Add chart image with better proportions
-                    doc.addImage(imageData, 'PNG', 10, yPosition, 190, 75);
-                    yPosition += 80;
-                    chartsPerPage++;
-                }
-
-                yPosition += 5;
             }
-
-            // Insights Section
-            if (generatedResults?.insights && generatedResults.insights.length > 0) {
-                // Check if new page is needed
-                if (yPosition > pageHeight - 60) {
-                    doc.addPage();
-                    yPosition = 20;
-                }
-
-                doc.setFontSize(12);
-                doc.setTextColor(30, 41, 59);
-                doc.text('Insights & Rekomendasi', 15, yPosition);
-                yPosition += 8;
-
-                generatedResults.insights.forEach((insight, index) => {
-                    // Check if new page is needed
-                    if (yPosition > pageHeight - 40) {
-                        doc.addPage();
-                        yPosition = 20;
-                    }
-
-                    // Insight title
-                    doc.setFontSize(9);
-                    doc.setTextColor(30, 41, 59);
-                    doc.setFont(undefined, 'bold');
-                    doc.text(`${index + 1}. ${insight.title || 'Insight'}`, 20, yPosition);
-                    yPosition += 5;
-
-                    // Insight description
-                    doc.setFontSize(8);
-                    doc.setFont(undefined, 'normal');
-                    doc.setTextColor(71, 85, 105);
-                    const wrappedText = doc.splitTextToSize(insight.description || '', pageWidth - 40);
-                    doc.text(wrappedText, 20, yPosition);
-                    yPosition += wrappedText.length * 4 + 3;
-                });
-            }
-
-            // Footer
-            const totalPages = doc.internal.getNumberOfPages();
-            for (let i = 1; i <= totalPages; i++) {
-                doc.setPage(i);
-                doc.setFontSize(8);
-                doc.setTextColor(148, 163, 184);
-                doc.text(
-                    `Halaman ${i} dari ${totalPages}`,
-                    pageWidth / 2,
-                    pageHeight - 10,
-                    { align: 'center' }
-                );
-            }
-
-            // Save PDF
-            const fileName = `Forecast_${forecastData.year}_${new Date().getTime()}.pdf`;
-            doc.save(fileName);
-
-            toast.success('PDF berhasil diunduh!');
-            setShowModal(false);
         } catch (error) {
-            console.error('Error exporting PDF:', error);
-            toast.error('Gagal mengunduh PDF. Silakan coba lagi.');
+            console.error('Error generating PDF:', error);
+            setIsCapturingCharts(false);
+
+            let errorMessage = 'Gagal menghasilkan PDF. ';
+            if (error.message === 'Timeout capturing charts') {
+                errorMessage += 'Timeout saat memproses grafik. Silakan coba lagi.';
+            } else if (error.response?.data?.message) {
+                errorMessage += error.response.data.message;
+            } else {
+                errorMessage += 'Silakan coba lagi atau hubungi administrator.';
+            }
+
+            setMessage({ type: 'error', text: errorMessage });
         } finally {
-            setIsExporting(false);
+            setLoading(false);
         }
     };
 
     return (
         <>
-            {/* Export Button */}
-            <button
-                onClick={() => setShowModal(true)}
-                disabled={isExporting}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors duration-200 font-medium text-sm"
-            >
-                <Download size={16} />
-                {isExporting ? 'Mengunduh...' : 'Export PDF'}
-            </button>
+            <div className="flex items-center gap-3">
+                {/* Mode Selection */}
+                <select
+                    value={mode}
+                    onChange={(e) => setMode(e.target.value)}
+                    className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                    disabled={loading}
+                >
+                    <option value="free">🆓 Gratis (Watermark)</option>
+                    <option value="pro">💎 Pro (Tanpa Watermark)</option>
+                </select>
 
-            {/* Confirmation Modal */}
-            {showModal && (
-                <div className="fixed inset-0 flex items-center justify-center z-50">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 max-w-md w-full mx-4">
-                        <div className="flex items-start gap-3 mb-4">
-                            <AlertCircle 
-                                size={24} 
-                                className="text-blue-500 flex-shrink-0"
-                            />
-                            <div className="flex-1">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                    Export PDF Forecast
-                                </h3>
-                                <p className="text-gray-600 dark:text-gray-400 mt-2 text-sm">
-                                    Apakah Anda ingin mengunduh laporan forecast ini dalam format PDF?
-                                </p>
+                {/* Preview Button */}
+                <button
+                    onClick={() => handleGeneratePdf(true)}
+                    disabled={loading}
+                    className="flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    {loading ? (
+                        <Loader size={16} className="animate-spin" />
+                    ) : (
+                        <Eye size={16} />
+                    )}
+                    Preview
+                </button>
+
+                {/* Download PDF Button */}
+                <button
+                    onClick={() => handleGeneratePdf(false)}
+                    disabled={loading}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    {loading ? (
+                        <Loader size={16} className="animate-spin" />
+                    ) : (
+                        <Download size={16} />
+                    )}
+                    {loading ? 'Generating...' : 'Download PDF'}
+                </button>
+            </div>
+
+            {/* Message Alert */}
+            {message.text && (
+                <div className={`mt-4 p-4 rounded-lg ${
+                    message.type === 'error'
+                        ? 'bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400'
+                        : message.type === 'success'
+                        ? 'bg-green-100 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400'
+                        : 'bg-blue-100 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400'
+                }`}>
+                    <div className="flex items-center gap-2">
+                        <AlertCircle size={16} />
+                        <span className="text-sm">{message.text}</span>
+                    </div>
+                </div>
+            )}
+
+            {/* Preview Modal */}
+            {previewOpen && previewData && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <FileText className="text-blue-600 dark:text-blue-400" size={24} />
+                                    <div>
+                                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                                            Preview Laporan Forecast
+                                        </h2>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                            {previewData.filename}
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setPreviewOpen(false)}
+                                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                >
+                                    ✕
+                                </button>
                             </div>
                         </div>
-                        <div className="flex justify-end gap-2">
+
+                        <div className="p-6">
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Mode PDF
+                                    </span>
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                                        {previewData.mode === 'free' ? '🆓 Gratis (Watermark)' : '💎 Pro (Tanpa Watermark)'}
+                                    </span>
+                                </div>
+
+                                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                                    <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-3">
+                                        Konten yang akan disertakan:
+                                    </h3>
+                                    <ul className="space-y-2 text-sm text-blue-700 dark:text-blue-300">
+                                        <li className="flex items-center gap-2">
+                                            <span className="text-green-500">✓</span>
+                                            Ringkasan Eksekutif
+                                        </li>
+                                        <li className="flex items-center gap-2">
+                                            <span className="text-green-500">✓</span>
+                                            Data Historis
+                                        </li>
+                                        <li className="flex items-center gap-2">
+                                            <span className="text-green-500">✓</span>
+                                            Hasil Proyeksi dengan Grafik ({generatedResults?.results?.length || 0} bulan)
+                                        </li>
+                                        <li className="flex items-center gap-2">
+                                            <span className="text-green-500">✓</span>
+                                            Analisis Statistik
+                                        </li>
+                                        <li className="flex items-center gap-2">
+                                            <span className="text-green-500">✓</span>
+                                            Auto Insights ({generatedResults?.insights?.length || 0} insight)
+                                        </li>
+                                        <li className="flex items-center gap-2">
+                                            <span className="text-green-500">✓</span>
+                                            Tabel Detail Proyeksi
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                {generatedResults?.annual_summary && (
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                                            <p className="text-xs text-green-600 dark:text-green-400 mb-1">Total Pendapatan Proyeksi</p>
+                                            <p className="text-lg font-bold text-green-700 dark:text-green-300">
+                                                Rp {parseFloat(generatedResults.annual_summary.total_income).toLocaleString('id-ID')}
+                                            </p>
+                                        </div>
+                                        <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                            <p className="text-xs text-blue-600 dark:text-blue-400 mb-1">Total Laba Proyeksi</p>
+                                            <p className="text-lg font-bold text-blue-700 dark:text-blue-300">
+                                                Rp {parseFloat(generatedResults.annual_summary.total_profit).toLocaleString('id-ID')}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
                             <button
-                                onClick={() => setShowModal(false)}
-                                disabled={isExporting}
-                                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg transition-colors font-medium text-sm disabled:opacity-50"
+                                onClick={() => setPreviewOpen(false)}
+                                className="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
                             >
-                                Batal
+                                Tutup
                             </button>
                             <button
-                                onClick={exportToPDF}
-                                disabled={isExporting}
-                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors font-medium text-sm inline-flex items-center gap-2 disabled:opacity-50"
+                                onClick={() => {
+                                    setPreviewOpen(false);
+                                    handleGeneratePdf(false);
+                                }}
+                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200"
                             >
-                                {isExporting ? (
-                                    <>
-                                        <Loader size={16} className="animate-spin" />
-                                        Mengunduh...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Download size={16} />
-                                        Unduh
-                                    </>
-                                )}
+                                <Download size={16} />
+                                Download PDF
                             </button>
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Chart Capture Renderer (Hidden) */}
+            {isCapturingCharts && generatedResults && (
+                <ForecastChartCaptureRenderer
+                    forecastResults={generatedResults.results || []}
+                    onCaptureComplete={(charts) => {
+                        if (window.__forecastChartCaptureComplete) {
+                            window.__forecastChartCaptureComplete(charts);
+                        }
+                    }}
+                    onError={(error) => {
+                        if (window.__forecastChartCaptureError) {
+                            window.__forecastChartCaptureError(error);
+                        }
+                    }}
+                />
             )}
         </>
     );
