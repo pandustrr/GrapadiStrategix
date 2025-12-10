@@ -3,7 +3,8 @@ import { FiDownload, FiArrowLeft, FiCalendar, FiFileText, FiTrendingUp, FiAlertC
 import { toast } from "react-hot-toast";
 import axios from "axios";
 import { useAuth } from "../../../contexts/AuthContext";
-import { financialPlanApi } from "../../../services/businessPlan";
+// TODO: Comment - FinancialPlan nonaktif di Business Plan, gunakan axios langsung
+// import { financialPlanApi } from "../../../services/businessPlan";
 
 const ExportPDFLengkap = ({ onBack, selectedBusiness: propSelectedBusiness }) => {
   const { user } = useAuth();
@@ -40,7 +41,11 @@ const ExportPDFLengkap = ({ onBack, selectedBusiness: propSelectedBusiness }) =>
     try {
       setLoadingBusinesses(true);
       console.log("📡 Fetching businesses for user:", user.id);
-      const response = await financialPlanApi.getBusinesses({ user_id: user.id });
+      // TODO: Comment - FinancialPlan nonaktif di Business Plan, gunakan axios langsung
+      // const response = await financialPlanApi.getBusinesses({ user_id: user.id });
+      const response = await axios.get(`${apiUrl}/business-background`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
       console.log("✅ Businesses fetched:", response.data);
       if (response.data.status === "success") {
         setBusinesses(response.data.data);

@@ -4,7 +4,8 @@ import productServiceApi from './productServiceApi';
 import marketingStrategiesApi from './marketingStrategiesApi';
 import operationalPlanApi from './operationalPlanApi';
 import teamStructureApi from './teamStructureApi';
-import financialPlanApi from './financialPlanApi';
+// TODO: Comment - FinancialPlan nonaktif di Business Plan
+// import financialPlanApi from './financialPlanApi';
 import pdfBusinessPlanApi from './pdfBusinessPlanApi';
 
 // Named exports
@@ -15,7 +16,8 @@ export {
   marketingStrategiesApi,
   operationalPlanApi,
   teamStructureApi,
-  financialPlanApi,
+  // TODO: Comment - FinancialPlan nonaktif di Business Plan
+  // financialPlanApi,
   pdfBusinessPlanApi
 };
 
@@ -27,6 +29,7 @@ export default {
   marketingStrategiesApi,
   operationalPlanApi,
   teamStructureApi,
-  financialPlanApi,
+  // TODO: Comment - FinancialPlan nonaktif di Business Plan
+  // financialPlanApi,
   pdfBusinessPlanApi
 };

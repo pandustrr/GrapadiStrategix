@@ -18,7 +18,8 @@ import ProductService from "../components/BusinessPlan/ProductService/ProductSer
 import MarketingStrategies from "../components/BusinessPlan/MarketingStrategies/MarketingStrategies";
 import OperationalPlan from '../components/BusinessPlan/OperationalPlan/OperationalPlan';
 import TeamStructure from '../components/BusinessPlan/TeamStructure/TeamStructure';
-import FinancialPlan from '../components/BusinessPlan/FinancialPlan/FinancialPlan';
+// TODO: Comment - FinancialPlan nonaktif di Business Plan
+// import FinancialPlan from '../components/BusinessPlan/FinancialPlan/FinancialPlan';
 import PdfBusinessPlan from '../components/BusinessPlan/PdfBusinessPlan/PdfBusinessPlan';
 
 const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
@@ -282,7 +283,8 @@ const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
           </div>
         </div>
 
-        {/* Rencana Keuangan Card */}
+        {/* TODO: Comment - FinancialPlan nonaktif di Business Plan */}
+        {/* 
         <div
           className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group hover:border-emerald-300 dark:hover:border-emerald-600"
           onClick={() => handleSubSectionClick('financial-plan')}
@@ -313,6 +315,7 @@ const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
             </svg>
           </div>
         </div>
+        */}
 
         {/* PDF Business Plan Card */}
         <div
@@ -363,8 +366,9 @@ const BusinessPlan = ({ activeSubSection, setActiveSubSection }) => {
         return <MarketingStrategies onBack={handleBackToMain} />;
       case 'team-structure':
         return <TeamStructure onBack={handleBackToMain} />;
-      case 'financial-plan':
-        return <FinancialPlan onBack={handleBackToMain} />;
+      // TODO: Comment - FinancialPlan nonaktif di Business Plan
+      // case 'financial-plan':
+      //   return <FinancialPlan onBack={handleBackToMain} />;
       case 'pdf-business-plan':
         return <PdfBusinessPlan onBack={handleBackToMain} />;
       default:

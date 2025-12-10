@@ -8,7 +8,8 @@ use App\Http\Controllers\BusinessPlan\ProductServiceController;
 use App\Http\Controllers\BusinessPlan\MarketingStrategyController;
 use App\Http\Controllers\BusinessPlan\OperationalPlanController;
 use App\Http\Controllers\BusinessPlan\TeamStructureController;
-use App\Http\Controllers\BusinessPlan\FinancialPlanController;
+// TODO: Comment - FinancialPlan nonaktif di Business Plan
+// use App\Http\Controllers\BusinessPlan\FinancialPlanController;
 use App\Http\Controllers\BusinessPlan\PdfBusinessPlanController;
 use App\Http\Controllers\ManagementFinancial\ManagementFinancialController;
 use App\Http\Controllers\ManagementFinancial\FinancialCategoryController;
@@ -119,6 +120,8 @@ Route::middleware(['auth:sanctum', 'cors'])->group(function () {
         Route::post('/{id}/upload-photo', [TeamStructureController::class, 'uploadPhoto']);
     });
 
+    // TODO: Comment - FinancialPlan nonaktif di Business Plan
+    /*
     // Financial Plan
     Route::prefix('financial-plans')->group(function () {
         Route::get('/', [FinancialPlanController::class, 'index']);
@@ -138,6 +141,7 @@ Route::middleware(['auth:sanctum', 'cors'])->group(function () {
         Route::get('/{id}/report', [FinancialPlanController::class, 'generateReport']);
         Route::get('/{id}/charts', [FinancialPlanController::class, 'getChartData']);
     });
+    */
 
     // PDF Business Plan
     Route::prefix('pdf-business-plan')->group(function () {

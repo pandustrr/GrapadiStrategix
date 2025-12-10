@@ -71,11 +71,12 @@ const Sidebar = ({ activeSection, setActiveSection, activeSubSection, setActiveS
           label: "Struktur Organisasi & Tim",
           icon: Users,
         },
-        {
-          id: "financial-plan",
-          label: "Rencana Keuangan",
-          icon: DollarSign,
-        },
+        // TODO: Comment - FinancialPlan nonaktif di Business Plan
+        // {
+        //   id: "financial-plan",
+        //   label: "Rencana Keuangan",
+        //   icon: DollarSign,
+        // },
         {
           id: "pdf-business-plan",
           label: "PDF Business Plan",

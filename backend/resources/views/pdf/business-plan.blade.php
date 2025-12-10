@@ -238,7 +238,8 @@
                 <li>Strategi Pemasaran</li>
                 <li>Rencana Operasional</li>
                 <li>Struktur Tim</li>
-                <li>Rencana Keuangan</li>
+                {{-- TODO: Comment - FinancialPlan nonaktif di Business Plan --}}
+                {{-- <li>Rencana Keuangan</li> --}}
             </ol>
         </div>
     </div>
@@ -778,6 +779,8 @@
         </div>
     @endif
 
+    {{-- TODO: Comment - FinancialPlan nonaktif di Business Plan --}}
+    {{--
     <!-- Financial Plans -->
     @if ($data['financial_plans']->count() > 0)
         <div class="page">
@@ -1152,6 +1155,8 @@
             </div>
         </div>
     @endif
+    --}}
+    {{-- END: TODO Comment - FinancialPlan nonaktif di Business Plan --}}
 
     <!-- Footer untuk semua halaman -->
     <div class="footer">

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { backgroundApi } from "../../../services/businessPlan/backgroundApi";
 import pdfBusinessPlanApi from "../../../services/businessPlan/pdfBusinessPlanApi";
-import { financialPlanApi, operationalPlanApi } from "../../../services/businessPlan";
+// TODO: Comment - FinancialPlan nonaktif di Business Plan
+// import { financialPlanApi, operationalPlanApi } from "../../../services/businessPlan";
+import { operationalPlanApi } from "../../../services/businessPlan";
 import ChartCaptureRenderer from "./ChartCaptureRenderer";
 
 const PdfBusinessPlan = ({ onBack }) => {
@@ -51,8 +53,9 @@ const PdfBusinessPlan = ({ onBack }) => {
       const response = await backgroundApi.getById(selectedBusiness);
       if (response.data.status === "success") {
         setSelectedBusinessData(response.data.data);
+        // TODO: Comment - FinancialPlan nonaktif di Business Plan
         // Load financial plan untuk business ini
-        await loadFinancialPlan(selectedBusiness);
+        // await loadFinancialPlan(selectedBusiness);
         // Load operational plans untuk business ini
         await loadOperationalPlans(selectedBusiness);
       }
@@ -61,6 +64,8 @@ const PdfBusinessPlan = ({ onBack }) => {
     }
   };
 
+  // TODO: Comment - FinancialPlan nonaktif di Business Plan
+  /*
   const loadFinancialPlan = async (businessBackgroundId) => {
     try {
       const response = await financialPlanApi.getAll();
@@ -93,6 +98,7 @@ const PdfBusinessPlan = ({ onBack }) => {
       setFinancialPlan(null);
     }
   };
+  */
 
   const loadOperationalPlans = async (businessBackgroundId) => {
     try {
@@ -165,11 +171,13 @@ const PdfBusinessPlan = ({ onBack }) => {
     setValidationErrors([]);
 
     try {
+      // TODO: Comment - FinancialPlan nonaktif di Business Plan
       // Jika ada financial plan, capture charts terlebih dahulu
       let charts = null;
 
-      console.log("Financial Plan:", financialPlan);
+      // console.log("Financial Plan:", financialPlan);
 
+      /*
       if (financialPlan && !preview) {
         console.log("Starting chart capture...");
         setMessage({ type: "info", text: "Memproses grafik keuangan..." });
@@ -198,6 +206,7 @@ const PdfBusinessPlan = ({ onBack }) => {
       } else if (!financialPlan) {
         console.warn("No financial plan found for this business");
       }
+      */
 
       if (preview) {
         const response = await pdfBusinessPlanApi.previewPdf(selectedBusiness, mode);
@@ -530,8 +539,9 @@ const PdfBusinessPlan = ({ onBack }) => {
           </div>
         )}
 
+        {/* TODO: Comment - FinancialPlan nonaktif di Business Plan */}
         {/* Chart Capture Renderer (Hidden) */}
-        {isCapturingCharts && financialPlan && (
+        {/* {isCapturingCharts && financialPlan && (
           <ChartCaptureRenderer
             financialPlan={financialPlan}
             onCaptureComplete={(charts) => {
@@ -545,7 +555,7 @@ const PdfBusinessPlan = ({ onBack }) => {
               }
             }}
           />
-        )}
+        )} */}
 
         {/* Workflows are now generated on backend */}
       </div>

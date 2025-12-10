@@ -273,7 +273,8 @@
                 <li>Strategi Pemasaran</li>
                 <li>Rencana Operasional</li>
                 <li>Struktur Tim</li>
-                <li>Rencana Keuangan</li>
+                {{-- TODO: Comment - FinancialPlan nonaktif di Business Plan --}}
+                {{-- <li>Rencana Keuangan</li> --}}
             </ol>
 
             <h3 style="font-size: 16px; color: #2c5aa0; margin-bottom: 15px;">BAGIAN 2: LAPORAN KEUANGAN
@@ -844,6 +845,8 @@
         </div>
     @endif
 
+    {{-- TODO: Comment - FinancialPlan nonaktif di Business Plan --}}
+    {{--
     <!-- Financial Plans -->
     @if ($data['financial_plans']->count() > 0)
         <div class="page">
@@ -1181,6 +1184,8 @@
             </div>
         </div>
     @endif
+    --}}
+    {{-- END: TODO Comment - FinancialPlan nonaktif di Business Plan --}}
 
     {{-- ========================================
          BAGIAN 2: LAPORAN KEUANGAN

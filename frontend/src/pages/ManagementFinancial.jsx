@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { financialPlanApi } from "../services/businessPlan";
 import { managementFinancialApi } from "../services/managementFinancial";
+import axios from "axios";
 import { toast } from "react-toastify";
 import { DollarSign, PieChart, TrendingUp, BarChart3, FileText, CreditCard, Settings, Plus, Folder, Calculator, LineChart, Building2, ChevronDown } from "lucide-react";
 import FinancialCategories from "../components/ManagementFinancial/FinancialCategories/FinancialCategories";
@@ -25,6 +25,8 @@ const ManagementFinancial = ({ activeSubSection, setActiveSubSection }) => {
   });
   const [loadingStats, setLoadingStats] = useState(false);
 
+  const apiUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
+
   // Fetch businesses on mount
   useEffect(() => {
     if (user) {
@@ -35,7 +37,11 @@ const ManagementFinancial = ({ activeSubSection, setActiveSubSection }) => {
   const fetchBusinesses = async () => {
     try {
       setLoadingBusinesses(true);
-      const response = await financialPlanApi.getBusinesses({ user_id: user.id });
+      // TODO: Comment - FinancialPlan nonaktif di Business Plan, gunakan axios langsung
+      // const response = await managementFinancialApi.getBusinesses({ user_id: user.id });
+      const response = await axios.get(`${apiUrl}/business-background`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
 
       if (response.data && response.data.data) {
         setBusinesses(response.data.data);
