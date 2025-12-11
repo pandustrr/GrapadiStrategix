@@ -231,32 +231,75 @@ const MarketingStrategiesList = ({
       {/* Filter */}
       {uniqueBusinesses.length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+            <h3 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
+              <Building size={16} />
+              Filter Berdasarkan Bisnis:
+            </h3>
+          </div>
+
           <div className="flex flex-wrap gap-2">
+            {/* Tombol Semua Bisnis */}
             <button
               onClick={() => setSelectedBusiness("all")}
-              className={`px-3 py-2 rounded-lg border text-sm ${
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
                 selectedBusiness === "all"
-                  ? "bg-green-500 border-green-500 text-white"
+                  ? "bg-green-500 border-green-500 text-white shadow-sm"
                   : "border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
               }`}
             >
-              Semua Bisnis
+              <Building size={14} />
+              <span>Semua Bisnis</span>
+              <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                selectedBusiness === "all" 
+                  ? "bg-green-600 text-white" 
+                  : "bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300"
+              }`}>
+                {strategiesArray.length}
+              </span>
             </button>
 
+            {/* Tombol untuk setiap bisnis */}
             {uniqueBusinesses.map((b) => (
               <button
                 key={b.id}
                 onClick={() => setSelectedBusiness(b.id)}
-                className={`px-3 py-2 rounded-lg border text-sm ${
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
                   selectedBusiness === b.id
-                    ? "bg-blue-500 border-blue-500 text-white"
+                    ? "bg-blue-500 border-blue-500 text-white shadow-sm"
                     : "border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                 }`}
               >
-                {b.name}
+                <Building size={14} />
+                <div className="text-left">
+                  <div className="font-medium">{b.name}</div>
+                  <div className="text-xs opacity-80 hidden sm:block">{b.category}</div>
+                </div>
+                <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                  selectedBusiness === b.id 
+                    ? "bg-blue-600 text-white" 
+                    : "bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300"
+                }`}>
+                  {strategiesArray.filter(s => s.business_background?.id === b.id).length}
+                </span>
               </button>
             ))}
           </div>
+
+          {/* Filter Info */}
+          {selectedBusiness !== "all" && (
+            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className="flex items-center gap-2 text-blue-800 dark:text-blue-300 text-sm">
+                <Building size={16} />
+                <span>
+                  Menampilkan {filteredStrategies.length} dari {strategiesArray.length} strategi
+                  {selectedBusiness !== "all" && (
+                    <span> untuk <strong>{uniqueBusinesses.find(b => b.id === selectedBusiness)?.name}</strong></span>
+                  )}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

@@ -3,15 +3,21 @@ import TeamStructureList from './TeamStructure-List';
 import TeamStructureCreate from './TeamStructure-Create';
 import TeamStructureEdit from './TeamStructure-Edit';
 import TeamStructureView from './TeamStructure-View';
+import OrgChart from './OrgChart';
 import { teamStructureApi } from '../../../services/businessPlan';
 import { toast } from 'react-toastify';
+import { BarChart3, List } from 'lucide-react';
 
-const TeamStructure = () => {
+const TeamStructure = ({ selectedBusiness = null }) => {
     const [teams, setTeams] = useState([]);
+    const [filteredTeams, setFilteredTeams] = useState([]);
     const [currentTeam, setCurrentTeam] = useState(null);
     const [view, setView] = useState('list');
+    const [viewMode, setViewMode] = useState('list'); // 'list' or 'chart'
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [selectedBusinessFilter, setSelectedBusinessFilter] = useState('all');
+    const [showOrgChartBtn, setShowOrgChartBtn] = useState(false);
 
     // Fetch semua team structures
     const fetchTeams = async () => {
@@ -46,6 +52,34 @@ const TeamStructure = () => {
             setIsLoading(false);
         }
     };
+
+    // Handler untuk business filter change
+    const handleBusinessFilterChange = (businessId) => {
+        setSelectedBusinessFilter(businessId);
+        // Reset viewMode ke 'list' dan hide chart button jika user pilih 'all'
+        if (businessId === 'all') {
+            setViewMode('list');
+            setShowOrgChartBtn(false);
+        }
+    };
+
+    // Handler untuk show org chart
+    const handleShowOrgChart = (businessId) => {
+        setShowOrgChartBtn(true);
+        setSelectedBusinessFilter(businessId);
+    };
+
+    // Filter teams berdasarkan selectedBusiness
+    useEffect(() => {
+        if (selectedBusiness?.id) {
+            const filtered = teams.filter(team => 
+                team.business_background_id === selectedBusiness.id
+            );
+            setFilteredTeams(filtered);
+        } else {
+            setFilteredTeams(teams);
+        }
+    }, [teams, selectedBusiness]);
 
     useEffect(() => {
         fetchTeams();
@@ -165,16 +199,77 @@ const TeamStructure = () => {
         switch (view) {
             case 'list':
                 return (
-                    <TeamStructureList
-                        teams={teams}
-                        onView={handleView}
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
-                        onCreateNew={handleCreateNew}
-                        isLoading={isLoading}
-                        error={error}
-                        onRetry={handleRetry}
-                    />
+                    <>
+                        {/* View toggle buttons */}
+                        <div className="mb-6 flex gap-2">
+                            <button
+                                onClick={() => {
+                                    console.log('Switching to list view');
+                                    setViewMode('list');
+                                }}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors cursor-pointer ${
+                                    viewMode === 'list'
+                                        ? 'bg-indigo-600 text-white'
+                                        : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600'
+                                }`}
+                            >
+                                <List size={18} />
+                                List View
+                            </button>
+                            {/* Tombol Organization Chart hanya muncul ketika bisnis dipilih */}
+                            {showOrgChartBtn && selectedBusinessFilter !== 'all' && (
+                                <button
+                                    onClick={() => {
+                                        console.log('Switching to chart view');
+                                        setViewMode('chart');
+                                    }}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors cursor-pointer ${
+                                        viewMode === 'chart'
+                                            ? 'bg-indigo-600 text-white'
+                                            : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600'
+                                    }`}
+                                >
+                                    <BarChart3 size={18} />
+                                    Organization Chart
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Render based on view mode */}
+                        {viewMode === 'list' ? (
+                            <TeamStructureList
+                                teams={filteredTeams}
+                                onView={handleView}
+                                onEdit={handleEdit}
+                                onDelete={handleDelete}
+                                onCreateNew={handleCreateNew}
+                                isLoading={isLoading}
+                                error={error}
+                                onRetry={handleRetry}
+                                onBusinessFilterChange={handleBusinessFilterChange}
+                                onShowOrgChart={handleShowOrgChart}
+                            />
+                        ) : (
+                            <div className="relative">
+                                {/* Back Button di Chart View */}
+                                <div className="mb-6 relative z-20">
+                                    <button
+                                        onClick={() => setViewMode('list')}
+                                        className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2 cursor-pointer"
+                                    >
+                                        ← Kembali ke List View
+                                    </button>
+                                </div>
+                                
+                                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 relative z-10">
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                                        Organization Structure
+                                    </h3>
+                                    <OrgChart teamMembers={filteredTeams} />
+                                </div>
+                            </div>
+                        )}
+                    </>
                 );
             case 'create':
                 return (
@@ -202,7 +297,7 @@ const TeamStructure = () => {
             default:
                 return (
                     <TeamStructureList
-                        teams={teams}
+                        teams={filteredTeams}
                         onView={handleView}
                         onEdit={handleEdit}
                         onDelete={handleDelete}
@@ -210,6 +305,8 @@ const TeamStructure = () => {
                         isLoading={isLoading}
                         error={error}
                         onRetry={handleRetry}
+                        onBusinessFilterChange={handleBusinessFilterChange}
+                        onShowOrgChart={handleShowOrgChart}
                     />
                 );
         }
