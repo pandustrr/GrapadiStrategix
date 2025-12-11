@@ -11,7 +11,9 @@ const TeamStructureList = ({
     isLoading,
     error,
     onRetry,
-    statistics
+    statistics,
+    onBusinessFilterChange,
+    onShowOrgChart
 }) => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [teamToDelete, setTeamToDelete] = useState(null);
@@ -43,6 +45,17 @@ const TeamStructureList = ({
     const handleCancelDelete = () => {
         setShowDeleteModal(false);
         setTeamToDelete(null);
+    };
+
+    const handleBusinessFilterSelect = (businessId) => {
+        setSelectedBusiness(businessId);
+        if (onBusinessFilterChange) {
+            onBusinessFilterChange(businessId);
+        }
+        // Jika user pilih bisnis tertentu (bukan 'all'), tampilkan tombol chart
+        if (businessId !== 'all' && onShowOrgChart) {
+            onShowOrgChart(businessId);
+        }
     };
 
     // Get unique businesses for filter
@@ -133,6 +146,9 @@ const TeamStructureList = ({
     const resetFilters = () => {
         setSelectedBusiness('all');
         setSelectedStatus('all');
+        if (onBusinessFilterChange) {
+            onBusinessFilterChange('all');
+        }
     };
 
     // Calculate statistics jika tidak disediakan dari props
@@ -350,7 +366,7 @@ const TeamStructureList = ({
                     <div className="flex flex-wrap gap-2 mb-4">
                         {/* Tombol Semua Bisnis */}
                         <button
-                            onClick={() => setSelectedBusiness('all')}
+                            onClick={() => handleBusinessFilterSelect('all')}
                             className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
                                 selectedBusiness === 'all'
                                     ? 'bg-green-500 border-green-500 text-white shadow-sm'
@@ -372,7 +388,7 @@ const TeamStructureList = ({
                         {uniqueBusinesses.map(business => (
                             <button
                                 key={business.id}
-                                onClick={() => setSelectedBusiness(business.id)}
+                                onClick={() => handleBusinessFilterSelect(business.id)}
                                 className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-sm ${
                                     selectedBusiness === business.id
                                         ? 'bg-blue-500 border-blue-500 text-white shadow-sm'

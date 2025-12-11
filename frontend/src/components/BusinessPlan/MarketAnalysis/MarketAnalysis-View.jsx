@@ -1,4 +1,29 @@
-    import { Edit3, Target, TrendingUp, Users, BarChart3, Shield, Building, Calendar, Calculator, Zap, CheckCircle, AlertCircle, DollarSign, MapPin, Code } from 'lucide-react';
+    import { Edit3, Target, TrendingUp, Users, BarChart3, Shield, Building, Calendar, Calculator, Zap, CheckCircle, AlertCircle, DollarSign, MapPin, Code, PieChart as PieChartIcon } from 'lucide-react';
+    import { Pie, Bar } from 'react-chartjs-2';
+    import ChartDataLabels from 'chartjs-plugin-datalabels';
+    import {
+        Chart as ChartJS,
+        CategoryScale,
+        LinearScale,
+        PointElement,
+        LineElement,
+        BarElement,
+        ArcElement,
+        Tooltip,
+        Legend,
+    } from 'chart.js';
+
+    ChartJS.register(
+        CategoryScale,
+        LinearScale,
+        PointElement,
+        LineElement,
+        BarElement,
+        ArcElement,
+        Tooltip,
+        Legend,
+        ChartDataLabels
+    );
 
     const MarketAnalysisView = ({ analysis, onBack, onEdit }) => {
         if (!analysis) {
@@ -39,12 +64,21 @@
 
         // Data untuk grafik TAM/SAM/SOM
         const marketSizeData = [
-            { name: 'TAM', value: analysis.tam_total || 0, color: '#3b82f6' },
-            { name: 'SAM', value: analysis.sam_total || 0, color: '#10b981' },
-            { name: 'SOM', value: analysis.som_total || 0, color: '#8b5cf6' }
+            { name: 'TAM', value: Number(analysis.tam_total) || 0, color: '#3b82f6' },
+            { name: 'SAM', value: Number(analysis.sam_total) || 0, color: '#10b981' },
+            { name: 'SOM', value: Number(analysis.som_total) || 0, color: '#8b5cf6' }
         ];
 
-        const maxValue = Math.max(...marketSizeData.map(item => item.value));
+        // Calculate total untuk percentage - dengan explicit number conversion
+        const totalMarketSize = marketSizeData.reduce((sum, item) => {
+            const val = Number(item.value);
+            return sum + (isNaN(val) ? 0 : val);
+        }, 0);
+
+        // Debug log untuk troubleshoot
+        const hasValidData = totalMarketSize > 0;
+
+        const maxValue = Math.max(...marketSizeData.map(item => item.value || 0));
 
         return (
             <div className="space-y-6">
@@ -113,47 +147,158 @@
                                 Market Size Analysis
                             </h3>
                             
-                            {/* Grafik TAM/SAM/SOM */}
-                            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                                <h4 className="font-semibold text-gray-900 dark:text-white mb-4 text-center">
-                                    Market Size Comparison
-                                </h4>
-                                <div className="space-y-4">
-                                    {marketSizeData.map((item, index) => (
-                                        <div key={item.name} className="space-y-2">
-                                            <div className="flex justify-between text-sm">
-                                                <span className="font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                                                    <div 
-                                                        className="w-3 h-3 rounded-full" 
-                                                        style={{ backgroundColor: item.color }}
-                                                    ></div>
-                                                    {item.name}
-                                                </span>
-                                                <span className="text-gray-600 dark:text-gray-400">
-                                                    {formatCurrency(item.value)}
-                                                </span>
-                                            </div>
-                                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
-                                                <div 
-                                                    className="h-4 rounded-full transition-all duration-500"
-                                                    style={{ 
-                                                        width: maxValue > 0 ? `${(item.value / maxValue) * 100}%` : '0%',
-                                                        backgroundColor: item.color
-                                                    }}
-                                                ></div>
-                                            </div>
-                                            {item.name === 'SAM' && analysis.sam_percentage && (
-                                                <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
-                                                    {formatPercentage(analysis.sam_percentage)} of TAM
-                                                </div>
-                                            )}
-                                            {item.name === 'SOM' && analysis.som_percentage && (
-                                                <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
-                                                    {formatPercentage(analysis.som_percentage)} of SAM
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
+                            {/* Grid: Pie Chart + Bar Chart */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {/* Pie Chart TAM/SAM/SOM */}
+                                <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                                    <h4 className="font-semibold text-gray-900 dark:text-white mb-4 text-center flex items-center justify-center gap-2">
+                                        <PieChartIcon size={18} />
+                                        Market Size Distribution
+                                    </h4>
+                                    <div style={{ position: 'relative', height: 350 }}>
+                                        <Pie
+                                            data={{
+                                                labels: marketSizeData.map(item => item.name),
+                                                datasets: [
+                                                    {
+                                                        data: marketSizeData.map(item => item.value || 0),
+                                                        backgroundColor: marketSizeData.map(item => item.color),
+                                                        borderColor: '#ffffff',
+                                                        borderWidth: 2,
+                                                    },
+                                                ],
+                                            }}
+                                            options={{
+                                                responsive: true,
+                                                maintainAspectRatio: false,
+                                                plugins: {
+                                                    legend: {
+                                                        position: 'bottom',
+                                                        labels: {
+                                                            color: '#6b7280',
+                                                            font: { size: 13, weight: 'bold' },
+                                                            padding: 20,
+                                                            boxWidth: 15,
+                                                            boxHeight: 15,
+                                                        },
+                                                    },
+                                                    tooltip: {
+                                                        enabled: true,
+                                                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                                        padding: 12,
+                                                        cornerRadius: 6,
+                                                        titleFont: { size: 13, weight: 'bold' },
+                                                        bodyFont: { size: 12 },
+                                                        callbacks: {
+                                                            label: function(context) {
+                                                                const value = context.parsed || 0;
+                                                                return formatCurrency(value);
+                                                            },
+                                                        },
+                                                    },
+                                                    datalabels: {
+                                                        color: '#ffffff',
+                                                        font: {
+                                                            size: 12,
+                                                            weight: 'bold',
+                                                        },
+                                                        formatter: function(value, context) {
+                                                            try {
+                                                                const label = context.chart.data.labels[context.dataIndex];
+                                                                
+                                                                // Ensure value is a valid number
+                                                                const numValue = Number(value);
+                                                                if (isNaN(numValue)) {
+                                                                    return label;
+                                                                }
+                                                                
+                                                                // Use the calculated totalMarketSize from component scope
+                                                                if (!hasValidData || totalMarketSize === 0) {
+                                                                    return label;
+                                                                }
+                                                                
+                                                                const percentage = ((numValue / totalMarketSize) * 100).toFixed(0);
+                                                                return `${label}\n${percentage}%`;
+                                                            } catch (e) {
+                                                                console.error('Datalabels error:', e);
+                                                                return context.chart.data.labels[context.dataIndex] || 'N/A';
+                                                            }
+                                                        },
+                                                        anchor: 'center',
+                                                        align: 'center',
+                                                        offset: 0,
+                                                    },
+                                                },
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Bar Chart TAM/SAM/SOM */}
+                                <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                                    <h4 className="font-semibold text-gray-900 dark:text-white mb-4 text-center">
+                                        Market Size Comparison
+                                    </h4>
+                                    <div style={{ position: 'relative', height: 300 }}>
+                                        <Bar
+                                            data={{
+                                                labels: marketSizeData.map(item => item.name),
+                                                datasets: [
+                                                    {
+                                                        label: 'Market Size',
+                                                        data: marketSizeData.map(item => item.value),
+                                                        backgroundColor: marketSizeData.map(item => item.color),
+                                                        borderColor: marketSizeData.map(item => item.color),
+                                                        borderWidth: 1,
+                                                        borderRadius: 6,
+                                                    },
+                                                ],
+                                            }}
+                                            options={{
+                                                responsive: true,
+                                                maintainAspectRatio: false,
+                                                indexAxis: 'y',
+                                                plugins: {
+                                                    legend: {
+                                                        display: true,
+                                                        labels: {
+                                                            color: '#6b7280',
+                                                            font: { size: 12 },
+                                                        },
+                                                    },
+                                                    tooltip: {
+                                                        callbacks: {
+                                                            label: function(context) {
+                                                                return `${formatCurrency(context.parsed.x)}`;
+                                                            },
+                                                        },
+                                                    },
+                                                },
+                                                scales: {
+                                                    x: {
+                                                        ticks: {
+                                                            color: '#6b7280',
+                                                            callback: function(value) {
+                                                                return formatCurrency(value);
+                                                            },
+                                                        },
+                                                        grid: {
+                                                            color: '#e5e7eb',
+                                                            drawBorder: false,
+                                                        },
+                                                    },
+                                                    y: {
+                                                        ticks: {
+                                                            color: '#6b7280',
+                                                        },
+                                                        grid: {
+                                                            display: false,
+                                                        },
+                                                    },
+                                                },
+                                            }}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
