@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Models\BusinessBackground;
 use App\Models\MarketAnalysis;
@@ -206,6 +207,17 @@ class CombinedPdfController extends Controller
                 'period_type' => $periodType,
                 'period_label' => $this->getPeriodLabel($periodType, $periodValue)
             ]);
+            // Prepare watermark logo (convert to base64 for PDF)
+            $watermarkLogoPath = config('app.watermark_logo', '/images/watermark-logo.png');
+            $watermarkLogoDataUrl = null;
+
+            if ($watermarkLogoPath) {
+                // Try to get the watermark logo path
+                $logoPath = public_path(ltrim($watermarkLogoPath, '/'));
+                if (file_exists($logoPath)) {
+                    $watermarkLogoDataUrl = $this->convertLogoToDataUrl($logoPath);
+                }
+            }
 
             $pdf = PDF::loadView('pdf.combined-report', [
                 'data' => $businessPlanData,  // Business plan data
@@ -228,7 +240,8 @@ class CombinedPdfController extends Controller
                 'mode' => $mode,
                 'period_type' => $periodType,
                 'period_label' => $this->getPeriodLabel($periodType, $periodValue),
-                'generated_at' => now()->format('d F Y H:i:s')
+                'generated_at' => now()->format('d F Y H:i:s'),
+                'watermark_logo' => $watermarkLogoDataUrl  // Watermark logo as data URL
             ]);
 
             // Konfigurasi PDF (Portrait)
@@ -345,6 +358,17 @@ class CombinedPdfController extends Controller
             ->get();
 
         Log::info('💼 Financial Plans', ['count' => $financialPlans->count()]);
+
+        // Convert logo to base64 data URL if it exists
+        $logoDataUrl = null;
+        if ($businessBackground->logo) {
+            $logoDataUrl = $this->convertLogoToDataUrl($businessBackground->logo);
+        }
+
+        // Update business background logo to data URL for PDF rendering
+        if ($logoDataUrl) {
+            $businessBackground->logo = $logoDataUrl;
+        }
 
         return [
             'business_background' => $businessBackground,
@@ -797,19 +821,51 @@ class CombinedPdfController extends Controller
     {
         $business = $businessData['business_background'];
         $marketAnalysis = $businessData['market_analysis'];
+        $products = $businessData['products_services'];
+        $marketing = $businessData['marketing_strategies'];
+        $team = $businessData['team_structures'];
         $financialPlan = $businessData['financial_plans']->first();
 
-        $summary = "{$business->name} adalah bisnis dalam kategori {$business->category} ";
-        $summary .= "yang berfokus pada {$business->description}. ";
+        $summary = "{$business->name} adalah perusahaan bisnis yang bergerak di kategori {$business->category}. ";
+        $summary .= "Dengan fokus utama pada " . strtolower($business->description) . ", ";
+        $summary .= "perusahaan ini dirancang untuk memberikan solusi terbaik bagi pelanggannya. ";
 
+        // Visi dan Misi
+        if ($business->vision) {
+            $summary .= "Visi perusahaan adalah " . strtolower($business->vision) . ". ";
+        }
+        if ($business->mission) {
+            $summary .= "Sementara misi utamanya mencakup " . strtolower($business->mission) . ". ";
+        }
+
+        // Pasar Target
         if ($marketAnalysis && $marketAnalysis->target_market) {
-            $summary .= "Menargetkan pasar: " . $marketAnalysis->target_market . ". ";
+            $summary .= "Pasar target kami adalah: " . $marketAnalysis->target_market . ". ";
         }
 
-        if ($financialPlan) {
-            $summary .= "Proyeksi pendapatan bulanan: Rp " .
-                number_format($financialPlan->total_monthly_income ?? 0, 0, ',', '.') . ". ";
+        // Produk/Layanan
+        if ($products->count() > 0) {
+            $summary .= "Kami menawarkan " . $products->count() . " produk/layanan utama yang dirancang untuk memenuhi kebutuhan pasar. ";
         }
+
+        // Strategi Marketing
+        if ($marketing->count() > 0) {
+            $summary .= "Strategi pemasaran kami mencakup " . $marketing->count() . " pendekatan yang terintegrasi untuk mencapai target audience. ";
+        }
+
+        // Tim
+        if ($team->count() > 0) {
+            $summary .= "Tim kami terdiri dari " . $team->count() . " profesional berpengalaman yang siap mendukung pertumbuhan bisnis. ";
+        }
+
+        // Proyeksi Finansial
+        if ($financialPlan) {
+            $summary .= "Dengan proyeksi pendapatan bulanan sebesar Rp " .
+                number_format($financialPlan->total_monthly_income ?? 0, 0, ',', '.') . ", ";
+            $summary .= "kami memperkirakan pertumbuhan yang konsisten dan berkelanjutan dalam periode mendatang. ";
+        }
+
+        $summary .= "Rencana bisnis komprehensif ini dirancang untuk memberikan panduan strategis dalam mencapai target bisnis dan pertumbuhan jangka panjang.";
 
         return $summary;
     }
@@ -1652,4 +1708,70 @@ class CombinedPdfController extends Controller
             'highest_profit_value' => $highestProfit['value']
         ];
     }
+
+    /**
+     * Convert logo path/URL to base64 data URL for PDF embedding
+     */
+    private function convertLogoToDataUrl($logoPath)
+    {
+        try {
+            $imageContent = null;
+
+            // Check if it's already a data URL
+            if (is_string($logoPath) && strpos($logoPath, 'data:') === 0) {
+                return $logoPath;
+            }
+
+            // Check if it's a direct file path that exists
+            if (is_string($logoPath) && file_exists($logoPath)) {
+                $imageContent = file_get_contents($logoPath);
+            }
+            // Check if it's a full URL
+            elseif (is_string($logoPath) && filter_var($logoPath, FILTER_VALIDATE_URL)) {
+                // For URLs, try to fetch content
+                $imageContent = @file_get_contents($logoPath);
+                if ($imageContent === false) {
+                    Log::warning('⚠️ Could not fetch logo from URL: ' . $logoPath);
+                    return null;
+                }
+            }
+            // Try as relative path in storage
+            else {
+                $filePath = $logoPath;
+
+                // Try public storage first
+                if (file_exists(public_path($filePath))) {
+                    $imageContent = file_get_contents(public_path($filePath));
+                } elseif (Storage::disk('public')->exists(str_replace('storage/', '', $filePath))) {
+                    // Try via Storage facade
+                    $imageContent = Storage::disk('public')->get(str_replace('storage/', '', $filePath));
+                } else {
+                    Log::warning('⚠️ Logo file not found: ' . $filePath);
+                    return null;
+                }
+            }
+
+            if (!$imageContent) {
+                Log::warning('⚠️ Could not read logo content from: ' . $logoPath);
+                return null;
+            }
+
+            // Determine MIME type
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mimeType = finfo_buffer($finfo, $imageContent);
+            finfo_close($finfo);
+
+            // Create data URL
+            $base64 = base64_encode($imageContent);
+            $dataUrl = 'data:' . $mimeType . ';base64,' . $base64;
+
+            Log::info('✅ Logo converted to data URL', ['mime_type' => $mimeType, 'size' => strlen($base64)]);
+
+            return $dataUrl;
+        } catch (\Exception $e) {
+            Log::error('❌ Error converting logo to data URL: ' . $e->getMessage());
+            return null;
+        }
+    }
 }
+

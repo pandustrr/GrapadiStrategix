@@ -16,7 +16,7 @@
             font-family: 'Arial', sans-serif;
             line-height: 1.5;
             color: #333;
-            font-size: 11px;
+            font-size: 13px;
         }
 
         /* Watermark untuk mode gratis */
@@ -24,12 +24,16 @@
             position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 60px;
-            color: rgba(0, 0, 0, 0.1);
+            transform: translate(-50%, -50%);
             z-index: -1;
-            white-space: nowrap;
-            font-weight: bold;
+            opacity: 0.08;
+            pointer-events: none;
+        }
+
+        .watermark img {
+            width: 600px;
+            height: auto;
+            display: block;
         }
 
         /* Layout halaman */
@@ -211,23 +215,27 @@
 </head>
 
 <body>
-    @if ($mode === 'free')
-        <div class="watermark">GRAPADI STRATEGIX - FREE VERSION</div>
+    @if ($mode === 'free' && !empty($watermark_logo))
+        <div class="watermark">
+            <img src="{{ $watermark_logo }}" alt="Watermark">
+        </div>
     @endif
 
     <!-- Cover Page - SAMA SEPERTI BUSINESS PLAN -->
     <div class="page">
         <div style="text-align: center; margin-top: 100px;">
+            <h1 style="font-size: 32px; color: #2c5aa0; margin-bottom: 30px;">
+                {{ $data['business_background']->name }}
+            </h1>
+
+            <!-- Logo Below Title -->
             @if ($data['business_background']->logo)
                 <div style="margin-bottom: 30px;">
                     <img src="{{ $data['business_background']->logo }}" alt="Logo"
-                        style="max-width: 150px; max-height: 150px;">
+                        style="max-width: 200px; max-height: 200px;">
                 </div>
             @endif
 
-            <h1 style="font-size: 32px; color: #2c5aa0; margin-bottom: 20px;">
-                {{ $data['business_background']->name }}
-            </h1>
             <h2 style="font-size: 24px; color: #666; margin-bottom: 10px;">
                 BUSINESS PLAN & PROYEKSI KEUANGAN
             </h2>
