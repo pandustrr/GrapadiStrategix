@@ -123,4 +123,17 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Watermark Logo
+    |--------------------------------------------------------------------------
+    |
+    | Path atau URL logo yang akan ditampilkan sebagai watermark transparan
+    | di setiap halaman PDF untuk mode FREE. Anda bisa mengubah path ini
+    | ke logo Grapadi atau logo lainnya.
+    |
+    */
+
+    'watermark_logo' => env('WATERMARK_LOGO', '/images/watermark-logo.png'),
+
 ];
