@@ -130,6 +130,14 @@ class CombinedPdfController extends Controller
                 'workflows_count' => count($workflows)
             ]);
 
+            // 4a. Convert workflow images to data URLs (for faster PDF generation)
+            Log::info('🖼️ Step 4a: Converting Workflow Images to Data URLs...');
+            $workflowImages = $this->convertWorkflowImagesToDataUrl($businessPlanData['operational_plans']);
+
+            Log::info('✅ Workflow Images Converted', [
+                'workflow_images_count' => count($workflowImages)
+            ]);
+
             // 4b. Generate Organization Charts (QuickChart Mermaid)
             Log::info('📊 Step 4b: Generating Organization Charts...');
             $orgCharts = $this->generateOrganizationCharts($businessPlanData['team_structures']);
@@ -228,6 +236,7 @@ class CombinedPdfController extends Controller
                 'marketAnalysisCharts' => $marketAnalysisCharts,  // Market Analysis charts (TAM/SAM/SOM pie) - untuk Section 3
                 'financialCharts' => $financialCharts,  // Financial Report charts (4 charts) - untuk BAGIAN 2
                 'workflows' => $workflows,  // Workflow diagrams for operational plans - untuk Section 6
+                'workflowImages' => $workflowImages,  // Workflow uploaded images as data URLs (converted for PDF)
                 'orgCharts' => $orgCharts,  // Organization charts for team structures - untuk Section 7
                 // Forecast data - untuk BAGIAN 3
                 'forecast_data' => $forecastData['forecast_data'] ?? null,
@@ -1710,6 +1719,68 @@ class CombinedPdfController extends Controller
     }
 
     /**
+     * Convert workflow images to data URLs for PDF embedding
+     * Prevents DOMPDF from fetching images over network during PDF generation
+     */
+    private function convertWorkflowImagesToDataUrl($operationalPlans)
+    {
+        $workflowImages = [];
+
+        foreach ($operationalPlans as $plan) {
+            try {
+                // Check if plan has workflow image path in database
+                if (!empty($plan->workflow_image_path)) {
+                    // Build the direct file system path
+                    $filePath = storage_path('app/public/' . $plan->workflow_image_path);
+
+                    // Check if file actually exists
+                    if (file_exists($filePath)) {
+                        // Read the file content
+                        $imageContent = file_get_contents($filePath);
+
+                        if ($imageContent) {
+                            // Determine MIME type
+                            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                            $mimeType = finfo_buffer($finfo, $imageContent);
+                            finfo_close($finfo);
+
+                            // Create data URL
+                            $base64 = base64_encode($imageContent);
+                            $dataUrl = 'data:' . $mimeType . ';base64,' . $base64;
+
+                            $workflowImages[$plan->id] = $dataUrl;
+
+                            Log::info('✅ Workflow image converted to data URL', [
+                                'plan_id' => $plan->id,
+                                'file_path' => $filePath,
+                                'mime_type' => $mimeType,
+                                'data_url_length' => strlen($dataUrl)
+                            ]);
+                        }
+                    } else {
+                        Log::warning('⚠️ Workflow image file not found', [
+                            'plan_id' => $plan->id,
+                            'expected_path' => $filePath,
+                            'database_path' => $plan->workflow_image_path
+                        ]);
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::error('❌ Error converting workflow image', [
+                    'plan_id' => $plan->id,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+
+        Log::info('📊 Workflow Images Conversion Complete', [
+            'total_plans' => count($operationalPlans),
+            'converted_count' => count($workflowImages),
+            'converted_plan_ids' => array_keys($workflowImages)
+        ]);
+
+        return $workflowImages;
+    }    /**
      * Convert logo path/URL to base64 data URL for PDF embedding
      */
     private function convertLogoToDataUrl($logoPath)

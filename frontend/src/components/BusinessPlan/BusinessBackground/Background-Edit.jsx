@@ -5,6 +5,7 @@ import { backgroundApi } from '../../../services/businessPlan';
 import { toast } from 'react-toastify';
 
 const BackgroundEdit = ({ business, onBack, onSuccess }) => {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     const [isLoading, setIsLoading] = useState(false);
     const [logoPreview, setLogoPreview] = useState(null);
     const [backgroundPreview, setBackgroundPreview] = useState(null);
@@ -46,12 +47,12 @@ const BackgroundEdit = ({ business, onBack, onSuccess }) => {
             });
             
             if (business.logo) {
-                setLogoPreview(`http://localhost:8000/storage/${business.logo}`);
+                setLogoPreview(`${API_URL}/storage/${business.logo}`);
                 setCurrentLogo(business.logo);
             }
 
             if (business.background_image) {
-                setBackgroundPreview(`http://localhost:8000/storage/${business.background_image}`);
+                setBackgroundPreview(`${API_URL}/storage/${business.background_image}`);
                 setCurrentBackground(business.background_image);
             }
         }
@@ -169,8 +170,8 @@ const BackgroundEdit = ({ business, onBack, onSuccess }) => {
             title="Edit Data Bisnis"
             subtitle="Perbarui informasi bisnis"
             formData={formData}
-            logoPreview={logoPreview || (currentLogo ? `http://localhost:8000/storage/${currentLogo}` : null)}
-            backgroundPreview={backgroundPreview || (currentBackground ? `http://localhost:8000/storage/${currentBackground}` : null)}
+            logoPreview={logoPreview || (currentLogo ? `${API_URL}/storage/${currentLogo}` : null)}
+            backgroundPreview={backgroundPreview || (currentBackground ? `${API_URL}/storage/${currentBackground}` : null)}
             isLoading={isLoading}
             onInputChange={handleInputChange}
             onFileChange={handleFileChange}

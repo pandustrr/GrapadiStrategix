@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 // Public Affiliate Routes (NO AUTH REQUIRED)
 export const publicAffiliateApi = {
@@ -8,7 +8,7 @@ export const publicAffiliateApi = {
   getLandingPage: async (slug) => {
     try {
       const response = await axios.get(
-        `${API_BASE_URL}/affiliate/public/landing/${slug}`
+        `${API_BASE_URL}/api/affiliate/public/landing/${slug}`
       );
       return response;
     } catch (error) {
@@ -20,7 +20,7 @@ export const publicAffiliateApi = {
   submitLead: async (slug, leadData) => {
     try {
       const response = await axios.post(
-        `${API_BASE_URL}/affiliate/public/leads/${slug}/submit`,
+        `${API_BASE_URL}/api/affiliate/public/leads/${slug}/submit`,
         leadData
       );
       return response;

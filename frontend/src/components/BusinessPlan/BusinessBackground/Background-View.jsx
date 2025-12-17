@@ -1,6 +1,8 @@
 import { Edit3, Building, MapPin, Calendar, Users, Target } from 'lucide-react';
 
 const BackgroundView = ({ business, onBack, onEdit }) => {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    
     if (!business) {
         return (
             <div className="flex justify-center items-center h-64">
@@ -46,7 +48,7 @@ const BackgroundView = ({ business, onBack, onEdit }) => {
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Background Bisnis</h3>
                         <div className="w-full h-64 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
                             <img 
-                                src={`http://localhost:8000/storage/${business.background_image}`} 
+                                src={`${API_URL}/storage/${business.background_image}`} 
                                 alt="Background"
                                 className="w-full h-full object-cover"
                             />
@@ -60,7 +62,7 @@ const BackgroundView = ({ business, onBack, onEdit }) => {
                         <div className="w-24 h-24 border-2 border-gray-300 dark:border-gray-600 rounded-lg flex items-center justify-center bg-gray-50 dark:bg-gray-700/50">
                             {business.logo ? (
                                 <img 
-                                    src={`http://localhost:8000/storage/${business.logo}`} 
+                                    src={`${API_URL}/storage/${business.logo}`} 
                                     alt={business.name}
                                     className="w-20 h-20 rounded-lg object-cover"
                                 />

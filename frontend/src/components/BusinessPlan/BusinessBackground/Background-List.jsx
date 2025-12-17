@@ -12,6 +12,7 @@ const BackgroundList = ({
     error,
     onRetry
 }) => {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [businessToDelete, setBusinessToDelete] = useState(null);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -203,7 +204,7 @@ const BackgroundList = ({
                                 <div className="flex items-center gap-3">
                                     {business.logo ? (
                                         <img
-                                            src={`http://localhost:8000/storage/${business.logo}`}
+                                            src={`${API_URL}/storage/${business.logo}`}
                                             alt={business.name}
                                             className="w-12 h-12 rounded-lg object-cover border border-gray-200 dark:border-gray-600"
                                             onError={(e) => {

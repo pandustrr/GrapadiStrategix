@@ -14,7 +14,7 @@ const combinedPdfApi = {
       headers: {
         'Content-Type': 'application/json',
       },
-      timeout: 120000, // 120 seconds timeout untuk PDF besar
+      timeout: 300000, // 300 seconds (5 menit) timeout untuk PDF besar yang kompleks
     });
   },
 };

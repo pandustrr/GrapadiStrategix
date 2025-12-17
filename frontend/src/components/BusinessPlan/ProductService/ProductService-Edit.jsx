@@ -82,7 +82,8 @@ const ProductServiceEdit = ({ product, onBack, onSuccess }) => {
                 setExistingImageUrl(product.image_url);
             } else if (product.image_path) {
                 // Fallback: generate URL dari image_path
-                setExistingImageUrl(`http://localhost:8000/storage/${product.image_path}`);
+                const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+                setExistingImageUrl(`${API_URL}/storage/${product.image_path}`);
             }
         }
     }, [product]);

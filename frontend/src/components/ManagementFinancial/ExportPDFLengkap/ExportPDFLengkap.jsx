@@ -19,7 +19,7 @@ const ExportPDFLengkap = ({ onBack, selectedBusiness: propSelectedBusiness }) =>
   const [availableYears, setAvailableYears] = useState([]);
   const [mode, setMode] = useState("free"); // free or pro
 
-  const apiUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
+  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
   useEffect(() => {
     console.log("🚀 ExportPDFLengkap Component Loaded!");
@@ -44,7 +44,7 @@ const ExportPDFLengkap = ({ onBack, selectedBusiness: propSelectedBusiness }) =>
       console.log("📡 Fetching businesses for user:", user.id);
       // TODO: Comment - FinancialPlan nonaktif di Business Plan, gunakan axios langsung
       // const response = await financialPlanApi.getBusinesses({ user_id: user.id });
-      const response = await axios.get(`${apiUrl}/business-background`, {
+      const response = await axios.get(`${apiUrl}/api/business-background`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       console.log("✅ Businesses fetched:", response.data);

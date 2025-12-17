@@ -25,7 +25,7 @@ const ManagementFinancial = ({ activeSubSection, setActiveSubSection }) => {
   });
   const [loadingStats, setLoadingStats] = useState(false);
 
-  const apiUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
+  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
   // Fetch businesses on mount
   useEffect(() => {
@@ -39,7 +39,7 @@ const ManagementFinancial = ({ activeSubSection, setActiveSubSection }) => {
       setLoadingBusinesses(true);
       // TODO: Comment - FinancialPlan nonaktif di Business Plan, gunakan axios langsung
       // const response = await managementFinancialApi.getBusinesses({ user_id: user.id });
-      const response = await axios.get(`${apiUrl}/business-background`, {
+      const response = await axios.get(`${apiUrl}/api/business-background`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
 

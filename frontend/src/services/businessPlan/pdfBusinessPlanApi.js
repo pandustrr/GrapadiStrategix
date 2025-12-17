@@ -18,7 +18,7 @@ const pdfBusinessPlanApi = {
       headers: {
         'Content-Type': 'application/json',
       },
-      timeout: 60000, // 60 seconds timeout
+      timeout: 300000, // 300 seconds (5 menit) timeout untuk PDF besar
     });
   },
 
@@ -28,6 +28,8 @@ const pdfBusinessPlanApi = {
       business_background_id: businessBackgroundId,
       mode: mode,
       preview: true,
+    }, {
+      timeout: 300000, // 300 seconds timeout
     });
   },
 
@@ -35,6 +37,8 @@ const pdfBusinessPlanApi = {
   generateExecutiveSummary: (businessBackgroundId) => {
     return api.post("/pdf-business-plan/executive-summary", {
       business_background_id: businessBackgroundId,
+    }, {
+      timeout: 300000, // 300 seconds timeout
     });
   },
 
