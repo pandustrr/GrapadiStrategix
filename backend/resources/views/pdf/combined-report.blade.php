@@ -969,15 +969,23 @@
                         <div class="subsection-title">Analisis SWOT</div>
                         <table class="table">
                             <tr>
-                                <th style="width: 25%;">Strengths (Kekuatan)</th>
-                                <th style="width: 25%;">Weaknesses (Kelemahan)</th>
-                                <th style="width: 25%;">Opportunities (Peluang)</th>
-                                <th style="width: 25%;">Threats (Ancaman)</th>
+                                <th style="width: 30%;">Kategori</th>
+                                <th style="width: 70%;">Deskripsi</th>
                             </tr>
                             <tr>
+                                <td><strong>Strengths (Kekuatan)</strong></td>
                                 <td>{!! nl2br(e($data['market_analysis']->strengths)) !!}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Weaknesses (Kelemahan)</strong></td>
                                 <td>{!! nl2br(e($data['market_analysis']->weaknesses)) !!}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Opportunities (Peluang)</strong></td>
                                 <td>{!! nl2br(e($data['market_analysis']->opportunities)) !!}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Threats (Ancaman)</strong></td>
                                 <td>{!! nl2br(e($data['market_analysis']->threats)) !!}</td>
                             </tr>
                         </table>
