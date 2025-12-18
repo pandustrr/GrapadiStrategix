@@ -14,9 +14,10 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            line-height: 1.5;
+            line-height: 1.6;
             color: #333;
-            font-size: 13px;
+            font-size: 12px;
+            text-align: justify;
         }
 
         /* Watermark untuk mode gratis */
@@ -98,7 +99,7 @@
             width: 100%;
             border-collapse: collapse;
             margin: 10px 0;
-            font-size: 9px;
+            font-size: 10px;
         }
 
         .table th,
@@ -945,7 +946,7 @@
                         @if (isset($marketAnalysisCharts['tam_sam_som']))
                             <div style="margin-top: 15px; text-align: center;">
                                 <img src="{{ $marketAnalysisCharts['tam_sam_som'] }}" alt="TAM/SAM/SOM Chart"
-                                    class="chart-image">
+                                    style="max-width: 350px; height: auto; margin: 10px auto; display: block; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; background: #ffffff;">
                             </div>
                         @endif
                     </div>
