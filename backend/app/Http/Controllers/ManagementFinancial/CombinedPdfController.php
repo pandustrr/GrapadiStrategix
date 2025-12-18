@@ -227,6 +227,14 @@ class CombinedPdfController extends Controller
                 }
             }
 
+            // Generate chart analyses
+            $chartAnalyses = [
+                'income_vs_expense' => $this->generateIncomeVsExpenseAnalysis($financialData['summary'] ?? null),
+                'category_income' => $this->generateCategoryIncomeAnalysis($financialData['category_summary'] ?? []),
+                'category_expense' => $this->generateCategoryExpenseAnalysis($financialData['category_summary'] ?? []),
+                'monthly_trend' => $this->generateMonthlyTrendAnalysis($financialData['monthly_summary'] ?? [])
+            ];
+
             $pdf = PDF::loadView('pdf.combined-report', [
                 'data' => $businessPlanData,  // Business plan data
                 'financial_data' => $financialData,  // Financial data
@@ -235,6 +243,7 @@ class CombinedPdfController extends Controller
                 'charts' => $businessPlanCharts,  // Business Plan charts (6 charts) - untuk Section 8
                 'marketAnalysisCharts' => $marketAnalysisCharts,  // Market Analysis charts (TAM/SAM/SOM pie) - untuk Section 3
                 'financialCharts' => $financialCharts,  // Financial Report charts (4 charts) - untuk BAGIAN 2
+                'chartAnalyses' => $chartAnalyses,  // Chart analyses
                 'workflows' => $workflows,  // Workflow diagrams for operational plans - untuk Section 6
                 'workflowImages' => $workflowImages,  // Workflow uploaded images as data URLs (converted for PDF)
                 'orgCharts' => $orgCharts,  // Organization charts for team structures - untuk Section 7
@@ -1855,5 +1864,153 @@ class CombinedPdfController extends Controller
             Log::error('❌ Error converting logo to data URL: ' . $e->getMessage());
             return null;
         }
+    }
+
+    /**
+     * Generate analysis for Income vs Expense chart
+     */
+    private function generateIncomeVsExpenseAnalysis($summary)
+    {
+        if (!$summary) {
+            return "Data analisis tidak tersedia.";
+        }
+
+        $totalIncome = $summary['total_income'] ?? 0;
+        $totalExpense = $summary['total_expense'] ?? 0;
+        $netProfit = $summary['net_profit'] ?? 0;
+        $profitMargin = $totalIncome > 0 ? ($netProfit / $totalIncome) * 100 : 0;
+
+        $analysis = "Grafik menunjukkan perbandingan antara total pendapatan Rp " . number_format($totalIncome, 0, ',', '.') .
+                   " dan pengeluaran Rp " . number_format($totalExpense, 0, ',', '.');
+
+        if ($netProfit > 0) {
+            $analysis .= " Bisnis mencapai keuntungan bersih sebesar Rp " . number_format($netProfit, 0, ',', '.') .
+                        " dengan margin keuntungan " . number_format($profitMargin, 1, ',', '.') . "%.";
+        } elseif ($netProfit < 0) {
+            $analysis .= " Bisnis mengalami kerugian sebesar Rp " . number_format(abs($netProfit), 0, ',', '.') .
+                        ". Perhatian diperlukan untuk mengurangi pengeluaran atau meningkatkan pendapatan.";
+        } else {
+            $analysis .= " Pendapatan dan pengeluaran seimbang tanpa keuntungan atau kerugian.";
+        }
+
+        return $analysis;
+    }
+
+    /**
+     * Generate analysis for Category Income Pie chart
+     */
+    private function generateCategoryIncomeAnalysis($categorySummary)
+    {
+        if (!isset($categorySummary['top_income']) || empty($categorySummary['top_income'])) {
+            return "Data kategori pendapatan tidak tersedia.";
+        }
+
+        $topIncome = $categorySummary['top_income'];
+        $topCategory = $topIncome[0] ?? null;
+
+        if (!$topCategory) {
+            return "Data kategori pendapatan tidak tersedia.";
+        }
+
+        $categoryName = $topCategory['category']->name ?? 'Tidak diketahui';
+        $totalAmount = $topCategory['total'] ?? 0;
+        $percentageOfTotal = 0;
+
+        // Calculate percentage if we have total income
+        $allIncome = collect($topIncome)->sum('total');
+        if ($allIncome > 0) {
+            $percentageOfTotal = ($totalAmount / $allIncome) * 100;
+        }
+
+        $analysis = "Kategori " . strtoupper($categoryName) . " merupakan sumber pendapatan utama dengan kontribusi Rp " .
+                   number_format($totalAmount, 0, ',', '.') . " (" . number_format($percentageOfTotal, 1, ',', '.') . "%).";
+
+        if (count($topIncome) > 1) {
+            $analysis .= " Terdapat " . count($topIncome) . " kategori pendapatan, menunjukkan diversifikasi pendapatan yang baik.";
+        } else {
+            $analysis .= " Perhatikan bahwa pendapatan terpusat pada satu kategori, risiko konsentrasi tinggi.";
+        }
+
+        return $analysis;
+    }
+
+    /**
+     * Generate analysis for Category Expense Pie chart
+     */
+    private function generateCategoryExpenseAnalysis($categorySummary)
+    {
+        if (!isset($categorySummary['top_expense']) || empty($categorySummary['top_expense'])) {
+            return "Data kategori pengeluaran tidak tersedia.";
+        }
+
+        $topExpense = $categorySummary['top_expense'];
+        $topCategory = $topExpense[0] ?? null;
+
+        if (!$topCategory) {
+            return "Data kategori pengeluaran tidak tersedia.";
+        }
+
+        $categoryName = $topCategory['category']->name ?? 'Tidak diketahui';
+        $totalAmount = $topCategory['total'] ?? 0;
+        $percentageOfTotal = 0;
+
+        // Calculate percentage if we have total expense
+        $allExpense = collect($topExpense)->sum('total');
+        if ($allExpense > 0) {
+            $percentageOfTotal = ($totalAmount / $allExpense) * 100;
+        }
+
+        $analysis = "Kategori " . strtoupper($categoryName) . " adalah pengeluaran terbesar dengan nilai Rp " .
+                   number_format($totalAmount, 0, ',', '.') . " (" . number_format($percentageOfTotal, 1, ',', '.') . "%).";
+
+        $analysis .= " Terdapat " . count($topExpense) . " kategori pengeluaran.";
+
+        if ($percentageOfTotal > 60) {
+            $analysis .= " Pengeluaran terkonsentrasi pada kategori ini, pertimbangkan optimisasi untuk meningkatkan efisiensi.";
+        } else {
+            $analysis .= " Distribusi pengeluaran cukup merata, menunjukkan pengelolaan biaya yang seimbang.";
+        }
+
+        return $analysis;
+    }
+
+    /**
+     * Generate analysis for Monthly Trend chart
+     */
+    private function generateMonthlyTrendAnalysis($monthlySummary)
+    {
+        if (empty($monthlySummary)) {
+            return "Data tren bulanan tidak tersedia.";
+        }
+
+        $months = collect($monthlySummary);
+        $incomes = $months->pluck('total_income');
+        $expenses = $months->pluck('total_expense');
+
+        $avgIncome = $incomes->avg();
+        $avgExpense = $expenses->avg();
+        $maxIncomeMonth = $months->sortByDesc('total_income')->first();
+        $minIncomeMonth = $months->sortBy('total_income')->first();
+
+        $analysis = "Tren bulanan menunjukkan rata-rata pendapatan Rp " . number_format($avgIncome, 0, ',', '.') .
+                   " dan rata-rata pengeluaran Rp " . number_format($avgExpense, 0, ',', '.') . ".";
+
+        if ($maxIncomeMonth) {
+            $maxMonth = $maxIncomeMonth['month'] ?? 'Tidak diketahui';
+            $maxAmount = $maxIncomeMonth['total_income'] ?? 0;
+            $analysis .= " Pendapatan tertinggi terjadi pada " . $maxMonth . " sebesar Rp " .
+                        number_format($maxAmount, 0, ',', '.') . ".";
+        }
+
+        if ($minIncomeMonth) {
+            $minMonth = $minIncomeMonth['month'] ?? 'Tidak diketahui';
+            $minAmount = $minIncomeMonth['total_income'] ?? 0;
+            $analysis .= " Sementara pendapatan terendah pada " . $minMonth . " sebesar Rp " .
+                        number_format($minAmount, 0, ',', '.') . ".";
+        }
+
+        $analysis .= " Pola ini membantu identifikasi musim ramai dan sepi untuk perencanaan cash flow yang lebih baik.";
+
+        return $analysis;
     }
 }

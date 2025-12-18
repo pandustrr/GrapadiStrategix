@@ -24,6 +24,7 @@ class TeamStructureSeeder extends Seeder
                 'photo' => null,
                 'sort_order' => 1,
                 'status' => 'active',
+                'salary' => 4500000,
             ],
 
             // ============================================
@@ -40,6 +41,7 @@ class TeamStructureSeeder extends Seeder
                 'photo' => null,
                 'sort_order' => 2,
                 'status' => 'active',
+                'salary' => 3800000,
             ],
             [
                 'user_id' => 1,
@@ -52,6 +54,7 @@ class TeamStructureSeeder extends Seeder
                 'photo' => null,
                 'sort_order' => 3,
                 'status' => 'active',
+                'salary' => 3500000,
             ],
             [
                 'user_id' => 1,
@@ -64,6 +67,7 @@ class TeamStructureSeeder extends Seeder
                 'photo' => null,
                 'sort_order' => 4,
                 'status' => 'active',
+                'salary' => 3600000,
             ],
 
             // ============================================
@@ -80,6 +84,7 @@ class TeamStructureSeeder extends Seeder
                 'photo' => null,
                 'sort_order' => 5,
                 'status' => 'active',
+                'salary' => 2700000,
             ],
             [
                 'user_id' => 1,
@@ -92,6 +97,7 @@ class TeamStructureSeeder extends Seeder
                 'photo' => null,
                 'sort_order' => 6,
                 'status' => 'active',
+                'salary' => 2500000,
             ],
 
             // ============================================
@@ -108,6 +114,7 @@ class TeamStructureSeeder extends Seeder
                 'photo' => null,
                 'sort_order' => 7,
                 'status' => 'active',
+                'salary' => 2800000,
             ],
             [
                 'user_id' => 1,
@@ -120,6 +127,7 @@ class TeamStructureSeeder extends Seeder
                 'photo' => null,
                 'sort_order' => 8,
                 'status' => 'active',
+                'salary' => 2800000,
             ],
             [
                 'user_id' => 1,
@@ -132,6 +140,7 @@ class TeamStructureSeeder extends Seeder
                 'photo' => null,
                 'sort_order' => 9,
                 'status' => 'active',
+                'salary' => 3000000,
             ],
             [
                 'user_id' => 1,
@@ -144,6 +153,7 @@ class TeamStructureSeeder extends Seeder
                 'photo' => null,
                 'sort_order' => 10,
                 'status' => 'active',
+                'salary' => 3500000,
             ],
             [
                 'user_id' => 1,
@@ -156,6 +166,7 @@ class TeamStructureSeeder extends Seeder
                 'photo' => null,
                 'sort_order' => 11,
                 'status' => 'active',
+                'salary' => 3200000,
             ],
             [
                 'user_id' => 1,
@@ -168,6 +179,7 @@ class TeamStructureSeeder extends Seeder
                 'photo' => null,
                 'sort_order' => 12,
                 'status' => 'active',
+                'salary' => 3000000,
             ],
         ];
 

@@ -100,14 +100,17 @@
             border-collapse: collapse;
             margin: 10px 0;
             font-size: 10px;
+            line-height: 1.4;
         }
 
         .table th,
         .table td {
             border: 1px solid #ddd;
-            padding: 6px 4px;
+            padding: 8px 6px;
             text-align: left;
             word-wrap: break-word;
+            vertical-align: top;
+            line-height: 1.4;
         }
 
         .table th {
@@ -168,6 +171,26 @@
             border-radius: 8px;
             padding: 8px;
             background: #ffffff;
+        }
+
+        /* Chart Analysis Box */
+        .chart-analysis {
+            background: #f0f9ff;
+            border-left: 4px solid #0284c7;
+            padding: 12px 15px;
+            margin-top: 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            line-height: 1.6;
+            color: #1e293b;
+            page-break-inside: avoid;
+        }
+
+        .chart-analysis-title {
+            font-weight: bold;
+            color: #0284c7;
+            margin-bottom: 6px;
+            font-size: 11px;
         }
 
         /* Financial highlights */
@@ -422,16 +445,36 @@
 
             <div class="section">
                 @foreach ($data['operational_plans'] as $plan)
-                    <div style="margin-bottom: 20px;">
-                        <table class="table">
+                    <!-- GAMBAR DIAGRAM ALUR KERJA -->
+                    @if (isset($workflowImages[$plan->id]))
+                        <div style="margin-bottom: 15px; padding: 15px; background: #f0f4ff; border-radius: 8px;">
+                            <h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: bold;">
+                                Gambar Diagram Alur Kerja</h3>
+                            <div style="text-align: center; background: #ffffff; padding: 10px; border-radius: 4px;">
+                                <img src="{{ $workflowImages[$plan->id] }}"
+                                    style="width: 100%; max-width: 300px; height: auto; display: block; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; background: #ffffff;"
+                                    alt="Workflow Image {{ $plan->business_location }}" />
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- TABEL RENCANA OPERASIONAL -->
+                    <table class="table" style="margin-bottom: 30px;">
+                        <thead>
                             <tr>
-                                <td style="width: 20%;"><strong>Lokasi Bisnis</strong></td>
+                                <th style="width: 20%;">Aspek Operasional</th>
+                                <th style="width: 80%;">Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Lokasi Bisnis</strong></td>
                                 <td>{{ $plan->business_location }}</td>
                             </tr>
                             @if ($plan->location_description)
                                 <tr>
                                     <td><strong>Deskripsi Lokasi</strong></td>
-                                    <td>{!! nl2br(e($plan->location_description)) !!}</td>
+                                    <td style="font-size: 9px; line-height: 1.4;">{!! nl2br(e($plan->location_description)) !!}</td>
                                 </tr>
                             @endif
                             <tr>
@@ -453,46 +496,23 @@
                             @if ($plan->daily_workflow)
                                 <tr>
                                     <td><strong>Alur Kerja Harian</strong></td>
-                                    <td>{!! nl2br(e($plan->daily_workflow)) !!}</td>
+                                    <td style="font-size: 9px; line-height: 1.4;">{!! nl2br(e($plan->daily_workflow)) !!}</td>
                                 </tr>
                             @endif
                             @if ($plan->equipment_needs)
                                 <tr>
                                     <td><strong>Kebutuhan Peralatan</strong></td>
-                                    <td>{!! nl2br(e($plan->equipment_needs)) !!}</td>
+                                    <td style="font-size: 9px; line-height: 1.4;">{!! nl2br(e($plan->equipment_needs)) !!}</td>
                                 </tr>
                             @endif
                             @if ($plan->technology_stack)
                                 <tr>
                                     <td><strong>Teknologi yang Digunakan</strong></td>
-                                    <td>{!! nl2br(e($plan->technology_stack)) !!}</td>
+                                    <td style="font-size: 9px; line-height: 1.4;">{!! nl2br(e($plan->technology_stack)) !!}</td>
                                 </tr>
                             @endif
-                        </table>
-
-                        @if (isset($workflows[$plan->id]))
-                            <div style="margin-top: 15px;">
-                                <h3 style="margin: 10px 0; font-size: 14px; font-weight: bold;">Diagram Alur Kerja</h3>
-                                <img src="{{ $workflows[$plan->id] }}"
-                                    style="width: 100%; max-width: 120px; height: auto; margin: 10px auto; display: block; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; background: #ffffff;"
-                                    alt="Workflow Diagram {{ $plan->business_location }}" />
-                            </div>
-                        @endif
-
-                        @if (isset($workflowImages[$plan->id]))
-                            <div
-                                style="margin-top: 15px; padding: 15px; background: #f0f4ff; border-left: 4px solid #2563eb; border-radius: 8px;">
-                                <h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: bold; color: #2563eb;">
-                                    Gambar Diagram Alur Kerja</h3>
-                                <div
-                                    style="text-align: center; background: #ffffff; padding: 10px; border-radius: 4px;">
-                                    <img src="{{ $workflowImages[$plan->id] }}"
-                                        style="width: 100%; max-width: 200px; height: auto; display: block; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; background: #ffffff;"
-                                        alt="Workflow Image {{ $plan->business_location }}" />
-                                </div>
-                            </div>
-                        @endif
-                    </div>
+                        </tbody>
+                    </table>
                 @endforeach
             </div>
         </div>
@@ -873,6 +893,10 @@
                         Pengeluaran</h4>
                     <img src="{{ $financialCharts['income_vs_expense'] }}" alt="Income vs Expense Chart"
                         class="chart-image">
+                    <div class="chart-analysis">
+                        <div class="chart-analysis-title"> Analisis:</div>
+                        <p style="margin: 0;">{{ $chartAnalyses['income_vs_expense'] ?? 'Data analisis tidak tersedia.' }}</p>
+                    </div>
                 </div>
             @endif
         </div>
@@ -1210,9 +1234,9 @@
                 <div class="document-title">8. STRATEGI PEMASARAN</div>
             </div>
 
-            <div class="section">
+            <div class="section" style="margin-top: 5px; margin-bottom: 0;">
                 @foreach ($data['marketing_strategies'] as $strategy)
-                    <div class="subsection">
+                    <div style="margin-bottom: 12px;">
                         <table class="table">
                             <tr>
                                 <td style="width: 20%;"><strong>Strategi Promosi</strong></td>
@@ -1265,6 +1289,7 @@
 
                     <!-- Financial Highlights -->
                     <div class="financial-highlights mb-15" style="page-break-inside: avoid;">
+>
                         <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 8px;">Ringkasan Keuangan</h4>
                         <table class="table">
                             <tr>
@@ -1621,6 +1646,10 @@
                     @if (isset($financialCharts['category_income_pie']))
                         <img src="{{ $financialCharts['category_income_pie'] }}" alt="Category Income Chart"
                             class="chart-image">
+                        <div class="chart-analysis">
+                            <div class="chart-analysis-title"> Analisis:</div>
+                            <p style="margin: 0;">{{ $chartAnalyses['category_income'] ?? 'Data kategori pendapatan tidak tersedia.' }}</p>
+                        </div>
                     @endif
                 </div>
 
@@ -1648,6 +1677,10 @@
                     @if (isset($financialCharts['category_expense_pie']))
                         <img src="{{ $financialCharts['category_expense_pie'] }}" alt="Category Expense Chart"
                             class="chart-image">
+                        <div class="chart-analysis">
+                            <div class="chart-analysis-title"> Analisis:</div>
+                            <p style="margin: 0;">{{ $chartAnalyses['category_expense'] ?? 'Data kategori pengeluaran tidak tersedia.' }}</p>
+                        </div>
                     @endif
                 </div>
             </div>
@@ -1688,6 +1721,10 @@
                     <div style="margin-top: 15px;">
                         <img src="{{ $financialCharts['monthly_trend'] }}" alt="Monthly Trend Chart"
                             class="chart-image">
+                        <div class="chart-analysis">
+                            <div class="chart-analysis-title"> Analisis:</div>
+                            <p style="margin: 0;">{{ $chartAnalyses['monthly_trend'] ?? 'Data tren bulanan tidak tersedia.' }}</p>
+                        </div>
                     </div>
                 @endif
             </div>
@@ -1714,11 +1751,11 @@
                                 <div
                                     style="font-size: 11px; font-weight: bold; margin-bottom: 10px; text-transform: uppercase;">
                                     @if ($projection->scenario_type == 'optimistic')
-                                        🚀 Optimistik
+                                        Optimistik
                                     @elseif($projection->scenario_type == 'realistic')
-                                        📊 Realistik
+                                         Realistik
                                     @else
-                                        ⚠️ Pesimistik
+                                        Pesimistik
                                     @endif
                                 </div>
                                 <div style="margin: 6px 0; font-size: 9px;">
@@ -1949,30 +1986,109 @@
                 </div>
 
                 <div class="section">
-                    <h4 style="font-weight: bold; font-size: 13px; margin-bottom: 10px; color: #2563eb;">Insight
-                        Otomatis Sistem</h4>
+                    <div style="text-align: justify; line-height: 1.8; margin-bottom: 20px; font-size: 11px; color: #333;">
+                        <p style="margin: 0 0 12px 0;">
+                            Berdasarkan analisis prediktif dan machine learning yang diterapkan terhadap data finansial historis selama periode pelaporan, sistem kami telah mengidentifikasi sejumlah insight strategis dan pola kritis yang perlu mendapatkan perhatian khusus dari manajemen. Analisis komprehensif ini menggabungkan tren data ekstensif dengan faktor-faktor kuantitatif dan kualitatif untuk memberikan perspektif holistik tentang kesehatan finansial bisnis Anda.
+                        </p>
+                        <p style="margin: 0 0 12px 0;">
+                            Setiap insight yang disajikan di bawah telah dikategorikan berdasarkan tingkat urgensi dan dampak potensialnya terhadap operasional bisnis. Pemahaman mendalam tentang insight-insight ini akan membantu dalam merumuskan strategi bisnis yang lebih efektif, mengidentifikasi peluang pertumbuhan, dan meminimalkan risiko-risiko potensial yang mungkin dihadapi.
+                        </p>
+                        <p style="margin: 0;">
+                            Kami merekomendasikan untuk menggunakan informasi ini sebagai dasar pengambilan keputusan strategis sambil tetap mempertimbangkan konteks pasar eksternal, keadaan industri, dan faktor-faktor lain yang mungkin tidak terukur dalam sistem analitik kami.
+                        </p>
+                    </div>
 
-                    @foreach ($forecast_insights as $insight)
-                        @php
-                            $severityColor = match (strtolower($insight['severity'] ?? 'info')) {
-                                'critical' => ['border' => '#ef4444', 'bg' => '#fef2f2'],
-                                'warning' => ['border' => '#f59e0b', 'bg' => '#fffbeb'],
-                                'positive' => ['border' => '#10b981', 'bg' => '#f0fdf4'],
-                                default => ['border' => '#2563eb', 'bg' => '#eff6ff'],
-                            };
-                        @endphp
-                        <div
-                            style="margin-bottom: 15px; padding: 12px; border-left: 3px solid {{ $severityColor['border'] }}; background: {{ $severityColor['bg'] }}; font-size: 11px;">
-                            <div style="font-weight: bold; margin-bottom: 5px;">{{ $insight['title'] ?? 'Insight' }}
-                            </div>
-                            <div>{{ $insight['description'] ?? '-' }}</div>
-                            @if (isset($insight['value']) && $insight['value'])
-                                <div style="margin-top: 5px; color: #666;">
-                                    <strong>Nilai:</strong> {{ $insight['value'] }}
+                    @php
+                        $criticalInsights = collect($forecast_insights)->where('severity', 'critical')->all();
+                        $warningInsights = collect($forecast_insights)->where('severity', 'warning')->all();
+                        $positiveInsights = collect($forecast_insights)->where('severity', 'positive')->all();
+                        $infoInsights = collect($forecast_insights)->whereNotIn('severity', ['critical', 'warning', 'positive'])->all();
+                    @endphp
+
+                    @if (count($criticalInsights) > 0)
+                        <div style="margin-bottom: 20px; padding: 15px; background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 4px;">
+                            <h4 style="font-weight: bold; font-size: 12px; color: #ef4444; margin: 0 0 12px 0; text-transform: uppercase;">PERINGATAN KRITIS - MEMERLUKAN TINDAKAN SEGERA</h4>
+                            @foreach ($criticalInsights as $insight)
+                                <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(239, 68, 68, 0.2);">
+                                    <p style="text-align: justify; line-height: 1.7; margin: 0 0 8px 0; font-size: 11px; color: #333;">
+                                        <strong style="color: #991b1b;">{{ $insight['title'] ?? 'Insight Kritis' }}:</strong><br>
+                                        {{ $insight['description'] ?? '-' }}
+                                    </p>
+                                    @if (isset($insight['value']) && $insight['value'])
+                                        <p style="margin: 0; font-size: 10px; color: #666; font-style: italic;">
+                                            <strong>Nilai/Data:</strong> {{ $insight['value'] }}
+                                        </p>
+                                    @endif
                                 </div>
-                            @endif
+                            @endforeach
                         </div>
-                    @endforeach
+                    @endif
+
+                    @if (count($warningInsights) > 0)
+                        <div style="margin-bottom: 20px; padding: 15px; background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 4px;">
+                            <h4 style="font-weight: bold; font-size: 12px; color: #f59e0b; margin: 0 0 12px 0; text-transform: uppercase;">PERINGATAN - PERLU DIMONITOR DENGAN SEKSAMA</h4>
+                            @foreach ($warningInsights as $insight)
+                                <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(245, 158, 11, 0.2);">
+                                    <p style="text-align: justify; line-height: 1.7; margin: 0 0 8px 0; font-size: 11px; color: #333;">
+                                        <strong style="color: #b45309;">{{ $insight['title'] ?? 'Insight Peringatan' }}:</strong><br>
+                                        {{ $insight['description'] ?? '-' }}
+                                    </p>
+                                    @if (isset($insight['value']) && $insight['value'])
+                                        <p style="margin: 0; font-size: 10px; color: #666; font-style: italic;">
+                                            <strong>Nilai/Data:</strong> {{ $insight['value'] }}
+                                        </p>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    @if (count($positiveInsights) > 0)
+                        <div style="margin-bottom: 20px; padding: 15px; background: #f0fdf4; border-left: 4px solid #10b981; border-radius: 4px;">
+                            <h4 style="font-weight: bold; font-size: 12px; color: #10b981; margin: 0 0 12px 0; text-transform: uppercase;">INSIGHT POSITIF - KEKUATAN DAN PELUANG</h4>
+                            @foreach ($positiveInsights as $insight)
+                                <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(16, 185, 129, 0.2);">
+                                    <p style="text-align: justify; line-height: 1.7; margin: 0 0 8px 0; font-size: 11px; color: #333;">
+                                        <strong style="color: #065f46;">{{ $insight['title'] ?? 'Insight Positif' }}:</strong><br>
+                                        {{ $insight['description'] ?? '-' }}
+                                    </p>
+                                    @if (isset($insight['value']) && $insight['value'])
+                                        <p style="margin: 0; font-size: 10px; color: #666; font-style: italic;">
+                                            <strong>Nilai/Data:</strong> {{ $insight['value'] }}
+                                        </p>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    @if (count($infoInsights) > 0)
+                        <div style="margin-bottom: 20px; padding: 15px; background: #eff6ff; border-left: 4px solid #2563eb; border-radius: 4px;">
+                            <h4 style="font-weight: bold; font-size: 12px; color: #2563eb; margin: 0 0 12px 0; text-transform: uppercase;">INFORMASI TAMBAHAN - INSIGHT LAINNYA</h4>
+                            @foreach ($infoInsights as $insight)
+                                <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(37, 99, 235, 0.2);">
+                                    <p style="text-align: justify; line-height: 1.7; margin: 0 0 8px 0; font-size: 11px; color: #333;">
+                                        <strong style="color: #1e40af;">{{ $insight['title'] ?? 'Insight Informasi' }}:</strong><br>
+                                        {{ $insight['description'] ?? '-' }}
+                                    </p>
+                                    @if (isset($insight['value']) && $insight['value'])
+                                        <p style="margin: 0; font-size: 10px; color: #666; font-style: italic;">
+                                            <strong>Nilai/Data:</strong> {{ $insight['value'] }}
+                                        </p>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    <div style="margin-top: 20px; padding: 15px; background: #f3f4f6; border-radius: 4px; font-size: 10px; color: #666; line-height: 1.7; border-left: 4px solid #6b7280;">
+                        <p style="margin: 0 0 8px 0; font-weight: bold; color: #374151;">
+                            DISCLAIMER & CATATAN METODOLOGI
+                        </p>
+                        <p style="margin: 0;">
+                            Insights dan rekomendasi yang disajikan dalam laporan ini dihasilkan secara otomatis melalui algoritma analitik prediktif berdasarkan data historis yang tersedia dalam sistem. Analisis ini bertujuan untuk mendukung proses pengambilan keputusan manajemen, namun tidak menggantikan pertimbangan profesional manusia. Faktor-faktor eksternal yang tidak terukur dalam sistem (seperti perubahan regulasi, tren pasar global, kompetisi baru, atau kejadian tak terduga) dapat mempengaruhi akurasi prediksi. Oleh karena itu, semua rekomendasi harus dievaluasi kembali dengan cermat oleh pihak manajemen yang berpengalaman sebelum diimplementasikan.
+                        </p>
+                    </div>
                 </div>
             </div>
         @endif
@@ -1986,7 +2102,7 @@
 
             <div class="section">
                 <div style="text-align: center; padding: 60px 20px; background: #f9fafb; border-radius: 8px;">
-                    <div style="font-size: 48px; color: #e5e7eb; margin-bottom: 20px;">📊</div>
+                    <div style="font-size: 48px; color: #e5e7eb; margin-bottom: 20px;"></div>
                     <h3 style="font-size: 18px; color: #666; margin-bottom: 10px;">Data Forecast Belum Tersedia</h3>
                     <p style="font-size: 12px; color: #999;">
                         Belum ada data forecast untuk periode {{ $period_label }}.<br>

@@ -613,6 +613,7 @@ const OperationalPlanForm = ({
                             value={formData.location_description}
                             onChange={(e) => handleInputChangeWrapper('location_description', e.target.value)}
                             rows={3}
+                            style={{ resize: 'both' }}
                             placeholder="Deskripsi detail tentang lokasi usaha..."
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                         />
@@ -732,6 +733,7 @@ const OperationalPlanForm = ({
                                         value={employee.responsibilities}
                                         onChange={(e) => updateEmployee(index, 'responsibilities', e.target.value)}
                                         rows={2}
+                                        style={{ resize: 'both' }}
                                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-600 dark:text-white"
                                         placeholder="Deskripsi tanggung jawab..."
                                     />
@@ -918,6 +920,7 @@ const OperationalPlanForm = ({
                                 value={formData.daily_workflow}
                                 onChange={(e) => handleInputChangeWrapper('daily_workflow', e.target.value)}
                                 rows={4}
+                                style={{ resize: 'both' }}
                                 placeholder="Deskripsi alur kerja harian dari buka hingga tutup...
 Contoh:
 1. Persiapan buka toko
@@ -1099,6 +1102,7 @@ Contoh:
                                 value={formData.equipment_needs}
                                 onChange={(e) => handleInputChangeWrapper('equipment_needs', e.target.value)}
                                 rows={3}
+                                style={{ resize: 'both' }}
                                 placeholder="Daftar peralatan yang dibutuhkan..."
                                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                             />
@@ -1113,6 +1117,7 @@ Contoh:
                                 value={formData.technology_stack}
                                 onChange={(e) => handleInputChangeWrapper('technology_stack', e.target.value)}
                                 rows={3}
+                                style={{ resize: 'both' }}
                                 placeholder="Software, hardware, sistem yang digunakan..."
                                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                             />
