@@ -14,9 +14,10 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            line-height: 1.5;
+            line-height: 1.6;
             color: #333;
-            font-size: 13px;
+            font-size: 12px;
+            text-align: justify;
         }
 
         /* Watermark untuk mode gratis */
@@ -98,7 +99,7 @@
             width: 100%;
             border-collapse: collapse;
             margin: 10px 0;
-            font-size: 9px;
+            font-size: 10px;
         }
 
         .table th,
@@ -479,9 +480,12 @@
                         @endif
 
                         @if (isset($workflowImages[$plan->id]))
-                            <div style="margin-top: 15px; padding: 15px; background: #f0f4ff; border-left: 4px solid #2563eb; border-radius: 8px;">
-                                <h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: bold; color: #2563eb;">Gambar Diagram Alur Kerja</h3>
-                                <div style="text-align: center; background: #ffffff; padding: 10px; border-radius: 4px;">
+                            <div
+                                style="margin-top: 15px; padding: 15px; background: #f0f4ff; border-left: 4px solid #2563eb; border-radius: 8px;">
+                                <h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: bold; color: #2563eb;">
+                                    Gambar Diagram Alur Kerja</h3>
+                                <div
+                                    style="text-align: center; background: #ffffff; padding: 10px; border-radius: 4px;">
                                     <img src="{{ $workflowImages[$plan->id] }}"
                                         style="width: 100%; max-width: 200px; height: auto; display: block; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; background: #ffffff;"
                                         alt="Workflow Image {{ $plan->business_location }}" />
@@ -505,6 +509,7 @@
             <div class="section">
                 @php
                     $groupedTeams = $data['team_structures']->groupBy('team_category');
+                    $totalSalary = $data['team_structures']->where('status', 'active')->sum('salary');
                 @endphp
 
                 <!-- Summary Statistics - Pindah ke atas -->
@@ -520,6 +525,17 @@
                     </p>
                 </div>
 
+                <!-- Org Chart Image - Jika ada -->
+                @if ($data['business_background']->org_chart_image)
+                    <div style="margin-bottom: 25px; text-align: center; page-break-inside: avoid;">
+                        <h4 style="font-size: 12px; font-weight: bold; color: #2c5aa0; margin-bottom: 10px;">
+                            Struktur Organisasi
+                        </h4>
+                        <img src="{{ $data['business_background']->org_chart_image }}" alt="Organization Chart"
+                            style="max-width: 100%; height: auto; border: 1px solid #e5e7eb; border-radius: 8px;">
+                    </div>
+                @endif
+
                 @foreach ($groupedTeams as $category => $members)
                     <div style="margin-bottom: 30px; page-break-inside: avoid;">
                         <!-- Category Header - Sederhana -->
@@ -532,11 +548,12 @@
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th style="width: 5%;">No</th>
-                                    <th style="width: 20%;">Nama</th>
-                                    <th style="width: 15%;">Posisi</th>
-                                    <th style="width: 30%;">Job Desk</th>
-                                    <th style="width: 30%;">Pengalaman</th>
+                                    <th style="width: 4%;">No</th>
+                                    <th style="width: 18%;">Nama</th>
+                                    <th style="width: 13%;">Posisi</th>
+                                    <th style="width: 14%;">Gaji</th>
+                                    <th style="width: 26%;">Job Desk</th>
+                                    <th style="width: 25%;">Pengalaman</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -545,6 +562,9 @@
                                         <td style="text-align: center;">{{ $index + 1 }}</td>
                                         <td style="font-weight: bold;">{{ $member->member_name }}</td>
                                         <td style="font-style: italic;">{{ $member->position }}</td>
+                                        <td style="font-size: 9px; font-weight: bold; color: #059669;">
+                                            Rp {{ number_format($member->salary, 0, ',', '.') }}
+                                        </td>
                                         <td style="font-size: 8px;">{!! nl2br(e($member->jobdesk ?? '-')) !!}</td>
                                         <td style="font-size: 8px;">{!! nl2br(e($member->experience ?? '-')) !!}</td>
                                     </tr>
@@ -553,6 +573,21 @@
                         </table>
                     </div>
                 @endforeach
+
+                <!-- Total Salary Summary -->
+                <div
+                    style="margin-top: 20px; padding: 15px; background: #f0fdf4; border-left: 4px solid #10b981; border-radius: 4px;">
+                    <p style="font-size: 11px; color: #065f46; margin: 0; line-height: 1.6;">
+                        <strong style="font-size: 12px;">Total Gaji Karyawan (Bulanan)</strong><br>
+                        <span style="font-size: 16px; font-weight: bold; color: #059669;">
+                            Rp {{ number_format($totalSalary, 0, ',', '.') }}
+                        </span>
+                        <span style="font-size: 9px; color: #666; display: block; margin-top: 4px;">
+                            Berdasarkan {{ $data['team_structures']->where('status', 'active')->count() }} karyawan
+                            aktif
+                        </span>
+                    </p>
+                </div>
             </div>
         </div>
     @endif
@@ -799,13 +834,15 @@
                         <tr>
                             <td><strong>Total Pendapatan</strong></td>
                             <td class="text-green">
-                                Rp {{ number_format($financial_summary['summary_cards']['total_income'], 0, ',', '.') }}
+                                Rp
+                                {{ number_format($financial_summary['summary_cards']['total_income'], 0, ',', '.') }}
                             </td>
                         </tr>
                         <tr>
                             <td><strong>Total Pengeluaran</strong></td>
                             <td class="text-red">
-                                Rp {{ number_format($financial_summary['summary_cards']['total_expense'], 0, ',', '.') }}
+                                Rp
+                                {{ number_format($financial_summary['summary_cards']['total_expense'], 0, ',', '.') }}
                             </td>
                         </tr>
                         <tr>
@@ -813,14 +850,17 @@
                             <td
                                 class="{{ $financial_summary['summary_cards']['net_profit'] >= 0 ? 'text-green' : 'text-red' }}">
                                 <strong>
-                                    Rp {{ number_format($financial_summary['summary_cards']['net_profit'], 0, ',', '.') }}
+                                    Rp
+                                    {{ number_format($financial_summary['summary_cards']['net_profit'], 0, ',', '.') }}
                                 </strong>
                             </td>
                         </tr>
                         <tr>
                             <td><strong>Saldo Kas</strong></td>
-                            <td class="{{ $financial_summary['summary_cards']['cash_balance'] >= 0 ? 'text-green' : 'text-red' }}">
-                                Rp {{ number_format($financial_summary['summary_cards']['cash_balance'], 0, ',', '.') }}
+                            <td
+                                class="{{ $financial_summary['summary_cards']['cash_balance'] >= 0 ? 'text-green' : 'text-red' }}">
+                                Rp
+                                {{ number_format($financial_summary['summary_cards']['cash_balance'], 0, ',', '.') }}
                             </td>
                         </tr>
                     </table>
@@ -906,7 +946,7 @@
                         @if (isset($marketAnalysisCharts['tam_sam_som']))
                             <div style="margin-top: 15px; text-align: center;">
                                 <img src="{{ $marketAnalysisCharts['tam_sam_som'] }}" alt="TAM/SAM/SOM Chart"
-                                    class="chart-image">
+                                    style="max-width: 350px; height: auto; margin: 10px auto; display: block; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; background: #ffffff;">
                             </div>
                         @endif
                     </div>
@@ -930,15 +970,23 @@
                         <div class="subsection-title">Analisis SWOT</div>
                         <table class="table">
                             <tr>
-                                <th style="width: 25%;">Strengths (Kekuatan)</th>
-                                <th style="width: 25%;">Weaknesses (Kelemahan)</th>
-                                <th style="width: 25%;">Opportunities (Peluang)</th>
-                                <th style="width: 25%;">Threats (Ancaman)</th>
+                                <th style="width: 30%;">Kategori</th>
+                                <th style="width: 70%;">Deskripsi</th>
                             </tr>
                             <tr>
+                                <td><strong>Strengths (Kekuatan)</strong></td>
                                 <td>{!! nl2br(e($data['market_analysis']->strengths)) !!}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Weaknesses (Kelemahan)</strong></td>
                                 <td>{!! nl2br(e($data['market_analysis']->weaknesses)) !!}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Opportunities (Peluang)</strong></td>
                                 <td>{!! nl2br(e($data['market_analysis']->opportunities)) !!}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Threats (Ancaman)</strong></td>
                                 <td>{!! nl2br(e($data['market_analysis']->threats)) !!}</td>
                             </tr>
                         </table>

@@ -379,6 +379,17 @@ class CombinedPdfController extends Controller
             $businessBackground->logo = $logoDataUrl;
         }
 
+        // Convert org_chart_image to base64 data URL if it exists
+        $orgChartDataUrl = null;
+        if ($businessBackground->org_chart_image) {
+            $orgChartDataUrl = $this->convertLogoToDataUrl($businessBackground->org_chart_image);
+        }
+
+        // Update business background org_chart_image to data URL for PDF rendering
+        if ($orgChartDataUrl) {
+            $businessBackground->org_chart_image = $orgChartDataUrl;
+        }
+
         return [
             'business_background' => $businessBackground,
             'market_analysis' => $marketAnalysis,
@@ -1780,7 +1791,8 @@ class CombinedPdfController extends Controller
         ]);
 
         return $workflowImages;
-    }    /**
+    }
+    /**
      * Convert logo path/URL to base64 data URL for PDF embedding
      */
     private function convertLogoToDataUrl($logoPath)
@@ -1845,4 +1857,3 @@ class CombinedPdfController extends Controller
         }
     }
 }
-

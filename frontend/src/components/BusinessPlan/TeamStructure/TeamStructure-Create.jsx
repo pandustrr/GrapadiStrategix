@@ -17,6 +17,7 @@ const TeamStructureCreate = ({ onBack, onSuccess }) => {
     team_category: "",
     member_name: "",
     position: "",
+    salary: 0,
     jobdesk: "",
     experience: "",
     photo: null,

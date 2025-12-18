@@ -112,6 +112,16 @@ Route::middleware(['auth:sanctum', 'cors'])->group(function () {
 
     // Team Structure
     Route::prefix('team-structure')->group(function () {
+        // Salary simulation endpoints (harus di atas route /{id})
+        Route::post('/check-existing-salary', [TeamStructureController::class, 'checkExistingSalary']);
+        Route::get('/salary-summary', [TeamStructureController::class, 'getSalarySummary']);
+        Route::post('/generate-salary', [TeamStructureController::class, 'generateSalary']);
+
+        // Org chart endpoints (harus di atas route /{id})
+        Route::post('/upload-org-chart', [TeamStructureController::class, 'uploadOrgChart']);
+        Route::delete('/org-chart/{businessBackgroundId}', [TeamStructureController::class, 'deleteOrgChart']);
+
+        // CRUD endpoints (route dengan /{id} harus paling bawah)
         Route::get('/', [TeamStructureController::class, 'index']);
         Route::get('/{id}', [TeamStructureController::class, 'show']);
         Route::post('/', [TeamStructureController::class, 'store']);

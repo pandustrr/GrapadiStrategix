@@ -17,6 +17,7 @@ const TeamStructureEdit = ({ team, onBack, onSuccess }) => {
     team_category: "",
     member_name: "",
     position: "",
+    salary: 0,
     jobdesk: "",
     experience: "",
     photo: null,
@@ -76,6 +77,8 @@ const TeamStructureEdit = ({ team, onBack, onSuccess }) => {
         team_category: team.team_category || "",
         member_name: team.member_name || "",
         position: team.position || "",
+        salary: team.salary || 0,
+        jobdesk: team.jobdesk || "",
         experience: team.experience || "",
         photo: null, // Reset photo file, use photo_url for preview
         photo_url: team.photo_url || null,

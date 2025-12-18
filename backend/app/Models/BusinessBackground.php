@@ -13,6 +13,7 @@ class BusinessBackground extends Model
         'user_id',
         'logo',
         'background_image',
+        'org_chart_image',
         'name',
         'category',
         'description',

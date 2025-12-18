@@ -17,6 +17,7 @@ class TeamStructure extends Model
         'team_category',
         'member_name',
         'position',
+        'salary',
         'jobdesk',
         'experience',
         'photo',
