@@ -1,6 +1,57 @@
 <!DOCTYPE html>
 <html>
 
+@php
+    // ============================================
+    // GLOBAL HELPER FUNCTIONS
+    // ============================================
+
+    /**
+     * Split long text into multiple paragraphs
+     * Splits text by sentences and groups them per paragraph
+     */
+    if (!function_exists('splitLongText')) {
+        function splitLongText($text, $sentencesPerParagraph = 3) {
+            $text = trim(strip_tags(htmlspecialchars_decode($text)));
+            if (empty($text)) {
+                return [];
+            }
+
+            // Split berdasarkan titik diikuti spasi atau newline
+            $sentences = preg_split('/(?<=[.!?])\s+(?=[A-Z])/u', $text, -1, PREG_SPLIT_NO_EMPTY);
+
+            if (empty($sentences)) {
+                return [$text];
+            }
+
+            $paragraphs = [];
+            $currentParagraph = [];
+            $sentenceCount = 0;
+
+            foreach ($sentences as $sentence) {
+                $cleanSentence = trim($sentence);
+                if (!empty($cleanSentence)) {
+                    $currentParagraph[] = $cleanSentence;
+                    $sentenceCount++;
+
+                    if ($sentenceCount >= $sentencesPerParagraph) {
+                        $paragraphs[] = implode(' ', $currentParagraph);
+                        $currentParagraph = [];
+                        $sentenceCount = 0;
+                    }
+                }
+            }
+
+            // Tambahkan sisa kalimat
+            if (!empty($currentParagraph)) {
+                $paragraphs[] = implode(' ', $currentParagraph);
+            }
+
+            return array_filter($paragraphs);
+        }
+    }
+@endphp
+
 <head>
     <meta charset="utf-8">
     <title>Laporan Lengkap - {{ $data['business_background']->name }}</title>
@@ -288,12 +339,15 @@
         </div>
 
         <div class="section">
-            <h3 style="font-size: 16px; color: #2c5aa0; margin-bottom: 15px;">BAGIAN 1: BUSINESS PLAN</h3>
+            <h3 style="font-size: 16px; color: #2c5aa0; margin-bottom: 15px;">BAGIAN 1: LATAR BELAKANG UMUM & LEGAL</h3>
             <ol style="line-height: 2; font-size: 14px; margin-bottom: 30px;">
                 <li>Ringkasan Eksekutif</li>
-                <li>Latar Belakang Bisnis</li>
-                <li>Rencana Operasional</li>
-                <li>Struktur Tim</li>
+                <li>Latar Belakang Usaha</li>
+                <li>Profil Usaha Kedai Kopi Pandu</li>
+                <li>Visi, Misi, dan Tujuan Usaha</li>
+                <li>Bentuk Badan Usaha dan Legalitas</li>
+                <li>Struktur Organisasi dan Tim Manajemen</li>
+                <li>Rencana Operasional Usaha</li>
             </ol>
 
             <h3 style="font-size: 16px; color: #2c5aa0; margin-bottom: 15px;">BAGIAN 2: ASPEK PASAR
@@ -328,7 +382,7 @@
     <div class="page">
         <div class="separator-page">
             <div class="separator-title">BAGIAN 1</div>
-            <div class="separator-subtitle">BUSINESS PLAN</div>
+            <div class="separator-subtitle">LATAR BELAKANG UMUM & LEGAL</div>
         </div>
     </div>
 
@@ -340,15 +394,59 @@
         </div>
 
         <div class="section">
-            {!! nl2br(e($executiveSummary)) !!}
+            @php
+                $executiveSummaryParagraphs = splitLongText($executiveSummary, 3);
+            @endphp
+
+            @foreach ($executiveSummaryParagraphs as $para)
+                <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
+                    {!! nl2br($para) !!}
+                </p>
+            @endforeach
         </div>
     </div>
 
-    <!-- Business Background -->
+    <!-- Halaman 2: Latar Belakang Usaha -->
     <div class="page">
         <div class="header">
             <div class="company-name">{{ $data['business_background']->name }}</div>
-            <div class="document-title">2. LATAR BELAKANG BISNIS</div>
+            <div class="document-title">2. LATAR BELAKANG USAHA</div>
+        </div>
+
+        <div class="section">
+            <div class="subsection">
+                <div class="subsection-title">Deskripsi Bisnis</div>
+                @php
+                    $descriptionParagraphs = splitLongText($data['business_background']->description, 3);
+                @endphp
+                @foreach ($descriptionParagraphs as $para)
+                    <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
+                        {!! nl2br($para) !!}
+                    </p>
+                @endforeach
+            </div>
+
+            @if ($data['business_background']->business_overview)
+                <div class="subsection">
+                    <div class="subsection-title">Gambaran Umum Usaha</div>
+                    @php
+                        $overviewParagraphs = splitLongText($data['business_background']->business_overview, 3);
+                    @endphp
+                    @foreach ($overviewParagraphs as $para)
+                        <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
+                            {!! nl2br($para) !!}
+                        </p>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    </div>
+
+    <!-- Halaman 3: Profil Usaha -->
+    <div class="page">
+        <div class="header">
+            <div class="company-name">{{ $data['business_background']->name }}</div>
+            <div class="document-title">3. PROFIL USAHA {{ strtoupper($data['business_background']->name) }}</div>
         </div>
 
         <div class="section">
@@ -378,152 +476,119 @@
                     </tr>
                 </table>
             </div>
+        </div>
+    </div>
 
-            <div class="subsection">
-                <div class="subsection-title">Deskripsi Bisnis</div>
-                <p>{!! nl2br(e($data['business_background']->description)) !!}</p>
-            </div>
+    <!-- Halaman 4: Visi, Misi, dan Tujuan Usaha -->
+    <div class="page">
+        <div class="header">
+            <div class="company-name">{{ $data['business_background']->name }}</div>
+            <div class="document-title">4. VISI, MISI, DAN TUJUAN USAHA</div>
+        </div>
 
-            @if ($data['business_background']->business_overview)
-                <div class="subsection">
-                    <div class="subsection-title">Gambaran Umum Usaha</div>
-                    <p>{!! nl2br(e($data['business_background']->business_overview)) !!}</p>
-                </div>
-            @endif
-
-            @if ($data['business_background']->business_legality)
-                <div class="subsection">
-                    <div class="subsection-title">Legalitas Usaha</div>
-                    <p>{!! nl2br(e($data['business_background']->business_legality)) !!}</p>
-                </div>
-            @endif
-
-            @if ($data['business_background']->business_objectives)
-                <div class="subsection">
-                    <div class="subsection-title">Maksud & Tujuan Pendirian Usaha</div>
-                    <p>{!! nl2br(e($data['business_background']->business_objectives)) !!}</p>
-                </div>
-            @endif
-
-            @if ($data['business_background']->purpose)
-                <div class="subsection">
-                    <div class="subsection-title">Tujuan Bisnis</div>
-                    <p>{!! nl2br(e($data['business_background']->purpose)) !!}</p>
-                </div>
-            @endif
-
+        <div class="section">
             @if ($data['business_background']->vision)
                 <div class="subsection">
                     <div class="subsection-title">Visi</div>
-                    <p>{!! nl2br(e($data['business_background']->vision)) !!}</p>
+                    @php
+                        $visionParagraphs = splitLongText($data['business_background']->vision, 2);
+                    @endphp
+                    @foreach ($visionParagraphs as $para)
+                        <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
+                            {!! nl2br($para) !!}
+                        </p>
+                    @endforeach
                 </div>
             @endif
 
             @if ($data['business_background']->mission)
                 <div class="subsection">
                     <div class="subsection-title">Misi</div>
-                    <p>{!! nl2br(e($data['business_background']->mission)) !!}</p>
+                    @php
+                        $missionParagraphs = splitLongText($data['business_background']->mission, 2);
+                    @endphp
+                    @foreach ($missionParagraphs as $para)
+                        <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
+                            {!! nl2br($para) !!}
+                        </p>
+                    @endforeach
+                </div>
+            @endif
+
+            @if ($data['business_background']->purpose)
+                <div class="subsection">
+                    <div class="subsection-title">Tujuan Bisnis</div>
+                    @php
+                        $purposeParagraphs = splitLongText($data['business_background']->purpose, 2);
+                    @endphp
+                    @foreach ($purposeParagraphs as $para)
+                        <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
+                            {!! nl2br($para) !!}
+                        </p>
+                    @endforeach
+                </div>
+            @endif
+
+            @if ($data['business_background']->business_objectives)
+                <div class="subsection">
+                    <div class="subsection-title">Maksud & Tujuan Pendirian Usaha</div>
+                    @php
+                        $objectivesParagraphs = splitLongText($data['business_background']->business_objectives, 2);
+                    @endphp
+                    @foreach ($objectivesParagraphs as $para)
+                        <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
+                            {!! nl2br($para) !!}
+                        </p>
+                    @endforeach
                 </div>
             @endif
 
             @if ($data['business_background']->values)
                 <div class="subsection">
                     <div class="subsection-title">Nilai-Nilai</div>
-                    <p>{!! nl2br(e($data['business_background']->values)) !!}</p>
+                    @php
+                        $valuesParagraphs = splitLongText($data['business_background']->values, 2);
+                    @endphp
+                    @foreach ($valuesParagraphs as $para)
+                        <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
+                            {!! nl2br($para) !!}
+                        </p>
+                    @endforeach
                 </div>
             @endif
         </div>
     </div>
 
-    <!-- Operational Plans -->
-    @if ($data['operational_plans']->count() > 0)
-        <div class="page">
-            <div class="header">
-                <div class="company-name">{{ $data['business_background']->name }}</div>
-                <div class="document-title">3. RENCANA OPERASIONAL</div>
-            </div>
-
-            <div class="section">
-                @foreach ($data['operational_plans'] as $plan)
-                    <!-- GAMBAR DIAGRAM ALUR KERJA -->
-                    @if (isset($workflowImages[$plan->id]))
-                        <div style="margin-bottom: 15px; padding: 15px; background: #f0f4ff; border-radius: 8px;">
-                            <h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: bold;">
-                                Gambar Diagram Alur Kerja</h3>
-                            <div style="text-align: center; background: #ffffff; padding: 10px; border-radius: 4px;">
-                                <img src="{{ $workflowImages[$plan->id] }}"
-                                    style="width: 100%; max-width: 300px; height: auto; display: block; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; background: #ffffff;"
-                                    alt="Workflow Image {{ $plan->business_location }}" />
-                            </div>
-                        </div>
-                    @endif
-
-                    <!-- TABEL RENCANA OPERASIONAL -->
-                    <table class="table" style="margin-bottom: 30px;">
-                        <thead>
-                            <tr>
-                                <th style="width: 20%;">Aspek Operasional</th>
-                                <th style="width: 80%;">Keterangan</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>Lokasi Bisnis</strong></td>
-                                <td>{{ $plan->business_location }}</td>
-                            </tr>
-                            @if ($plan->location_description)
-                                <tr>
-                                    <td><strong>Deskripsi Lokasi</strong></td>
-                                    <td style="font-size: 9px; line-height: 1.4;">{!! nl2br(e($plan->location_description)) !!}</td>
-                                </tr>
-                            @endif
-                            <tr>
-                                <td><strong>Tipe Lokasi</strong></td>
-                                <td>{{ $plan->location_type }}</td>
-                            </tr>
-                            @if ($plan->location_size)
-                                <tr>
-                                    <td><strong>Ukuran Lokasi</strong></td>
-                                    <td>{{ number_format($plan->location_size, 0, ',', '.') }} m²</td>
-                                </tr>
-                            @endif
-                            @if ($plan->rent_cost)
-                                <tr>
-                                    <td><strong>Biaya Sewa</strong></td>
-                                    <td>Rp {{ number_format($plan->rent_cost, 0, ',', '.') }}/bulan</td>
-                                </tr>
-                            @endif
-                            @if ($plan->daily_workflow)
-                                <tr>
-                                    <td><strong>Alur Kerja Harian</strong></td>
-                                    <td style="font-size: 9px; line-height: 1.4;">{!! nl2br(e($plan->daily_workflow)) !!}</td>
-                                </tr>
-                            @endif
-                            @if ($plan->equipment_needs)
-                                <tr>
-                                    <td><strong>Kebutuhan Peralatan</strong></td>
-                                    <td style="font-size: 9px; line-height: 1.4;">{!! nl2br(e($plan->equipment_needs)) !!}</td>
-                                </tr>
-                            @endif
-                            @if ($plan->technology_stack)
-                                <tr>
-                                    <td><strong>Teknologi yang Digunakan</strong></td>
-                                    <td style="font-size: 9px; line-height: 1.4;">{!! nl2br(e($plan->technology_stack)) !!}</td>
-                                </tr>
-                            @endif
-                        </tbody>
-                    </table>
-                @endforeach
-            </div>
+    <!-- Halaman 5: Bentuk Badan Usaha dan Legalitas -->
+    <div class="page">
+        <div class="header">
+            <div class="company-name">{{ $data['business_background']->name }}</div>
+            <div class="document-title">5. BENTUK BADAN USAHA DAN LEGALITAS</div>
         </div>
-    @endif
 
-    <!-- Team Structure -->
+        <div class="section">
+            @if ($data['business_background']->business_legality)
+                <div class="subsection">
+                    <div class="subsection-title">Legalitas Usaha</div>
+                    @php
+                        $legalityParagraphs = splitLongText($data['business_background']->business_legality, 3);
+                    @endphp
+                    @foreach ($legalityParagraphs as $para)
+                        <p style="margin-bottom: 12px; text-align: justify; line-height: 1.6;">
+                            {!! nl2br($para) !!}
+                        </p>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    </div>
+
+    <!-- Halaman 6: Struktur Organisasi dan Tim Manajemen -->
     @if ($data['team_structures']->count() > 0)
         <div class="page">
             <div class="header">
                 <div class="company-name">{{ $data['business_background']->name }}</div>
-                <div class="document-title">4. STRUKTUR TIM</div>
+                <div class="document-title">6. STRUKTUR ORGANISASI DAN TIM MANAJEMEN</div>
             </div>
 
             <div class="section">
@@ -608,6 +673,89 @@
                         </span>
                     </p>
                 </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Halaman 7: Rencana Operasional Usaha -->
+    @if ($data['operational_plans']->count() > 0)
+        <div class="page">
+            <div class="header">
+                <div class="company-name">{{ $data['business_background']->name }}</div>
+                <div class="document-title">7. RENCANA OPERASIONAL USAHA</div>
+            </div>
+
+            <div class="section">
+                @foreach ($data['operational_plans'] as $plan)
+                    <!-- GAMBAR DIAGRAM ALUR KERJA -->
+                    @if (isset($workflowImages[$plan->id]))
+                        <div style="margin-bottom: 15px; padding: 15px; background: #f0f4ff; border-radius: 8px;">
+                            <h3 style="margin: 0 0 10px 0; font-size: 14px; font-weight: bold;">
+                                Gambar Diagram Alur Kerja</h3>
+                            <div style="text-align: center; background: #ffffff; padding: 10px; border-radius: 4px;">
+                                <img src="{{ $workflowImages[$plan->id] }}"
+                                    style="width: 100%; max-width: 300px; height: auto; display: block; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; background: #ffffff;"
+                                    alt="Workflow Image {{ $plan->business_location }}" />
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- TABEL RENCANA OPERASIONAL -->
+                    <table class="table" style="margin-bottom: 30px;">
+                        <thead>
+                            <tr>
+                                <th style="width: 20%;">Aspek Operasional</th>
+                                <th style="width: 80%;">Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Lokasi Bisnis</strong></td>
+                                <td>{{ $plan->business_location }}</td>
+                            </tr>
+                            @if ($plan->location_description)
+                                <tr>
+                                    <td><strong>Deskripsi Lokasi</strong></td>
+                                    <td style="font-size: 9px; line-height: 1.4;">{!! nl2br(e($plan->location_description)) !!}</td>
+                                </tr>
+                            @endif
+                            <tr>
+                                <td><strong>Tipe Lokasi</strong></td>
+                                <td>{{ $plan->location_type }}</td>
+                            </tr>
+                            @if ($plan->location_size)
+                                <tr>
+                                    <td><strong>Ukuran Lokasi</strong></td>
+                                    <td>{{ number_format($plan->location_size, 0, ',', '.') }} m²</td>
+                                </tr>
+                            @endif
+                            @if ($plan->rent_cost)
+                                <tr>
+                                    <td><strong>Biaya Sewa</strong></td>
+                                    <td>Rp {{ number_format($plan->rent_cost, 0, ',', '.') }}/bulan</td>
+                                </tr>
+                            @endif
+                            @if ($plan->daily_workflow)
+                                <tr>
+                                    <td><strong>Alur Kerja Harian</strong></td>
+                                    <td style="font-size: 9px; line-height: 1.4;">{!! nl2br(e($plan->daily_workflow)) !!}</td>
+                                </tr>
+                            @endif
+                            @if ($plan->equipment_needs)
+                                <tr>
+                                    <td><strong>Kebutuhan Peralatan</strong></td>
+                                    <td style="font-size: 9px; line-height: 1.4;">{!! nl2br(e($plan->equipment_needs)) !!}</td>
+                                </tr>
+                            @endif
+                            @if ($plan->technology_stack)
+                                <tr>
+                                    <td><strong>Teknologi yang Digunakan</strong></td>
+                                    <td style="font-size: 9px; line-height: 1.4;">{!! nl2br(e($plan->technology_stack)) !!}</td>
+                                </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                @endforeach
             </div>
         </div>
     @endif
@@ -838,7 +986,7 @@
     <div class="page">
         <div class="header">
             <div class="company-name">{{ $data['business_background']->name }}</div>
-            <div class="document-title">5. RINGKASAN EKSEKUTIF KEUANGAN</div>
+            <div class="document-title">8. RINGKASAN EKSEKUTIF KEUANGAN</div>
         </div>
 
         <div class="section">
@@ -907,7 +1055,7 @@
         <div class="page">
             <div class="header">
                 <div class="company-name">{{ $data['business_background']->name }}</div>
-                <div class="document-title">6. ANALISIS PASAR</div>
+                <div class="document-title">9. ANALISIS PASAR</div>
             </div>
 
             <div class="section">
@@ -1099,7 +1247,7 @@
         <div class="page">
             <div class="header">
                 <div class="company-name">{{ $data['business_background']->name }}</div>
-                <div class="document-title">7. PRODUK & LAYANAN</div>
+                <div class="document-title">10. PRODUK & LAYANAN</div>
             </div>
 
             <div class="section">
@@ -1231,7 +1379,7 @@
         <div class="page">
             <div class="header">
                 <div class="company-name">{{ $data['business_background']->name }}</div>
-                <div class="document-title">8. STRATEGI PEMASARAN</div>
+                <div class="document-title">11. STRATEGI PEMASARAN</div>
             </div>
 
             <div class="section" style="margin-top: 5px; margin-bottom: 0;">
@@ -1618,7 +1766,7 @@
         <div class="page">
             <div class="header">
                 <div class="company-name">{{ $data['business_background']->name }}</div>
-                <div class="document-title">9. RINGKASAN PER KATEGORI</div>
+                <div class="document-title">12. RINGKASAN PER KATEGORI</div>
             </div>
 
             <div class="section">
@@ -1692,7 +1840,7 @@
         <div class="page">
             <div class="header">
                 <div class="company-name">{{ $data['business_background']->name }}</div>
-                <div class="document-title">10. TREN BULANAN - TAHUN {{ $financial_summary['year'] }}</div>
+                <div class="document-title">13. TREN BULANAN - TAHUN {{ $financial_summary['year'] }}</div>
             </div>
 
             <div class="section">
@@ -1736,7 +1884,7 @@
         <div class="page">
             <div class="header">
                 <div class="company-name">{{ $data['business_background']->name }}</div>
-                <div class="document-title">11. PROYEKSI KEUANGAN 5 TAHUN</div>
+                <div class="document-title">14. PROYEKSI KEUANGAN 5 TAHUN</div>
             </div>
 
             <div class="section">
@@ -1850,7 +1998,7 @@
         <div class="page">
             <div class="header">
                 <div class="company-name">{{ $data['business_background']->name }}</div>
-                <div class="document-title">12. RINGKASAN EKSEKUTIF FORECAST</div>
+                <div class="document-title">15. RINGKASAN EKSEKUTIF FORECAST</div>
             </div>
 
             <div class="section">
@@ -1900,7 +2048,7 @@
         <div class="page">
             <div class="header">
                 <div class="company-name">{{ $data['business_background']->name }}</div>
-                <div class="document-title">13. DETAIL PROYEKSI BULANAN</div>
+                <div class="document-title">16. DETAIL PROYEKSI BULANAN</div>
             </div>
 
             <div class="section">
@@ -1982,7 +2130,7 @@
             <div class="page">
                 <div class="header">
                     <div class="company-name">{{ $data['business_background']->name }}</div>
-                    <div class="document-title">14. AUTO INSIGHTS & ANALISIS</div>
+                    <div class="document-title">17. AUTO INSIGHTS & ANALISIS</div>
                 </div>
 
                 <div class="section">
