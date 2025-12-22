@@ -148,7 +148,7 @@ const OtpVerification = ({ isDarkMode, toggleDarkMode }) => {
                     <div className="mx-auto">
                         <Link to="/" className="inline-block">
                             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-                                <span className="text-green-600 dark:text-green-400">Smart</span>Web
+                                <span className="text-green-600 dark:text-green-400">Grapadi</span>Strategix
                             </h1>
                         </Link>
                         <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Business Management</p>
