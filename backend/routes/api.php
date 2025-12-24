@@ -311,12 +311,20 @@ Route::prefix('affiliate/public')->group(function () {
 
 // =====================================
 // SingaPay Webhook Routes (PUBLIC - NO AUTH)
+// Rate Limited: 60 requests per minute per IP
 // =====================================
 Route::prefix('webhook/singapay')->group(function () {
-    Route::post('/payment', [WebhookController::class, 'handlePayment']);
-    Route::post('/virtual-account', [WebhookController::class, 'handleVirtualAccount']);
-    Route::post('/qris', [WebhookController::class, 'handleQris']);
+    // 🔒 Rate limiting: 60 webhooks/minute untuk mencegah DoS/spam
+    Route::post('/payment', [WebhookController::class, 'handlePayment'])
+        ->middleware('throttle:60,1');
+    
+    Route::post('/virtual-account', [WebhookController::class, 'handleVirtualAccount'])
+        ->middleware('throttle:60,1');
+    
+    Route::post('/qris', [WebhookController::class, 'handleQris'])
+        ->middleware('throttle:60,1');
 
-    // Test webhook (mock mode only)
-    Route::post('/test', [WebhookController::class, 'test']);
+    // Test webhook (mock mode only) - Strict rate limit
+    Route::post('/test', [WebhookController::class, 'test'])
+        ->middleware('throttle:10,1'); // Lebih ketat untuk testing
 });

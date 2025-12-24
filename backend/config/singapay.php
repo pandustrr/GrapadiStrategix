@@ -70,6 +70,8 @@ return [
         'expiry_hours' => env('SINGAPAY_VA_EXPIRY_HOURS', 24),
         'kind' => env('SINGAPAY_VA_KIND', 'temporary'), // temporary or permanent
         'max_usage' => env('SINGAPAY_VA_MAX_USAGE', 1), // 1-255 for temporary VA
+        'min_amount' => env('SINGAPAY_VA_MIN_AMOUNT', 10000), // Rp 10,000 (Singapay minimum)
+        'max_amount' => env('SINGAPAY_VA_MAX_AMOUNT', 100000000), // Rp 100,000,000 (Singapay maximum)
     ],
 
     /*

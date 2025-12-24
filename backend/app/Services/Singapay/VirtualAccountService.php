@@ -23,6 +23,29 @@ class VirtualAccountService
     public function createVirtualAccount(PdfPurchase $purchase, string $bankCode): array
     {
         try {
+            // Amount validation sesuai dokumentasi Singapay (10K - 100M IDR)
+            $minAmount = config('singapay.virtual_account.min_amount', 10000);
+            $maxAmount = config('singapay.virtual_account.max_amount', 100000000);
+            
+            if ($purchase->amount_paid < $minAmount || $purchase->amount_paid > $maxAmount) {
+                Log::warning('[VA Service] Amount out of range', [
+                    'amount' => $purchase->amount_paid,
+                    'min' => $minAmount,
+                    'max' => $maxAmount,
+                    'purchase_id' => $purchase->id,
+                ]);
+                
+                return [
+                    'success' => false,
+                    'message' => sprintf(
+                        'Amount must be between Rp %s and Rp %s',
+                        number_format($minAmount, 0, ',', '.'),
+                        number_format($maxAmount, 0, ',', '.')
+                    ),
+                    'error_code' => 'AMOUNT_OUT_OF_RANGE',
+                ];
+            }
+            
             $expiryHours = (int) config('singapay.virtual_account.expiry_hours', 24);
 
             Log::info('[VA Service] Config values', [
