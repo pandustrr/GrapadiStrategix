@@ -13,6 +13,10 @@ export const affiliateCommissionApi = {
 
   // Request withdrawal
   withdraw: (data) => api.post("/affiliate/withdraw", data),
+
+  // Get withdrawal history
+  getWithdrawalHistory: (params = {}) =>
+    api.get("/affiliate/withdrawals", { params }),
 };
 
 export default affiliateCommissionApi;
