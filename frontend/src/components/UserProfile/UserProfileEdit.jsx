@@ -1,11 +1,14 @@
 import { useEffect, useState, useRef } from "react";
-import { FiArrowLeft, FiCamera, FiSave, FiLock, FiUser, FiMail, FiAtSign, FiShield, FiPhone } from "react-icons/fi";
+import { FiArrowLeft, FiCamera, FiSave, FiLock, FiUser, FiMail, FiAtSign, FiShield, FiPhone, FiCheckCircle, FiAlertTriangle } from "react-icons/fi";
 import userApi from "../../services/userApi";
 import { toast } from "react-toastify";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function UserProfileEdit({ onBack }) {
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const userId = storedUser?.id;
+
+  const { user: authUser } = useAuth();
 
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
@@ -76,8 +79,13 @@ export default function UserProfileEdit({ onBack }) {
 
       setUser(updated);
 
-      // Auto back to view profile
+      if (res.data.needs_verification) {
+        toast.info("Nomor berhasil diubah. Silakan verifikasi di halaman profil.", { autoClose: 3000 });
+      }
+
+      // Always go back to view
       onBack && onBack();
+
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.message || "Gagal memperbarui profil");
@@ -228,6 +236,7 @@ export default function UserProfileEdit({ onBack }) {
                 required
                 placeholder="Masukkan nomor WhatsApp"
               />
+              <p className="mt-1 text-xs text-gray-500">Pastikan nomor aktif dan terdaftar di WhatsApp untuk menerima OTP.</p>
             </div>
 
             {/* Status */}
@@ -320,6 +329,7 @@ export default function UserProfileEdit({ onBack }) {
           </button>
         </form>
       </div>
+      {/* OTP Modal */}
     </div>
   );
 }

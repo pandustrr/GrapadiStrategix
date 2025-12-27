@@ -8,8 +8,17 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
 
+use App\Services\WhatsAppService;
+
 class UserController extends Controller
 {
+    protected $whatsappService;
+
+    public function __construct(WhatsAppService $whatsappService)
+    {
+        $this->whatsappService = $whatsappService;
+    }
+
     public function show($id)
     {
         $user = User::findOrFail($id);
@@ -29,7 +38,21 @@ class UserController extends Controller
 
         $user->name = $validated['name'];
         $user->username = $validated['username'];
-        $user->phone = $validated['phone'];
+
+        // Cek jika nomor telepon berubah
+        $phoneChanged = $user->phone !== $validated['phone'];
+        $needsVerification = false;
+
+        if ($phoneChanged) {
+            $user->phone = $validated['phone'];
+            $user->phone_verified_at = null; // Reset verifikasi
+
+            // Generate dan kirim OTP
+            $otp = $user->generateOtp();
+            $this->whatsappService->sendOtp($user->phone, $otp);
+
+            $needsVerification = true;
+        }
 
         if (isset($validated['status'])) {
             $user->account_status = $validated['status'];
@@ -37,7 +60,17 @@ class UserController extends Controller
 
         $user->save();
 
-        return response()->json(['status' => 'success', 'data' => $user, 'message' => 'Profil berhasil diperbarui']);
+        $message = 'Profil berhasil diperbarui';
+        if ($needsVerification) {
+            $message .= '. Kode OTP telah dikirim ke nomor baru Anda.';
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $user,
+            'message' => $message,
+            'needs_verification' => $needsVerification
+        ]);
     }
 
     public function updatePassword(Request $request, $id)
