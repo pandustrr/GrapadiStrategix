@@ -70,7 +70,7 @@ export default function UserProfileView({ onEdit }) {
 
   const handleLogout = () => {
     localStorage.clear();
-    window.location.href = "/login";
+    window.location.href = (import.meta.env.BASE_URL || "/") + "login";
   };
 
   const handleVerifyOtp = async (e) => {

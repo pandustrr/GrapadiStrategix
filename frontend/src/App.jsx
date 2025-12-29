@@ -27,22 +27,28 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  return isAuthenticated ? children : <Navigate to="/login" />;
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
 // 🌐 Public Route Component
 const PublicRoute = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
 
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      <div className="flex items-center justify-center min-h-screen bg-white dark:bg-gray-900">
+        <div className="w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
-  return !isAuthenticated ? children : <Navigate to="/dashboard" />;
+  return !isAuthenticated ? children : <Navigate to="/dashboard" replace />;
+};
+
+// 🔄 Catch-all Redirect Component
+const NavigateToCorrectRoot = () => {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/" replace />;
 };
 
 // 🔐 Verification Route Component (bisa diakses baik authenticated maupun tidak)
@@ -77,6 +83,10 @@ function AppContent() {
     }
   }, []);
 
+  useEffect(() => {
+    console.log(`[App] Current Route Path: ${window.location.pathname}`);
+  });
+
   const toggleDarkMode = () => {
     const newDarkMode = !isDarkMode;
     setIsDarkMode(newDarkMode);
@@ -92,7 +102,7 @@ function AppContent() {
 
   return (
     <div className={`min-h-screen ${isDarkMode ? "dark" : ""}`}>
-      <Router basename="/grapadistrategix" future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <Router basename={import.meta.env.BASE_URL}>
         <Routes>
           {/* 🌍 Public Routes */}
           <Route path="/" element={<LandingPage isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />} />
@@ -158,8 +168,10 @@ function AppContent() {
             }
           />
 
-          {/* Default redirect */}
-          <Route path="*" element={<Navigate to="/" />} />
+          <Route
+            path="*"
+            element={<NavigateToCorrectRoot />}
+          />
         </Routes>
       </Router>
     </div>

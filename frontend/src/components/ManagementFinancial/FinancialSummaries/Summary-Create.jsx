@@ -31,7 +31,7 @@ const SummaryCreate = ({ onBack, onSuccess, selectedYear }) => {
             try {
                 setIsLoadingBusinesses(true);
                 const user = JSON.parse(localStorage.getItem('user'));
-                
+
                 if (!user?.id) {
                     throw new Error('User not found');
                 }
@@ -40,11 +40,11 @@ const SummaryCreate = ({ onBack, onSuccess, selectedYear }) => {
                 console.log('Loading businesses...');
                 const businessResponse = await backgroundApi.getAll();
                 console.log('Business response:', businessResponse);
-                
+
                 if (businessResponse.data?.status === 'success') {
                     const userBusinesses = businessResponse.data.data || [];
                     setBusinesses(userBusinesses);
-                    
+
                     if (userBusinesses.length > 0) {
                         setSelectedBusiness(userBusinesses[0].id);
                     }
@@ -54,7 +54,7 @@ const SummaryCreate = ({ onBack, onSuccess, selectedYear }) => {
                 console.log('Loading financial categories...');
                 const categoriesResponse = await managementFinancialApi.categories.getAll();
                 console.log('Categories response:', categoriesResponse);
-                
+
                 if (categoriesResponse.data?.status === 'success') {
                     setFinancialCategories(categoriesResponse.data.data || []);
                 }
@@ -95,7 +95,7 @@ const SummaryCreate = ({ onBack, onSuccess, selectedYear }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!selectedBusiness) {
             toast.error('Pilih bisnis terlebih dahulu');
             return;
@@ -105,7 +105,7 @@ const SummaryCreate = ({ onBack, onSuccess, selectedYear }) => {
 
         try {
             const user = JSON.parse(localStorage.getItem('user'));
-            
+
             if (!user || !user.id) {
                 throw new Error('User data not found. Please login again.');
             }
@@ -118,12 +118,12 @@ const SummaryCreate = ({ onBack, onSuccess, selectedYear }) => {
             const cashPosition = parseFloat(formData.cash_position) || 0;
 
             // Prepare breakdown data
-            const incomeBreakdown = Object.keys(formData.income_breakdown).length > 0 
-                ? formData.income_breakdown 
+            const incomeBreakdown = Object.keys(formData.income_breakdown).length > 0
+                ? formData.income_breakdown
                 : null;
-            
-            const expenseBreakdown = Object.keys(formData.expense_breakdown).length > 0 
-                ? formData.expense_breakdown 
+
+            const expenseBreakdown = Object.keys(formData.expense_breakdown).length > 0
+                ? formData.expense_breakdown
                 : null;
 
             const submitData = {
@@ -155,7 +155,7 @@ const SummaryCreate = ({ onBack, onSuccess, selectedYear }) => {
             }
         } catch (error) {
             console.error('Error creating financial summary:', error);
-            
+
             let errorMessage = 'Terjadi kesalahan saat membuat ringkasan keuangan';
             if (error.response?.data?.message) {
                 errorMessage = error.response.data.message;
@@ -171,7 +171,7 @@ const SummaryCreate = ({ onBack, onSuccess, selectedYear }) => {
             } else if (error.message) {
                 errorMessage = error.message;
             }
-            
+
             toast.error(errorMessage, {
                 position: "top-right",
                 autoClose: 5000,
@@ -214,7 +214,7 @@ const SummaryCreate = ({ onBack, onSuccess, selectedYear }) => {
                         </svg>
                         Kembali ke Dashboard
                     </button>
-                    
+
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Tambah Ringkasan Keuangan</h1>
                         <p className="text-gray-600 dark:text-gray-400">Buat ringkasan keuangan bulanan baru</p>
@@ -227,7 +227,7 @@ const SummaryCreate = ({ onBack, onSuccess, selectedYear }) => {
                         <Building size={20} />
                         Pilih Bisnis
                     </h3>
-                    
+
                     {businesses.length === 0 ? (
                         <div className="text-center py-8">
                             <Building size={48} className="mx-auto text-gray-400 mb-4" />
@@ -238,7 +238,7 @@ const SummaryCreate = ({ onBack, onSuccess, selectedYear }) => {
                                 Anda perlu membuat bisnis terlebih dahulu sebelum membuat ringkasan keuangan
                             </p>
                             <button
-                                onClick={() => window.location.href = '/business-plan'}
+                                onClick={() => window.location.href = (import.meta.env.BASE_URL || '/') + 'dashboard'}
                                 className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
                             >
                                 Buat Bisnis

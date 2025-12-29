@@ -99,7 +99,10 @@ const Dashboard = ({ isDarkMode, toggleDarkMode }) => {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               {/* Business Plan Module */}
               <button
-                onClick={() => {
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  console.log("[Dashboard] Navigating to business-plan");
                   setActiveSection("business-plan");
                   setActiveSubSection("business-background");
                 }}
@@ -117,7 +120,10 @@ const Dashboard = ({ isDarkMode, toggleDarkMode }) => {
 
               {/* Financial Management Module */}
               <button
-                onClick={() => {
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  console.log("[Dashboard] Navigating to management-financial");
                   setActiveSection("management-financial");
                   setActiveSubSection("financial-simulation");
                 }}
@@ -135,7 +141,10 @@ const Dashboard = ({ isDarkMode, toggleDarkMode }) => {
 
               {/* Forecast Module */}
               <button
-                onClick={() => {
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  console.log("[Dashboard] Navigating to forecast");
                   setActiveSection("forecast");
                   setActiveSubSection("daftar-forecast");
                 }}
@@ -153,7 +162,10 @@ const Dashboard = ({ isDarkMode, toggleDarkMode }) => {
 
               {/* Affiliate Module */}
               <button
-                onClick={() => {
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  console.log("[Dashboard] Navigating to affiliate");
                   setActiveSection("affiliate");
                   setActiveSubSection("affiliate-link");
                 }}
@@ -172,7 +184,10 @@ const Dashboard = ({ isDarkMode, toggleDarkMode }) => {
 
             {/* Recent Plans & Quick Actions */}
             <div className="lg:col-span-2">
-              <QuickActions />
+              <QuickActions
+                setActiveSection={setActiveSection}
+                setActiveSubSection={setActiveSubSection}
+              />
             </div>
           </div>
         );
