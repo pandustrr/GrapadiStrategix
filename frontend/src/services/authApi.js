@@ -29,23 +29,23 @@ api.interceptors.response.use(
   (error) => {
     // HANYA handle 401 jika benar-benar token expired
     if (error.response?.status === 401) {
-      const errorMessage = error.response.data?.message?.toLowerCase() || '';
-      
+      const errorMessage = error.response.data?.message?.toLowerCase() || "";
+
       // Hanya logout jika pesan error secara eksplisit menyebut token/authentication
-      const isExplicitTokenError = 
-        errorMessage.includes('token expired') ||
-        errorMessage.includes('token invalid') ||
-        errorMessage.includes('unauthenticated') ||
-        errorMessage.includes('authentication failed');
-      
+      const isExplicitTokenError =
+        errorMessage.includes("token expired") ||
+        errorMessage.includes("token invalid") ||
+        errorMessage.includes("unauthenticated") ||
+        errorMessage.includes("authentication failed");
+
       if (isExplicitTokenError) {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-        window.location.href = "/login";
+        window.location.href = (import.meta.env.BASE_URL || "/") + "login";
       }
       // Untuk 401 lainnya, biarkan di-handle oleh component
     }
-    
+
     return Promise.reject(error);
   }
 );

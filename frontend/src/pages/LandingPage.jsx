@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { BarChart3, DollarSign, TrendingUp, Shield, Users, Rocket, CheckCircle, ArrowRight, LineChart, Target, Zap, Calendar, FileText, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import Navbar from "../components/Layout/Navbar";
 import Footer from "../components/Layout/Footer";
+import WhatsAppWidget from "../components/Layout/WhatsAppWidget";
 
 function LandingPage({ isDarkMode, toggleDarkMode }) {
   const [searchParams] = useSearchParams();
@@ -170,8 +171,13 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
                   Mulai Gratis Sekarang
                   <ArrowRight className="ml-3 transition-transform group-hover:translate-x-1" size={20} />
                 </Link>
-                <Link
-                  to="#features"
+                <button
+                  onClick={() => {
+                    const featuresSection = document.getElementById('features');
+                    if (featuresSection) {
+                      featuresSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                  }}
                   className="inline-flex items-center justify-center px-10 py-5 text-lg font-bold transition-all duration-300 border-2 rounded-xl hover:scale-105"
                   style={{
                     borderColor: isDarkMode ? "#10B517" : "#167814",
@@ -179,8 +185,9 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
                   }}
                 >
                   Lihat Fitur
-                </Link>
+                </button>
               </div>
+
 
               {/* Trust Indicators */}
               <div className="flex flex-wrap items-center gap-8 text-sm text-gray-600 dark:text-gray-400">
@@ -495,6 +502,9 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
         </div>
       </section>
 
+      {/* WhatsApp Widget */}
+      <WhatsAppWidget />
+
       {/* Footer */}
       <Footer />
     </div>
@@ -534,9 +544,8 @@ function MockupCarousel({ isDarkMode }) {
         {[1, 2, 3, 4, 5].map((num, index) => (
           <div
             key={num}
-            className={`absolute inset-0 transition-all duration-700 ease-in-out ${
-              index === currentSlide ? "opacity-100 translate-x-0 scale-100" : index < currentSlide ? "opacity-0 -translate-x-full scale-95" : "opacity-0 translate-x-full scale-95"
-            }`}
+            className={`absolute inset-0 transition-all duration-700 ease-in-out ${index === currentSlide ? "opacity-100 translate-x-0 scale-100" : index < currentSlide ? "opacity-0 -translate-x-full scale-95" : "opacity-0 translate-x-full scale-95"
+              }`}
           >
             <img
               src={`/assets/images/dashboard-mockup-${num}.png`}

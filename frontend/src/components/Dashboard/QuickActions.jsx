@@ -1,60 +1,88 @@
 import React from 'react'
 import { Plus, FileText, BarChart3, TrendingUp, Download, Share2, BookOpen, Zap } from 'lucide-react'
 
-const QuickActions = () => {
+const QuickActions = ({ setActiveSection, setActiveSubSection }) => {
     const quickLinks = [
-        { 
-            icon: Plus, 
-            label: 'Buat Business Plan', 
+        {
+            icon: Plus,
+            label: 'Buat Business Plan',
             description: 'Mulai rencana bisnis baru',
             color: 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 hover:bg-green-100',
-            action: 'business-plan'
+            section: 'business-plan',
+            subSection: 'business-background'
         },
-        { 
-            icon: FileText, 
-            label: 'Simulasi Keuangan', 
+        {
+            icon: FileText,
+            label: 'Simulasi Keuangan',
             description: 'Tambah simulasi keuangan baru',
             color: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100',
-            action: 'financial-simulation'
+            section: 'management-financial',
+            subSection: 'financial-simulation'
         },
-        { 
-            icon: TrendingUp, 
-            label: 'Generate Forecast', 
+        {
+            icon: TrendingUp,
+            label: 'Generate Forecast',
             description: 'Buat forecast baru',
             color: 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 hover:bg-purple-100',
-            action: 'forecast'
+            section: 'forecast',
+            subSection: 'daftar-forecast'
         },
-        { 
-            icon: BarChart3, 
-            label: 'Lihat Laporan', 
+        {
+            icon: BarChart3,
+            label: 'Lihat Laporan',
             description: 'Analisis data terbaru',
             color: 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 hover:bg-orange-100',
-            action: 'reports'
+            section: 'export-pdf-lengkap',
+            subSection: ''
         }
     ]
 
     const features = [
-        { 
-            icon: BookOpen, 
-            label: 'Dokumentasi', 
-            description: 'Panduan lengkap penggunaan' 
+        {
+            icon: BookOpen,
+            label: 'Dokumentasi',
+            description: 'Panduan lengkap penggunaan',
+            section: 'dashboard', // or a dedicated docs section if exits
+            subSection: ''
         },
-        { 
-            icon: Download, 
-            label: 'Export Laporan', 
-            description: 'Download laporan PDF' 
+        {
+            icon: Download,
+            label: 'Export Laporan',
+            description: 'Download laporan PDF',
+            section: 'export-pdf-lengkap',
+            subSection: ''
         },
-        { 
-            icon: Share2, 
-            label: 'Bagikan', 
-            description: 'Bagikan rencana dengan tim' 
+        {
+            icon: Share2,
+            label: 'Bagikan',
+            description: 'Bagikan rencana dengan tim',
+            section: 'dashboard',
+            subSection: ''
         },
-        { 
-            icon: Zap, 
-            label: 'Tips & Trik', 
-            description: 'Maksimalkan penggunaan' 
+        {
+            icon: Zap,
+            label: 'Tips & Trik',
+            description: 'Maksimalkan penggunaan',
+            section: 'dashboard',
+            subSection: ''
         }
     ]
+
+    const handleAction = (section, subSection, e) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        console.log(`[QuickActions] Navigating to Section: ${section}, SubSection: ${subSection}`);
+
+        if (setActiveSection) {
+            setActiveSection(section);
+        }
+        if (setActiveSubSection) {
+            setActiveSubSection(subSection || "");
+        }
+    }
 
     return (
         <div className="space-y-6">
@@ -66,7 +94,9 @@ const QuickActions = () => {
                         const Icon = link.icon
                         return (
                             <button
+                                type="button"
                                 key={index}
+                                onClick={(e) => handleAction(link.section, link.subSection, e)}
                                 className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200 ${link.color}`}
                             >
                                 <Icon size={20} />
@@ -89,7 +119,9 @@ const QuickActions = () => {
                         const Icon = feature.icon
                         return (
                             <button
+                                type="button"
                                 key={index}
+                                onClick={(e) => handleAction(feature.section, feature.subSection, e)}
                                 className="flex flex-col items-center p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-center"
                             >
                                 <Icon size={24} className="text-gray-600 dark:text-gray-400 mb-2" />
