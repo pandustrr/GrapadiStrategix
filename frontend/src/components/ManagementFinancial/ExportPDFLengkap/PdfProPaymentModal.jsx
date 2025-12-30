@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { FiX, FiCreditCard, FiCheck, FiCopy, FiClock, FiAlertCircle, FiCheckCircle, FiRefreshCw } from "react-icons/fi";
+import { FiX, FiCreditCard, FiCheck, FiCopy, FiClock, FiAlertCircle, FiCheckCircle, FiRefreshCw, FiExternalLink } from "react-icons/fi";
 import axios from "axios";
 
 const PdfProPaymentModal = ({ isOpen, onClose, onSuccess, initialTransaction = null }) => {
@@ -53,6 +53,8 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess, initialTransaction = n
     }, [isOpen, initialTransaction]);
 
     const hydrateTransaction = (tx) => {
+        const isRedirect = !!tx.payment_url;
+
         setPaymentData({
             va_number: tx.va_number,
             bank_code: tx.bank_code,
@@ -62,7 +64,9 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess, initialTransaction = n
             payment_instructions: tx.payment_instructions || {},
             qris_content: tx.qris_content,
             qris_url: tx.qris_url,
-            // Add other necessary fields
+            // New fields for Redirect/Payment Link
+            is_redirect: isRedirect,
+            payment_url: tx.payment_url
         });
         setTransactionCode(tx.transaction_code);
         transactionCodeRef.current = tx.transaction_code;
@@ -202,14 +206,40 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess, initialTransaction = n
             });
 
             if (response.data.success) {
-                setPaymentData(response.data.payment);
-                setTransactionCode(response.data.purchase.transaction_code);
-                transactionCodeRef.current = response.data.purchase.transaction_code;
+                // Backend returns 'payment' key containing the payment link data
+                const paymentInfo = response.data.payment || response.data.data || {};
+                const txCode = response.data.purchase?.transaction_code || paymentInfo.transaction_code;
+
+                setTransactionCode(txCode);
+                transactionCodeRef.current = txCode;
                 setPaymentStatus("pending");
                 setRetryCount(0);
                 setStep(3);
 
-                startPaymentPolling(response.data.purchase.transaction_code);
+                // Handle Redirect Flow (Payment Link)
+                if (paymentInfo.is_redirect && paymentInfo.payment_url) {
+                    setPaymentData({
+                        ...paymentInfo,
+                        formatted_amount: selectedPackage.formatted_price, // Fallback display
+                        is_redirect: true,
+                        payment_url: paymentInfo.payment_url
+                    });
+
+                    // Auto-open in new tab (might be blocked, so we also show button)
+                    if (paymentInfo.payment_url) {
+                        try {
+                            window.open(paymentInfo.payment_url, '_blank');
+                            showToast("Membuka halaman pembayaran...", "info");
+                        } catch (e) {
+                            console.error("Popup blocked?", e);
+                        }
+                    }
+                } else {
+                    // Fallback to legacy structure if backend reverts
+                    setPaymentData(response.data.payment || paymentInfo);
+                }
+
+                startPaymentPolling(txCode);
                 showToast("Payment berhasil dibuat!", "success");
             } else {
                 throw new Error(response.data.message || "Gagal membuat payment");
@@ -640,8 +670,49 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess, initialTransaction = n
                                 </div>
                             )}
 
-                            {/* Virtual Account Info */}
-                            {paymentMethod === "virtual_account" && paymentStatus !== "paid" && (
+                            {/* Payment Link Redirect Info (New Flow) */}
+                            {paymentData.is_redirect && paymentStatus !== "paid" && (
+                                <div className="space-y-4">
+                                    <div className="p-6 text-center border-2 border-indigo-200 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-800">
+                                        <div className="mb-4">
+                                            <div className="w-16 h-16 mx-auto bg-indigo-100 rounded-full flex items-center justify-center mb-2">
+                                                <FiCreditCard className="text-3xl text-indigo-600" />
+                                            </div>
+                                            <h4 className="text-lg font-bold text-gray-900 dark:text-white">
+                                                Selesaikan Pembayaran
+                                            </h4>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                                Silakan lanjutkan pembayaran di halaman Singapay.
+                                            </p>
+                                        </div>
+
+                                        <a
+                                            href={paymentData.payment_url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center justify-center gap-2 px-6 py-3 font-semibold text-white transition-colors bg-indigo-600 rounded-lg hover:bg-indigo-700 w-full md:w-auto"
+                                        >
+                                            Bayar Sekarang <FiExternalLink className="ml-1" />
+                                        </a>
+
+                                        <p className="mt-4 text-xs text-gray-500">
+                                            *Halaman pembayaran akan terbuka di tab baru
+                                        </p>
+                                    </div>
+
+                                    <div className="p-4 border border-gray-200 rounded-lg dark:border-gray-700">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-gray-600 dark:text-gray-400">Total Tagihan:</span>
+                                            <span className="text-xl font-bold text-gray-900 dark:text-white">
+                                                {paymentData.formatted_amount}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Legacy: Virtual Account Info */}
+                            {!paymentData.is_redirect && paymentMethod === "virtual_account" && paymentStatus !== "paid" && (
                                 <>
                                     <div className="p-6 text-center border-2 border-indigo-200 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-800">
                                         <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">
@@ -681,7 +752,7 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess, initialTransaction = n
                                             Cara Pembayaran:
                                         </h4>
                                         <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
-                                            {Object.entries(paymentData.payment_instructions).map(([method, steps]) => (
+                                            {paymentData.payment_instructions && Object.entries(paymentData.payment_instructions).map(([method, steps]) => (
                                                 <div key={method}>
                                                     <div className="mb-1 font-medium text-gray-900 dark:text-white">
                                                         {method}:
@@ -698,8 +769,8 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess, initialTransaction = n
                                 </>
                             )}
 
-                            {/* QRIS Info */}
-                            {paymentMethod === "qris" && paymentStatus !== "paid" && (
+                            {/* Legacy: QRIS Info */}
+                            {!paymentData.is_redirect && paymentMethod === "qris" && paymentStatus !== "paid" && (
                                 <>
                                     <div className="p-6 text-center border-2 border-indigo-200 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-800">
                                         <div className="mb-4">
@@ -831,7 +902,7 @@ const PdfProPaymentModal = ({ isOpen, onClose, onSuccess, initialTransaction = n
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { BarChart3, DollarSign, TrendingUp, Shield, Users, Rocket, CheckCircle, ArrowRight, LineChart, Target, Zap, Calendar, FileText, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import Navbar from "../components/Layout/Navbar";
 import Footer from "../components/Layout/Footer";
+import WhatsAppWidget from "../components/Layout/WhatsAppWidget";
 
 function LandingPage({ isDarkMode, toggleDarkMode }) {
   const [searchParams] = useSearchParams();
@@ -500,6 +501,9 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
           </div>
         </div>
       </section>
+
+      {/* WhatsApp Widget */}
+      <WhatsAppWidget />
 
       {/* Footer */}
       <Footer />

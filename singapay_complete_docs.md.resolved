@@ -1,0 +1,291 @@
+# Panduan Implementasi Lengkap Singapay B2B (VA & QRIS)
+
+**Metode: Payment Link (Invoice)**
+Metode ini dipilih karena paling efisien: 1 kali integrasi bisa langsung mendapatkan **Virtual Account (Multi Bank)** dan **QRIS** tanpa perlu membuat endpoint terpisah.
+
+---
+
+## 1. Alur Transaksi (Flowchart)
+
+1.  **FRONTEND**: User mengisi formulir pemesanan.
+2.  **BACKEND**: Sistem validasi input.
+3.  **BACKEND**: Request **Token** ke Singapay (menggunakan Signature Timezone WIB).
+4.  **BACKEND**: Request **Create Payment Link** dengan payload berisi:
+    *   Nominal & Item
+    *   Metode yang diaktifkan (`whitelisted_payment_method`: `['QRIS', 'VA_BCA', 'VA_BNI', ...]`)
+5.  **SINGAPAY**: Mengembalikan URL Pembayaran.
+6.  **BACKEND**: Redirect User ke URL tersebut.
+7.  **USER**: Melihat halaman Singapay, memilih bayar via QRIS atau VA, dan melakukan pembayaran.
+8.  **SINGAPAY**: Mengirim data pembayaran via **Webhook/Callback**.
+9.  **BACKEND**: Menerima Webhook -> Update Status Transaksi jadi `PAID`.
+
+---
+
+## 2. Struktur Database
+
+Pastikan tabel `transactions` Anda memiliki kolom untuk menyimpan referensi Singapay.
+
+```sql
+CREATE TABLE `transactions` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `amount` decimal(15,2) NOT NULL,
+  `status` enum('pending','paid','failed','expired') NOT NULL DEFAULT 'pending',
+  `singapay_ref` varchar(255) DEFAULT NULL, -- Menyimpan Reff No dari Singapay
+  `payment_method` varchar(50) DEFAULT NULL, -- Menyimpan metode bayar (misal: QRIS / VA_BCA) saat callback masuk
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+);
+```
+
+---
+
+## 3. Konfigurasi Environment ([.env](file:///e:/Pandu-Projek/Freelance/survey/.env))
+
+```ini
+SINGAPAY_CLIENT_ID=client_id_anda
+SINGAPAY_CLIENT_SECRET=secret_key_anda
+SINGAPAY_API_KEY=partner_id_anda
+SINGAPAY_ACCOUNT_ID=account_id_anda
+# Gunakan URL Sandbox untuk test, Production untuk live
+SINGAPAY_BASE_URL=https://payment-b2b.singapay.id 
+```
+
+---
+
+## 4. Backend Code (Laravel)
+
+### A. Service: [app/Services/SingaPayService.php](file:///e:/Pandu-Projek/Freelance/survey/app/Services/SingaPayService.php)
+Ini adalah core logic. Perhatikan bagian `whitelisted_payment_method` untuk mengaktifkan VA dan QRIS.
+
+```php
+<?php
+
+namespace App\Services;
+
+use App\Models\Transaction;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Request;
+
+class SingaPayService
+{
+    private string $clientId;
+    private string $clientSecret;
+    private string $apiKey;
+    private string $baseUrl;
+    private string $accountId;
+
+    public function __construct()
+    {
+        $this->clientId = config('singapay.client_id');
+        $this->clientSecret = config('singapay.client_secret');
+        $this->apiKey = config('singapay.api_key');
+        $this->accountId = config('singapay.account_id');
+        $this->baseUrl = 'https://payment-b2b.singapay.id';
+    }
+
+    // 1. Generate Signature
+    private function generateSignature(string $timestamp): string
+    {
+        $payload = implode('_', [$this->clientId, $this->clientSecret, $timestamp]);
+        return hash_hmac('sha512', $payload, $this->clientSecret);
+    }
+
+    // 2. Get Token (Dengan Fix Timezone WIB)
+    private function getToken(string $version = '1.1'): array
+    {
+        if ($version === '1.1') {
+            $endpoint = "{$this->baseUrl}/api/v1.1/access-token/b2b";
+            // FORCE TIMEZONE JAKARTA untuk hindari 'Invalid Signature' error
+            $timestamp = now()->setTimezone('Asia/Jakarta')->format('Ymd');
+            $signature = $this->generateSignature($timestamp);
+
+            $headers = [
+                'X-PARTNER-ID' => $this->apiKey,
+                'X-CLIENT-ID' => $this->clientId,
+                'X-Signature' => $signature,
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json',
+            ];
+        }
+
+        try {
+            $response = Http::withHeaders($headers)
+                ->acceptJson()
+                ->post($endpoint, ['grant_type' => 'client_credentials']);
+
+            if ($response->failed()) {
+                Log::error('SingaPay Token Failed', ['body' => $response->body()]);
+                return ['success' => false, 'message' => 'Token Error: ' . $response->body()];
+            }
+
+            return ['success' => true, 'token' => $response->json()['data']['access_token']];
+        } catch (\Exception $e) {
+            return ['success' => false, 'message' => 'Connection Error: ' . $e->getMessage()];
+        }
+    }
+
+    // 3. Create Invoice (VA & QRIS)
+    public function createInvoice($amount, $items)
+    {
+        $tokenData = $this->getToken('1.1');
+        if (!$tokenData['success']) return $tokenData;
+        
+        $token = $tokenData['token'];
+        $endpoint = "{$this->baseUrl}/api/v1.0/payment-link-manage/{$this->accountId}";
+        $reffNo = 'INV-' . time() . '-' . mt_rand(100, 999);
+
+        $headers = [
+            'X-PARTNER-ID' => $this->apiKey,
+            'Authorization' => "Bearer {$token}",
+            'Accept' => 'application/json',
+        ];
+
+        $payload = [
+            'reff_no' => $reffNo,
+            'title' => "Pembayaran #{$reffNo}",
+            'required_customer_detail' => false,
+            'max_usage' => 1,
+            'expired_at' => now()->addMinutes(60)->getTimestampMs(),
+            'total_amount' => $amount,
+            'items' => $items,
+            
+            // PENTING: Di sini kita set apa saja yang bisa dibayar user
+            'whitelisted_payment_method' => [
+                'QRIS',       // Aktifkan QRIS
+                'VA_BCA',     // Aktifkan VA BCA
+                'VA_BNI',     // Aktifkan VA BNI
+                'VA_BRI',     // Aktifkan VA BRI
+                'VA_MANDIRI', // Aktifkan VA Mandiri
+                'VA_PERMATA', // Aktifkan VA Permata
+                'VA_DANAMON'  // Aktifkan VA Danamon
+            ],
+        ];
+
+        try {
+            $response = Http::withHeaders($headers)->post($endpoint, $payload);
+
+            if ($response->failed()) {
+                Log::error('Create Invoice Failed', ['body' => $response->body()]);
+                return ['success' => false, 'message' => 'API Error: ' . $response->body()];
+            }
+
+            // Return sukses + Link Pembayaran
+            $data = $response->json();
+            return array_merge(['success' => true], $data['data']);
+            
+        } catch (\Exception $e) {
+            return ['success' => false, 'message' => 'Exception: ' . $e->getMessage()];
+        }
+    }
+
+    // 4. Webhook (Callback)
+    public function webhook(Request $request)
+    {
+        // ... Logika validasi webhook dan update database ...
+        // (Sama seperti dokumentasi sebelumnya)
+    }
+}
+```
+
+### B. Controller: [app/Http/Controllers/TransactionController.php](file:///e:/Pandu-Projek/Freelance/survey/app/Http/Controllers/TransactionController.php)
+
+```php
+public function store(Request $request) 
+{
+    // Validasi input
+    $request->validate([
+        'title' => 'required',
+        // 'user_type' wajib ada karena dipakai di logic harga
+        'user_type' => 'required|in:mahasiswa,perusahaan,umum', 
+    ]);
+
+    // ... (Logika hitung $finalPrice dan $items) ...
+
+    // Panggil Service
+    $invoice = $this->singaPay->createInvoice($finalPrice, $items);
+
+    // Cek error dari Service
+    if (!$invoice['success']) {
+        // Tampilkan error ke user (jangan diam saja)
+        return back()->with('error', $invoice['message']);
+    }
+
+    // Simpan ke DB
+    Transaction::create([
+        'user_id' => Auth::id(),
+        'amount' => $finalPrice,
+        'singapay_ref' => $invoice['reff_no'], // Simpan Reff No untuk pencocokan Callback
+        'status' => 'pending'
+    ]);
+
+    // Redirect user ke halaman pembayaran Singapay (VA/QRIS ada di sana)
+    return redirect($invoice['payment_url']);
+}
+```
+
+---
+
+## 5. Frontend Code (Blade)
+
+File: [resources/views/pages/pricing.blade.php](file:///e:/Pandu-Projek/Freelance/survey/resources/views/pages/pricing.blade.php)
+
+Pastikan form pengiriman data memiliki penanganan error yang baik.
+
+```html
+<div class="result-box">
+    <!-- AREA PESAN ERROR -->
+    <!-- Wajib ada untuk menampilkan feedback jika API gagal / token error -->
+    @if (session('error'))
+        <div class="alert alert-danger" style="background: #fee2e2; color: #b91c1c; padding: 1rem; margin-bottom: 1rem; border-radius: 0.5rem;">
+            <strong>Gagal:</strong> {{ session('error') }}
+        </div>
+    @endif
+    
+    <!-- AREA ERROR VALIDASI -->
+    @if ($errors->any())
+        <div class="alert alert-danger" style="background: #fee2e2; color: #b91c1c; padding: 1rem; margin-bottom: 1rem; border-radius: 0.5rem;">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <form method="POST" action="{{ route('transactions.store') }}">
+        @csrf
+        
+        <!-- Input yang visible -->
+        <!-- ... -->
+
+        <!-- INPUT HIDDEN: KUNCI KEBERHASILAN -->
+        <!-- Data ini harus diisi via Javascript sebelum submit -->
+        <input type="hidden" name="total_cost" id="postTotalCost">
+        <input type="hidden" name="user_type" id="postUserType"> <!-- Jangan sampai ketinggalan -->
+        
+        <button type="submit" class="btn-pay">Pesan Sekarang & Bayar</button>
+    </form>
+</div>
+```
+
+---
+
+## 6. Apa yang Terjadi Selanjutnya?
+
+1.  User akan melihat halaman pembayaran resmi Singapay.
+2.  Di halaman itu ada tab **Virtual Account** (BCA, BRI, dll) dan tab **QRIS**.
+3.  User memilih salah satu dan membayar.
+4.  User otomatis diarahkan kembali ke website Anda (jika callback URL disetting).
+5.  Status transaksi di database Anda berubah jadi **PAID** otomatis (via Webhook).
+
+---
+
+## Ringkasan Perbaikan yang Sudah Diterapkan (Case Study Project Ini)
+
+1.  **Frontend**: Menambahkan hidden input `user_type` yang sebelumnya hilang, menyebabkan error validasi 422.
+2.  **API Service**: Memaksa penggunaan timezone `Asia/Jakarta` saat membuat token signature, menghindari error `401 Invalid Signature` akibat perbedaan jam server hosting vs server Singapay.
+3.  **Error Handling**: Mengubah logic `return null` menjadi return array pesan error, sehingga kita tahu persis apa masalahnya (token gagal, koneksi time out, dll).

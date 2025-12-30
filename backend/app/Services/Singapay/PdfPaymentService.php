@@ -154,14 +154,8 @@ class PdfPaymentService
             ]);
 
             // Process based on payment method
-            $paymentResult = match ($paymentMethod) {
-                'virtual_account' => $this->processVirtualAccount($purchase, $bankCode),
-                'qris' => $this->processQris($purchase),
-                default => [
-                    'success' => false,
-                    'message' => 'Invalid payment method',
-                ],
-            };
+            // Process using Unified Payment Link (as per new documentation)
+            $paymentResult = $this->processPaymentLink($purchase, $paymentMethod, $bankCode);
 
             if (!$paymentResult['success']) {
                 DB::rollBack();
@@ -385,12 +379,12 @@ class PdfPaymentService
                     'va_number' => $transaction?->va_number,
                     'bank_code' => $transaction?->bank_code,
                     'qris_url' => $transaction?->qris_url,
-                    'va_number' => $transaction?->va_number,
-                    'bank_code' => $transaction?->bank_code,
-                    'qris_url' => $transaction?->qris_url,
                     'qris_content' => $transaction?->qris_content,
+                    'payment_url' => $transaction?->payment_url,
                     'payment_instructions' => match ($purchase->payment_method) {
-                        'virtual_account' => $this->vaService->getPaymentInstructions($transaction?->bank_code, $transaction?->va_number),
+                        'virtual_account' => ($transaction?->bank_code && $transaction?->va_number)
+                            ? $this->vaService->getPaymentInstructions($transaction->bank_code, $transaction->va_number)
+                            : [],
                         'qris' => $this->qrisService->getPaymentInstructions(),
                         default => [],
                     },
@@ -440,5 +434,92 @@ class PdfPaymentService
             'cancelled' => 'Dibatalkan',
             default => ucfirst($status),
         };
+    }
+
+    /**
+     * Process Payment Link (Unified)
+     */
+    private function processPaymentLink(PdfPurchase $purchase, string $method, ?string $bankCode = null): array
+    {
+        try {
+            // Map to Singapay whitelist codes
+            $whitelist = match ($method) {
+                'virtual_account' => match ($bankCode) {
+                    'BRI' => ['VA_BRI'],
+                    'BNI' => ['VA_BNI'],
+                    'MANDIRI' => ['VA_MANDIRI'],
+                    'PERMATA' => ['VA_PERMATA'],
+                    'DANAMON' => ['VA_DANAMON'],
+                    'CIMB' => ['VA_CIMB'],
+                    'BSI' => ['VA_BSI'],
+                    default => ['VA_BRI', 'VA_BNI', 'VA_MANDIRI', 'VA_PERMATA', 'VA_DANAMON'] // Fallback all
+                },
+                'qris' => ['QRIS'],
+                default => []
+            };
+
+            $expiryMinutes = 60;
+            $paymentLinkData = [
+                'reff_no' => $purchase->transaction_code,
+                'title' => "Pembayaran PDF Pro - {$purchase->package_type}",
+                'total_amount' => $purchase->amount_paid,
+                'expired_at' => now()->addMinutes($expiryMinutes)->timestamp * 1000,
+                'whitelisted_payment_method' => $whitelist,
+                'items' => [
+                    [
+                        'name' => "Paket PDF Pro ({$purchase->package_type})",
+                        'quantity' => 1,
+                        'unit_price' => $purchase->amount_paid,
+                    ]
+                ],
+                'customer_detail' => [
+                    'name' => $purchase->user->name,
+                    'email' => $purchase->user->email,
+                    'phone' => '08123456789', // Placeholder
+                ]
+            ];
+
+            $response = $this->apiService->createPaymentLink($paymentLinkData);
+
+            if (!$response['success']) {
+                return [
+                    'success' => false,
+                    'message' => $response['message'] ?? 'Payment Gateway Error'
+                ];
+            }
+
+            $responseData = $response['data'];
+
+            // Create Transaction Record
+            $expiredAt = now()->addMinutes($expiryMinutes);
+            $transaction = $purchase->paymentTransaction()->create([
+                'transaction_code' => $purchase->transaction_code,
+                'reference_no' => $responseData['reff_no'] ?? $purchase->transaction_code,
+                'payment_method' => $method, // 'virtual_account' or 'qris'
+                'bank_code' => $bankCode,
+                'payment_url' => $responseData['payment_url'] ?? null,
+                'amount' => $purchase->amount_paid,
+                'currency' => 'IDR',
+                'status' => 'pending',
+                'mode' => $this->apiService->getMode(),
+                'expired_at' => $expiredAt,
+                'singapay_request' => $paymentLinkData,
+                'singapay_response' => $responseData,
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Payment link created successfully',
+                'data' => [
+                    'transaction_code' => $transaction->transaction_code,
+                    'payment_url' => $transaction->payment_url,
+                    'is_redirect' => true,
+                    'expires_at' => $expiredAt->toIso8601String(),
+                ]
+            ];
+        } catch (\Exception $e) {
+            Log::error('[Payment Link] Error', ['msg' => $e->getMessage()]);
+            return ['success' => false, 'message' => $e->getMessage()];
+        }
     }
 }

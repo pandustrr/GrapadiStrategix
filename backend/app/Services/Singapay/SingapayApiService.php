@@ -94,7 +94,8 @@ class SingapayApiService
     protected function generateAccessToken(): ?string
     {
         try {
-            $timestamp = now()->format('Ymd');
+            // FORCE TIMEZONE JAKARTA untuk hindari 'Invalid Signature' error (sesuai dokumentasi resolved)
+            $timestamp = now()->setTimezone('Asia/Jakarta')->format('Ymd');
             $signature = $this->generateAccessTokenSignature($timestamp);
 
             $this->logInfo('Generating new access token', [
@@ -286,10 +287,43 @@ class SingapayApiService
     }
 
     /**
+     * Create Payment Link (Unified VA & QRIS)
+     */
+    public function createPaymentLink(array $data): array
+    {
+        $accountId = $this->merchantAccountId;
+        $endpoint = "/api/v1.0/payment-link-manage/{$accountId}";
+
+        $payload = array_merge([
+            'required_customer_detail' => false,
+            'max_usage' => 1,
+            'expired_at' => now()->addMinutes(60)->timestamp * 1000, // Default 60 mins
+        ], $data);
+
+        return $this->sendRequest($endpoint, $payload, 'POST');
+    }
+
+    /**
      * Generate mock data
      */
     protected function generateMockData(string $endpoint, array $data): array
     {
+        // Payment Link Mock
+        if (str_contains($endpoint, 'payment-link-manage')) {
+            return [
+                'success' => true,
+                'data' => [
+                    'id' => rand(1000, 9999),
+                    'reff_no' => $data['reff_no'] ?? 'INV-MOCK-' . time(),
+                    'payment_url' => 'https://sandbox.singapay.id/payment/mock/' . uniqid(),
+                    'amount' => $data['total_amount'],
+                    'status' => 'open',
+                    'created_at' => now()->toIso8601String(),
+                ],
+                'message' => 'Payment Link created successfully (MOCK)',
+            ];
+        }
+
         // VA Creation
         if (str_contains($endpoint, 'virtual-accounts')) {
             $bankCode = $data['bank_code'] ?? 'BRI';
