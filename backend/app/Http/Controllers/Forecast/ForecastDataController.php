@@ -40,6 +40,37 @@ class ForecastDataController extends Controller
 
         $forecastData = $query->latest()->paginate(15);
 
+        // Transform collection to include calculated summaries
+        $forecastData->getCollection()->transform(function ($forecast) {
+            $results = $forecast->forecastResults->sortBy('month')->values()->toArray();
+
+            // Calculate summaries
+            $annualSummary = $this->forecastService->calculateAnnualSummary($results);
+
+            // Calculate yearly summary if needed (for yearly forecasts)
+            $yearlySummary = [];
+            // If it's a yearly forecast (month is null or logic implies) or just always calculate it
+            // Based on frontend logic: (!forecast.month || forecast.month === null) implies yearly forecast logic
+            // But we can calculate it regardless if it has multiple years data
+            if (count($results) > 0) {
+                $yearlySummary = $this->forecastService->calculateYearlySummary(
+                    $results,
+                    $forecast->year,
+                    $forecast->month ?? 1
+                );
+            }
+
+            // Structure data to match frontend expectation (results_with_insights)
+            $forecast->results_with_insights = [
+                'results' => $forecast->forecastResults, // usage in frontend: forecast.results_with_insights.results
+                'insights' => $forecast->insights,
+                'annual_summary' => $annualSummary,
+                'yearly_summary' => $yearlySummary,
+            ];
+
+            return $forecast;
+        });
+
         return response()->json([
             'success' => true,
             'data' => $forecastData,
@@ -91,9 +122,29 @@ class ForecastDataController extends Controller
             ], 403);
         }
 
+        $results = $forecastData->forecastResults->sortBy('month')->values()->toArray();
+
+        $annualSummary = $this->forecastService->calculateAnnualSummary($results);
+
+        $yearlySummary = [];
+        if (count($results) > 0) {
+            $yearlySummary = $this->forecastService->calculateYearlySummary(
+                $results,
+                $forecastData->year,
+                $forecastData->month ?? 1
+            );
+        }
+
+        $forecastData->results_with_insights = [
+            'results' => $forecastData->forecastResults,
+            'insights' => $forecastData->insights,
+            'annual_summary' => $annualSummary,
+            'yearly_summary' => $yearlySummary,
+        ];
+
         return response()->json([
             'success' => true,
-            'data' => $forecastData->load(['forecastResults', 'insights', 'financialSimulation']),
+            'data' => $forecastData,
         ]);
     }
 
@@ -371,12 +422,20 @@ class ForecastDataController extends Controller
                 ]);
             }
 
+            // Calculate yearly summary for multi-year forecasts
+            $yearlySummary = $this->forecastService->calculateYearlySummary(
+                $results,
+                $baseYear,
+                $baseMonth ?? 1
+            );
+
             return response()->json([
                 'success' => true,
                 'message' => 'Forecast generated successfully',
                 'data' => [
                     'results' => $results,
                     'insights' => $insights,
+                    'yearly_summary' => $yearlySummary,
                     'forecast_data_id' => $forecastData->id,
                 ],
             ], 201);

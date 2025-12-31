@@ -15,6 +15,7 @@ const ForecastTahunan = ({ onBack }) => {
     const [expandedYear, setExpandedYear] = useState(null);
     const [yearForecasts, setYearForecasts] = useState({});
     const [savedYears, setSavedYears] = useState(new Set());
+    const [viewModes, setViewModes] = useState({}); // Track view mode per year (yearly/monthly)
 
     useEffect(() => {
         loadYears();
@@ -24,7 +25,7 @@ const ForecastTahunan = ({ onBack }) => {
         try {
             setLoading(true);
             const response = await financialSimulationApi.getList();
-            
+
             let simulationList = [];
             if (response.data) {
                 simulationList = Array.isArray(response.data) ? response.data : (response.data.data || []);
@@ -101,7 +102,7 @@ const ForecastTahunan = ({ onBack }) => {
         const totalIncome = results.reduce((sum, r) => sum + parseFloat(r.forecast_income || 0), 0);
         const totalExpense = results.reduce((sum, r) => sum + parseFloat(r.forecast_expense || 0), 0);
         const totalProfit = totalIncome - totalExpense;
-        const avgMargin = results.length > 0 
+        const avgMargin = results.length > 0
             ? results.reduce((sum, r) => sum + parseFloat(r.forecast_margin || 0), 0) / results.length
             : 0;
 
@@ -153,6 +154,17 @@ const ForecastTahunan = ({ onBack }) => {
         } finally {
             setSavingYear(null);
         }
+    };
+
+    const getViewMode = (year) => {
+        return viewModes[year] || 'yearly'; // Default to yearly
+    };
+
+    const toggleViewMode = (year) => {
+        setViewModes(prev => ({
+            ...prev,
+            [year]: prev[year] === 'monthly' ? 'yearly' : 'monthly'
+        }));
     };
 
     if (loading) {
@@ -295,64 +307,149 @@ const ForecastTahunan = ({ onBack }) => {
                                             ✓ Forecast Tahun {year} berhasil dibuat
                                         </h4>
 
-                                        {/* Charts Grid */}
-                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                            {/* Income Chart */}
-                                            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 p-4">
-                                                <h5 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3">Prediksi Pendapatan Tahun {year}</h5>
-                                                <ResponsiveContainer width="100%" height={200}>
-                                                    <LineChart data={forecast.results}>
-                                                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                                                        <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                                                        <YAxis tick={{ fontSize: 12 }} />
-                                                        <Tooltip formatter={(value) => `Rp ${parseFloat(value).toLocaleString('id-ID')}`} contentStyle={{ backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '8px' }} />
-                                                        <Line type="monotone" dataKey="forecast_income" stroke="#10b981" dot={false} strokeWidth={2} />
-                                                    </LineChart>
-                                                </ResponsiveContainer>
-                                            </div>
-
-                                            {/* Profit Chart */}
-                                            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 p-4">
-                                                <h5 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3">Prediksi Laba Tahun {year}</h5>
-                                                <ResponsiveContainer width="100%" height={200}>
-                                                    <BarChart data={forecast.results}>
-                                                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                                                        <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                                                        <YAxis tick={{ fontSize: 12 }} />
-                                                        <Tooltip formatter={(value) => `Rp ${parseFloat(value).toLocaleString('id-ID')}`} contentStyle={{ backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '8px' }} />
-                                                        <Bar dataKey="forecast_profit" fill="#3b82f6" />
-                                                    </BarChart>
-                                                </ResponsiveContainer>
+                                        {/* View Toggle */}
+                                        <div className="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
+                                            <p className="text-sm text-gray-600 dark:text-gray-400">Pilih tampilan data:</p>
+                                            <div className="inline-flex rounded-lg border border-gray-300 dark:border-gray-600 p-1 bg-gray-100 dark:bg-gray-700">
+                                                <button
+                                                    onClick={() => setViewModes(prev => ({ ...prev, [year]: 'yearly' }))}
+                                                    className={`px-4 py-1.5 text-xs font-medium rounded-md transition-colors ${getViewMode(year) === 'yearly'
+                                                        ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
+                                                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                                                        }`}
+                                                >
+                                                    Per Tahun
+                                                </button>
+                                                <button
+                                                    onClick={() => setViewModes(prev => ({ ...prev, [year]: 'monthly' }))}
+                                                    className={`px-4 py-1.5 text-xs font-medium rounded-md transition-colors ${getViewMode(year) === 'monthly'
+                                                        ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
+                                                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                                                        }`}
+                                                >
+                                                    Per Bulan
+                                                </button>
                                             </div>
                                         </div>
 
-                                        {/* Detail Table */}
-                                        <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-lg">
-                                            <table className="w-full text-sm">
-                                                <thead>
-                                                    <tr className="bg-gray-100 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
-                                                        <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Bulan</th>
-                                                        <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Pendapatan</th>
-                                                        <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Pengeluaran</th>
-                                                        <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Laba</th>
-                                                        <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Margin</th>
-                                                        <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Confidence</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                                    {forecast.results?.map((result, idx) => (
-                                                        <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
-                                                            <td className="px-4 py-3 text-gray-900 dark:text-white font-medium">Bln {result.month}</td>
-                                                            <td className="px-4 py-3 text-gray-700 dark:text-gray-300">Rp {parseFloat(result.forecast_income).toLocaleString('id-ID')}</td>
-                                                            <td className="px-4 py-3 text-gray-700 dark:text-gray-300">Rp {parseFloat(result.forecast_expense).toLocaleString('id-ID')}</td>
-                                                            <td className="px-4 py-3 text-gray-700 dark:text-gray-300 font-semibold">Rp {parseFloat(result.forecast_profit).toLocaleString('id-ID')}</td>
-                                                            <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{parseFloat(result.forecast_margin).toFixed(2)}%</td>
-                                                            <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{parseFloat(result.confidence_level || 0).toFixed(0)}%</td>
-                                                        </tr>
+                                        {/* Conditional View: Yearly or Monthly */}
+                                        {getViewMode(year) === 'yearly' && forecast.yearly_summary?.length > 0 ? (
+                                            /* Yearly View */
+                                            <div className="space-y-4">
+                                                {/* Yearly Summary Cards */}
+                                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                                                    {forecast.yearly_summary.map((yearData, idx) => (
+                                                        <div key={idx} className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg p-4 border border-blue-200 dark:border-blue-700">
+                                                            <h5 className="text-lg font-bold text-blue-900 dark:text-blue-100 mb-2">
+                                                                {yearData.year}
+                                                            </h5>
+                                                            <div className="space-y-2">
+                                                                <div>
+                                                                    <p className="text-[10px] text-blue-600 dark:text-blue-400 mb-0.5">Pendapatan</p>
+                                                                    <p className="text-xs font-semibold text-green-700 dark:text-green-300">
+                                                                        Rp {(parseFloat(yearData.total_income) / 1000000).toFixed(1)}M
+                                                                    </p>
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-[10px] text-blue-600 dark:text-blue-400 mb-0.5">Laba</p>
+                                                                    <p className={`text-xs font-semibold ${yearData.total_profit >= 0
+                                                                        ? 'text-green-700 dark:text-green-300'
+                                                                        : 'text-red-700 dark:text-red-300'
+                                                                        }`}>
+                                                                        Rp {(parseFloat(yearData.total_profit) / 1000000).toFixed(1)}M
+                                                                    </p>
+                                                                </div>
+                                                                <div className="pt-1 border-t border-blue-200 dark:border-blue-700">
+                                                                    <p className="text-[10px] text-blue-600 dark:text-blue-400 mb-0.5">Margin</p>
+                                                                    <p className="text-xs font-medium text-blue-900 dark:text-blue-100">
+                                                                        {yearData.avg_margin}%
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     ))}
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                                </div>
+
+                                                {/* Yearly Comparison Chart */}
+                                                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 p-4">
+                                                    <h5 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3">Perbandingan Tahunan</h5>
+                                                    <ResponsiveContainer width="100%" height={250}>
+                                                        <BarChart data={forecast.yearly_summary}>
+                                                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                                            <XAxis dataKey="year" tick={{ fontSize: 12 }} />
+                                                            <YAxis tick={{ fontSize: 12 }} />
+                                                            <Tooltip formatter={(value) => `Rp ${parseFloat(value).toLocaleString('id-ID')}`} contentStyle={{ backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '8px' }} />
+                                                            <Legend wrapperStyle={{ fontSize: '11px' }} />
+                                                            <Bar dataKey="total_income" fill="#10b981" name="Pendapatan" radius={[3, 3, 0, 0]} />
+                                                            <Bar dataKey="total_expense" fill="#ef4444" name="Pengeluaran" radius={[3, 3, 0, 0]} />
+                                                            <Bar dataKey="total_profit" fill="#3b82f6" name="Laba" radius={[3, 3, 0, 0]} />
+                                                        </BarChart>
+                                                    </ResponsiveContainer>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            /* Monthly View */
+                                            <>
+                                                {/* Charts Grid */}
+                                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                                    {/* Income Chart */}
+                                                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 p-4">
+                                                        <h5 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3">Prediksi Pendapatan Tahun {year}</h5>
+                                                        <ResponsiveContainer width="100%" height={200}>
+                                                            <LineChart data={forecast.results}>
+                                                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                                                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                                                                <YAxis tick={{ fontSize: 12 }} />
+                                                                <Tooltip formatter={(value) => `Rp ${parseFloat(value).toLocaleString('id-ID')}`} contentStyle={{ backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '8px' }} />
+                                                                <Line type="monotone" dataKey="forecast_income" stroke="#10b981" dot={false} strokeWidth={2} />
+                                                            </LineChart>
+                                                        </ResponsiveContainer>
+                                                    </div>
+
+                                                    {/* Profit Chart */}
+                                                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 p-4">
+                                                        <h5 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3">Prediksi Laba Tahun {year}</h5>
+                                                        <ResponsiveContainer width="100%" height={200}>
+                                                            <BarChart data={forecast.results}>
+                                                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                                                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                                                                <YAxis tick={{ fontSize: 12 }} />
+                                                                <Tooltip formatter={(value) => `Rp ${parseFloat(value).toLocaleString('id-ID')}`} contentStyle={{ backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '8px' }} />
+                                                                <Bar dataKey="forecast_profit" fill="#3b82f6" />
+                                                            </BarChart>
+                                                        </ResponsiveContainer>
+                                                    </div>
+                                                </div>
+
+                                                {/* Detail Table */}
+                                                <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-lg">
+                                                    <table className="w-full text-sm">
+                                                        <thead>
+                                                            <tr className="bg-gray-100 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
+                                                                <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Bulan</th>
+                                                                <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Pendapatan</th>
+                                                                <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Pengeluaran</th>
+                                                                <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Laba</th>
+                                                                <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Margin</th>
+                                                                <th className="px-4 py-3 text-left font-semibold text-gray-900 dark:text-white">Confidence</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                                                            {forecast.results?.map((result, idx) => (
+                                                                <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                                                                    <td className="px-4 py-3 text-gray-900 dark:text-white font-medium">Bln {result.month}</td>
+                                                                    <td className="px-4 py-3 text-gray-700 dark:text-gray-300">Rp {parseFloat(result.forecast_income).toLocaleString('id-ID')}</td>
+                                                                    <td className="px-4 py-3 text-gray-700 dark:text-gray-300">Rp {parseFloat(result.forecast_expense).toLocaleString('id-ID')}</td>
+                                                                    <td className="px-4 py-3 text-gray-700 dark:text-gray-300 font-semibold">Rp {parseFloat(result.forecast_profit).toLocaleString('id-ID')}</td>
+                                                                    <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{parseFloat(result.forecast_margin).toFixed(2)}%</td>
+                                                                    <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{parseFloat(result.confidence_level || 0).toFixed(0)}%</td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </>
+                                        )}
 
                                         {/* Action Buttons */}
                                         <div className="flex gap-3 pt-2">
@@ -392,7 +489,8 @@ const ForecastTahunan = ({ onBack }) => {
                         );
                     })}
                 </div>
-            )}
+            )
+            }
         </div>
     );
 };

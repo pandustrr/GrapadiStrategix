@@ -243,10 +243,17 @@ class CombinedPdfController extends Controller
             $yearlyProjections = $this->calculateYearlyProjections($allForecastResults);
             $yearlyProjectionChart = $this->generateYearlyProjectionChart($yearlyProjections);
 
+            // Generate Detailed Forecast Chart Grids (4 charts each)
+            Log::info('📊 Step 8b: Generating Detailed Forecast Chart Grids...');
+            $monthlyForecastCharts = $this->generateForecastChartGrid($forecastData['results'] ?? [], 'Proyeksi Bulanan');
+            $yearlyForecastCharts = $this->generateForecastChartGrid($yearlyProjections, 'Proyeksi Tahunan');
+
             Log::info('✅ Yearly Projections Calculated', [
                 'forecast_results_count' => count($allForecastResults),
                 'years_count' => count($yearlyProjections),
                 'has_chart' => !empty($yearlyProjectionChart),
+                'has_monthly_grid' => !empty($monthlyForecastCharts),
+                'has_yearly_grid' => !empty($yearlyForecastCharts),
                 'yearly_projections_data' => $yearlyProjections,
                 'chart_url_length' => $yearlyProjectionChart ? strlen($yearlyProjectionChart) : 0
             ]);
@@ -256,7 +263,8 @@ class CombinedPdfController extends Controller
                 'yearly_projections_empty' => empty($yearlyProjections),
                 'yearly_projections_count' => count($yearlyProjections),
                 'yearly_projection_chart_empty' => empty($yearlyProjectionChart),
-                'yearly_projection_chart_preview' => $yearlyProjectionChart ? substr($yearlyProjectionChart, 0, 100) : null
+                'monthly_grid_count' => count($monthlyForecastCharts),
+                'yearly_grid_count' => count($yearlyForecastCharts)
             ]);
 
             $pdf = PDF::loadView('pdf.combined-report', [
@@ -274,6 +282,10 @@ class CombinedPdfController extends Controller
                 // Yearly Projections (5 Years Summary)
                 'yearly_projections' => $yearlyProjections,
                 'yearly_projection_chart' => $yearlyProjectionChart,
+                'projectedYears' => count($yearlyProjections),
+                // Forecast Charts Grids
+                'monthlyForecastCharts' => $monthlyForecastCharts,
+                'yearlyForecastCharts' => $yearlyForecastCharts,
                 // Forecast data - untuk BAGIAN 3
                 'forecast_data' => $forecastData['forecast_data'] ?? null,
                 'forecast_results' => $forecastData['results'] ?? [],
@@ -1455,8 +1467,55 @@ class CombinedPdfController extends Controller
         ksort($yearlyData);
         $yearlyData = array_values($yearlyData);
 
-        Log::info('📊 Yearly Projections Calculated from Forecast', [
-            'years_count' => count($yearlyData),
+        // Calculate margin for each year
+        foreach ($yearlyData as &$data) {
+            if ($data['income'] > 0) {
+                $data['margin'] = ($data['profit'] / $data['income']) * 100;
+            } else {
+                $data['margin'] = 0;
+            }
+        }
+
+        // --- NEW: Extrapolate based on the maximum year found in results ---
+        $count = count($yearlyData);
+        if ($count > 0) {
+            // Find the maximum year in the original results set (to know what duration the user intended)
+            $lastActualYearData = end($yearlyData);
+            $lastActualYear = (int)$lastActualYearData['year'];
+
+            // We want to projected up to the endYear calculated in getAllForecastResults (or at least 3 years total)
+            // But since we don't have endYear here, we'll rely on the count or just leave it as is if it's already multi-year.
+            // Actually, the user wants it to be dynamic. If the count is 1, let's at least show 3 years.
+            // If the count is 3, 5, or 10, keep it as is.
+
+            $targetYears = max(3, $count); // Minimum 3 years for visual trend
+
+            if ($count < $targetYears) {
+                $lastYearData = end($yearlyData);
+                $lastYear = (int)$lastYearData['year'];
+                $growthRate = 1.10; // Default 10% annual growth for projections
+
+                for ($i = 1; $i <= ($targetYears - $count); $i++) {
+                    $newYear = $lastYear + $i;
+                    $projectedIncome = floatval($lastYearData['income']) * pow($growthRate, $i);
+                    $projectedExpense = floatval($lastYearData['expense']) * pow($growthRate, $i);
+                    $projectedProfit = $projectedIncome - $projectedExpense;
+
+                    $yearlyData[] = [
+                        'year' => $newYear,
+                        'income' => $projectedIncome,
+                        'expense' => $projectedExpense,
+                        'profit' => $projectedProfit,
+                        'margin' => $projectedIncome > 0 ? ($projectedProfit / $projectedIncome) * 100 : 0,
+                        'is_projected' => true // Flag to indicate this is extrapolated
+                    ];
+                }
+            }
+        }
+
+        Log::info('📊 Yearly Projections Calculated and Extrapolated', [
+            'original_count' => $count,
+            'final_count' => count($yearlyData),
             'years' => array_column($yearlyData, 'year')
         ]);
 
@@ -1538,6 +1597,114 @@ class CombinedPdfController extends Controller
         ];
 
         return $this->getQuickChartUrl($chartConfig, 600, 350);
+    }
+
+    /**
+     * Generate 4-chart grid for Forecast Data (Income, Expense, Profit, Margin)
+     */
+    private function generateForecastChartGrid($data, $titlePrefix = '')
+    {
+        if (empty($data)) {
+            return [];
+        }
+
+        $labels = [];
+        $income = [];
+        $expense = [];
+        $profit = [];
+        $margin = [];
+
+        foreach ($data as $item) {
+            // Label depends on data type (monthly result or yearly projection)
+            if (isset($item['month']) && isset($item['year'])) {
+                $labels[] = date('M y', mktime(0, 0, 0, $item['month'], 1, $item['year']));
+            } else {
+                $labels[] = 'Thn ' . ($item['year'] ?? '');
+            }
+
+            $income[] = floatval($item['forecast_income'] ?? $item['income'] ?? 0);
+            $expense[] = floatval($item['forecast_expense'] ?? $item['expense'] ?? 0);
+            $profit[] = floatval($item['forecast_profit'] ?? $item['profit'] ?? 0);
+            $margin[] = floatval($item['forecast_margin'] ?? $item['margin'] ?? 0);
+        }
+
+        $chartConfigs = [
+            'income' => [
+                'type' => 'line',
+                'data' => [
+                    'labels' => $labels,
+                    'datasets' => [[
+                        'label' => 'Pendapatan',
+                        'data' => $income,
+                        'borderColor' => '#10b981',
+                        'backgroundColor' => 'rgba(16, 185, 129, 0.1)',
+                        'fill' => true,
+                        'tension' => 0.4
+                    ]]
+                ],
+                'options' => [
+                    'plugins' => ['title' => ['display' => true, 'text' => "{$titlePrefix} - Pendapatan"]]
+                ]
+            ],
+            'expense' => [
+                'type' => 'line',
+                'data' => [
+                    'labels' => $labels,
+                    'datasets' => [[
+                        'label' => 'Pengeluaran',
+                        'data' => $expense,
+                        'borderColor' => '#ef4444',
+                        'backgroundColor' => 'rgba(239, 104, 68, 0.1)',
+                        'fill' => true,
+                        'tension' => 0.4
+                    ]]
+                ],
+                'options' => [
+                    'plugins' => ['title' => ['display' => true, 'text' => "{$titlePrefix} - Pengeluaran"]]
+                ]
+            ],
+            'profit' => [
+                'type' => 'line',
+                'data' => [
+                    'labels' => $labels,
+                    'datasets' => [[
+                        'label' => 'Laba Bersih',
+                        'data' => $profit,
+                        'borderColor' => '#3b82f6',
+                        'backgroundColor' => 'rgba(59, 130, 246, 0.1)',
+                        'fill' => true,
+                        'tension' => 0.4
+                    ]]
+                ],
+                'options' => [
+                    'plugins' => ['title' => ['display' => true, 'text' => "{$titlePrefix} - Laba Bersih"]]
+                ]
+            ],
+            'margin' => [
+                'type' => 'line',
+                'data' => [
+                    'labels' => $labels,
+                    'datasets' => [[
+                        'label' => 'Margin (%)',
+                        'data' => $margin,
+                        'borderColor' => '#8b5cf6',
+                        'backgroundColor' => 'rgba(139, 92, 246, 0.1)',
+                        'fill' => true,
+                        'tension' => 0.4
+                    ]]
+                ],
+                'options' => [
+                    'plugins' => ['title' => ['display' => true, 'text' => "{$titlePrefix} - Margin (%)"]]
+                ]
+            ]
+        ];
+
+        $urls = [];
+        foreach ($chartConfigs as $key => $config) {
+            $urls[$key] = $this->getQuickChartUrl($config, 400, 250);
+        }
+
+        return $urls;
     }
 
     /**
@@ -1688,9 +1855,25 @@ class CombinedPdfController extends Controller
     private function getAllForecastResults($userId, $businessBackgroundId)
     {
         try {
-            // Get all forecast results for this user and business (up to 5 years)
+            // 1. Dapatkan tahun maksimal yang ada di database untuk user dan bisnis ini
+            $maxYearInDb = ForecastResult::whereHas('forecastData', function ($query) use ($userId, $businessBackgroundId) {
+                $query->where('user_id', $userId)
+                    ->whereHas('financialSimulation', function ($simQuery) use ($businessBackgroundId) {
+                        $simQuery->where('business_background_id', $businessBackgroundId);
+                    });
+            })->max('year');
+
             $currentYear = date('Y');
-            $endYear = $currentYear + 4; // 5 years projection
+
+            // 2. Tentukan endYear secara dinamis
+            // Jika ada data di masa depan, ambil tahun maksimal. Jika tidak, minimal currentYear + 2 (total 3 tahun)
+            $endYear = $maxYearInDb ? max($maxYearInDb, $currentYear + 2) : ($currentYear + 2);
+
+            Log::info('📊 Dynamic Forecast Range Determined', [
+                'current_year' => $currentYear,
+                'max_year_in_db' => $maxYearInDb,
+                'end_year' => $endYear,
+            ]);
 
             // Query forecast results through forecast_data relation
             // Join with financial_simulations to filter by business_background_id

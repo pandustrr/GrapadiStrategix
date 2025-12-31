@@ -293,4 +293,52 @@ class ForecastService
             'avg_confidence' => round(collect($forecastResults)->avg('confidence_level'), 2),
         ];
     }
+
+    /**
+     * Calculate yearly summary - groups monthly data into 12-month periods
+     * For easier analysis of multi-year forecasts (3, 5, 10 years)
+     */
+    public function calculateYearlySummary(array $forecastResults, int $startYear, int $startMonth = 1)
+    {
+        $yearlyData = [];
+
+        foreach ($forecastResults as $result) {
+            // Calculate which forecast year this month belongs to
+            // Month 1-12 = Year 1, Month 13-24 = Year 2, etc.
+            $monthsFromStart = $result['month'] - 1;
+            $yearOffset = floor(($startMonth + $monthsFromStart - 1) / 12);
+            $forecastYear = $startYear + $yearOffset;
+
+            if (!isset($yearlyData[$forecastYear])) {
+                $yearlyData[$forecastYear] = [
+                    'year' => $forecastYear,
+                    'total_income' => 0,
+                    'total_expense' => 0,
+                    'total_profit' => 0,
+                    'months_count' => 0,
+                    'margins' => [],
+                    'confidences' => [],
+                ];
+            }
+
+            $yearlyData[$forecastYear]['total_income'] += $result['forecast_income'];
+            $yearlyData[$forecastYear]['total_expense'] += $result['forecast_expense'];
+            $yearlyData[$forecastYear]['total_profit'] += $result['forecast_profit'];
+            $yearlyData[$forecastYear]['months_count']++;
+            $yearlyData[$forecastYear]['margins'][] = $result['forecast_margin'];
+            $yearlyData[$forecastYear]['confidences'][] = $result['confidence_level'];
+        }
+
+        // Calculate averages and round values
+        foreach ($yearlyData as $year => &$data) {
+            $data['total_income'] = round($data['total_income'], 2);
+            $data['total_expense'] = round($data['total_expense'], 2);
+            $data['total_profit'] = round($data['total_profit'], 2);
+            $data['avg_margin'] = round(array_sum($data['margins']) / count($data['margins']), 2);
+            $data['avg_confidence'] = round(array_sum($data['confidences']) / count($data['confidences']), 2);
+            unset($data['margins'], $data['confidences']);
+        }
+
+        return array_values($yearlyData);
+    }
 }

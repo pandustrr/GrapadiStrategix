@@ -55,6 +55,13 @@ class ForecastResultController extends Controller
             // Calculate annual summary
             $annualSummary = $this->forecastService->calculateAnnualSummary($results);
 
+            // Calculate yearly summary for easier multi-year analysis
+            $yearlySummary = $this->forecastService->calculateYearlySummary(
+                $results,
+                $forecastData->year,
+                $forecastData->month ?? 1
+            );
+
             return response()->json([
                 'success' => true,
                 'message' => 'Forecast generated successfully',
@@ -63,6 +70,7 @@ class ForecastResultController extends Controller
                     'results' => $results,
                     'insights' => $insights,
                     'annual_summary' => $annualSummary,
+                    'yearly_summary' => $yearlySummary,
                 ],
             ]);
         } catch (\Exception $e) {
@@ -98,12 +106,20 @@ class ForecastResultController extends Controller
         // Calculate annual summary
         $annualSummary = $this->forecastService->calculateAnnualSummary($results->toArray());
 
+        // Calculate yearly summary
+        $yearlySummary = $this->forecastService->calculateYearlySummary(
+            $results->toArray(),
+            $forecastData->year,
+            $forecastData->month ?? 1
+        );
+
         return response()->json([
             'success' => true,
             'data' => [
                 'results' => $results,
                 'insights' => $insights,
                 'annual_summary' => $annualSummary,
+                'yearly_summary' => $yearlySummary,
             ],
         ]);
     }

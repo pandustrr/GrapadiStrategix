@@ -13,6 +13,7 @@ const ForecastResults = ({ onBack }) => {
     const [deletingId, setDeletingId] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [modalData, setModalData] = useState({ title: "", message: "", type: "info" });
+    const [forecastViewModes, setForecastViewModes] = useState({}); // Track view mode for each forecast
 
     useEffect(() => {
         loadSavedForecasts();
@@ -41,24 +42,31 @@ const ForecastResults = ({ onBack }) => {
             });
 
 
-            setForecasts(forecastList.map(forecast => ({
-                ...forecast,
-                results_with_insights: {
-                    results: forecast.forecast_results || [],
-                    insights: forecast.insights || [],
-                    annual_summary: {
-                        total_income: forecast.forecast_results?.reduce((sum, r) => sum + parseFloat(r.forecast_income || 0), 0) || 0,
-                        total_expense: forecast.forecast_results?.reduce((sum, r) => sum + parseFloat(r.forecast_expense || 0), 0) || 0,
-                        total_profit: forecast.forecast_results?.reduce((sum, r) => sum + parseFloat(r.forecast_profit || 0), 0) || 0,
-                        avg_margin: forecast.forecast_results?.length > 0
-                            ? forecast.forecast_results.reduce((sum, r) => sum + parseFloat(r.forecast_margin || 0), 0) / forecast.forecast_results.length
-                            : 0,
-                        avg_confidence: forecast.forecast_results?.length > 0
-                            ? forecast.forecast_results.reduce((sum, r) => sum + parseFloat(r.confidence_level || 0), 0) / forecast.forecast_results.length
-                            : 0,
-                    }
+            setForecasts(forecastList.map(forecast => {
+                if (forecast.results_with_insights) {
+                    return forecast;
                 }
-            })));
+
+                return {
+                    ...forecast,
+                    results_with_insights: {
+                        results: forecast.forecast_results || [],
+                        insights: forecast.insights || [],
+                        annual_summary: {
+                            total_income: forecast.forecast_results?.reduce((sum, r) => sum + parseFloat(r.forecast_income || 0), 0) || 0,
+                            total_expense: forecast.forecast_results?.reduce((sum, r) => sum + parseFloat(r.forecast_expense || 0), 0) || 0,
+                            total_profit: forecast.forecast_results?.reduce((sum, r) => sum + parseFloat(r.forecast_profit || 0), 0) || 0,
+                            avg_margin: forecast.forecast_results?.length > 0
+                                ? forecast.forecast_results.reduce((sum, r) => sum + parseFloat(r.forecast_margin || 0), 0) / forecast.forecast_results.length
+                                : 0,
+                            avg_confidence: forecast.forecast_results?.length > 0
+                                ? forecast.forecast_results.reduce((sum, r) => sum + parseFloat(r.confidence_level || 0), 0) / forecast.forecast_results.length
+                                : 0,
+                        },
+                        yearly_summary: [],
+                    }
+                };
+            }));
         } catch (error) {
             console.error('Error loading forecasts:', error);
             setForecasts([]);
@@ -122,6 +130,17 @@ const ForecastResults = ({ onBack }) => {
         const months = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
             'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
         return months[monthNumber] || '-';
+    };
+
+    const toggleForecastView = (forecastId) => {
+        setForecastViewModes(prev => ({
+            ...prev,
+            [forecastId]: prev[forecastId] === 'monthly' ? 'yearly' : 'monthly'
+        }));
+    };
+
+    const getForecastViewMode = (forecastId) => {
+        return forecastViewModes[forecastId] || 'yearly'; // Default to yearly for yearly forecasts
     };
 
 
@@ -264,67 +283,197 @@ const ForecastResults = ({ onBack }) => {
                                             </div>
                                         </div>
 
-                                        {/* Charts Section */}
+                                        {/* View Toggle for Yearly Forecasts */}
+                                        {forecast.results_with_insights?.yearly_summary?.length > 0 && (
+                                            <div className="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-700">
+                                                <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Tampilan Data</h4>
+                                                <div className="inline-flex rounded-lg border border-gray-300 dark:border-gray-600 p-1 bg-gray-100 dark:bg-gray-700">
+                                                    <button
+                                                        onClick={() => setForecastViewModes(prev => ({ ...prev, [forecast.id]: 'yearly' }))}
+                                                        className={`px-4 py-1.5 text-xs font-medium rounded-md transition-colors ${getForecastViewMode(forecast.id) === 'yearly'
+                                                            ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
+                                                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                                                            }`}
+                                                    >
+                                                        Per Tahun
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setForecastViewModes(prev => ({ ...prev, [forecast.id]: 'monthly' }))}
+                                                        className={`px-4 py-1.5 text-xs font-medium rounded-md transition-colors ${getForecastViewMode(forecast.id) === 'monthly'
+                                                            ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
+                                                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                                                            }`}
+                                                    >
+                                                        Per Bulan
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Charts Section - Conditional based on forecast type */}
                                         {forecast.results_with_insights?.results && forecast.results_with_insights.results.length > 0 && (
                                             <div>
-                                                <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Grafik Forecast</h4>
-                                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                                    {/* Income Chart */}
-                                                    <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-                                                        <h5 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3">Prediksi Pendapatan</h5>
-                                                        <ResponsiveContainer width="100%" height={180}>
-                                                            <LineChart data={forecast.results_with_insights.results}>
-                                                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                                                                <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                                                                <YAxis tick={{ fontSize: 11 }} />
-                                                                <Tooltip formatter={(value) => `Rp ${parseFloat(value).toLocaleString('id-ID')}`} contentStyle={{ backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '6px' }} />
-                                                                <Line type="monotone" dataKey="forecast_income" stroke="#10b981" dot={false} strokeWidth={2} />
-                                                            </LineChart>
-                                                        </ResponsiveContainer>
-                                                    </div>
+                                                {/* Yearly Forecast View */}
+                                                {forecast.results_with_insights?.yearly_summary?.length > 0 && getForecastViewMode(forecast.id) === 'yearly' ? (
+                                                    <div className="space-y-4">
+                                                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Tampilan Tahunan</h4>
 
-                                                    {/* Expense Chart */}
-                                                    <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-                                                        <h5 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3">Prediksi Pengeluaran</h5>
-                                                        <ResponsiveContainer width="100%" height={180}>
-                                                            <LineChart data={forecast.results_with_insights.results}>
-                                                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                                                                <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                                                                <YAxis tick={{ fontSize: 11 }} />
-                                                                <Tooltip formatter={(value) => `Rp ${parseFloat(value).toLocaleString('id-ID')}`} contentStyle={{ backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '6px' }} />
-                                                                <Line type="monotone" dataKey="forecast_expense" stroke="#ef4444" dot={false} strokeWidth={2} />
-                                                            </LineChart>
-                                                        </ResponsiveContainer>
-                                                    </div>
+                                                        {/* Yearly Trends Charts */}
+                                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                                            {/* Yearly Income Chart */}
+                                                            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 p-4">
+                                                                <h5 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3">Tren Pendapatan Tahunan</h5>
+                                                                <ResponsiveContainer width="100%" height={200}>
+                                                                    <LineChart data={forecast.results_with_insights.yearly_summary}>
+                                                                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                                                        <XAxis dataKey="year" tick={{ fontSize: 12 }} />
+                                                                        <YAxis tick={{ fontSize: 12 }} />
+                                                                        <Tooltip formatter={(value) => `Rp ${parseFloat(value).toLocaleString('id-ID')}`} contentStyle={{ backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '8px' }} />
+                                                                        <Line type="monotone" dataKey="total_income" stroke="#10b981" dot={true} strokeWidth={2} />
+                                                                    </LineChart>
+                                                                </ResponsiveContainer>
+                                                            </div>
 
-                                                    {/* Profit Chart */}
-                                                    <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-                                                        <h5 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3">Prediksi Laba</h5>
-                                                        <ResponsiveContainer width="100%" height={180}>
-                                                            <BarChart data={forecast.results_with_insights.results}>
-                                                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                                                                <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                                                                <YAxis tick={{ fontSize: 11 }} />
-                                                                <Tooltip formatter={(value) => `Rp ${parseFloat(value).toLocaleString('id-ID')}`} contentStyle={{ backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '6px' }} />
-                                                                <Bar dataKey="forecast_profit" fill="#3b82f6" radius={[3, 3, 0, 0]} />
-                                                            </BarChart>
-                                                        </ResponsiveContainer>
-                                                    </div>
+                                                            {/* Yearly Expense Chart */}
+                                                            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 p-4">
+                                                                <h5 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3">Tren Pengeluaran Tahunan</h5>
+                                                                <ResponsiveContainer width="100%" height={200}>
+                                                                    <LineChart data={forecast.results_with_insights.yearly_summary}>
+                                                                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                                                        <XAxis dataKey="year" tick={{ fontSize: 12 }} />
+                                                                        <YAxis tick={{ fontSize: 12 }} />
+                                                                        <Tooltip formatter={(value) => `Rp ${parseFloat(value).toLocaleString('id-ID')}`} contentStyle={{ backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '8px' }} />
+                                                                        <Line type="monotone" dataKey="total_expense" stroke="#ef4444" dot={true} strokeWidth={2} />
+                                                                    </LineChart>
+                                                                </ResponsiveContainer>
+                                                            </div>
 
-                                                    {/* Margin Chart */}
-                                                    <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-                                                        <h5 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3">Margin Profit (%)</h5>
-                                                        <ResponsiveContainer width="100%" height={180}>
-                                                            <LineChart data={forecast.results_with_insights.results}>
-                                                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                                                                <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                                                                <YAxis tick={{ fontSize: 11 }} />
-                                                                <Tooltip formatter={(value) => `${parseFloat(value).toFixed(2)}%`} contentStyle={{ backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '6px' }} />
-                                                                <Line type="monotone" dataKey="forecast_margin" stroke="#8b5cf6" dot={false} strokeWidth={2} />
-                                                            </LineChart>
-                                                        </ResponsiveContainer>
+                                                            {/* Yearly Profit Chart */}
+                                                            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 p-4">
+                                                                <h5 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3">Tren Laba Tahunan</h5>
+                                                                <ResponsiveContainer width="100%" height={200}>
+                                                                    <BarChart data={forecast.results_with_insights.yearly_summary}>
+                                                                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                                                        <XAxis dataKey="year" tick={{ fontSize: 12 }} />
+                                                                        <YAxis tick={{ fontSize: 12 }} />
+                                                                        <Tooltip formatter={(value) => `Rp ${parseFloat(value).toLocaleString('id-ID')}`} contentStyle={{ backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '8px' }} />
+                                                                        <Bar dataKey="total_profit" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                                                                    </BarChart>
+                                                                </ResponsiveContainer>
+                                                            </div>
+
+                                                            {/* Yearly Margin Chart */}
+                                                            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 p-4">
+                                                                <h5 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3">Tren Margin Profit Tahunan (%)</h5>
+                                                                <ResponsiveContainer width="100%" height={200}>
+                                                                    <LineChart data={forecast.results_with_insights.yearly_summary}>
+                                                                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                                                        <XAxis dataKey="year" tick={{ fontSize: 12 }} />
+                                                                        <YAxis tick={{ fontSize: 12 }} />
+                                                                        <Tooltip formatter={(value) => `${parseFloat(value).toFixed(2)}%`} contentStyle={{ backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '8px' }} />
+                                                                        <Line type="monotone" dataKey="avg_margin" stroke="#8b5cf6" dot={true} strokeWidth={2} />
+                                                                    </LineChart>
+                                                                </ResponsiveContainer>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Yearly Summary Cards */}
+                                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                                                            {forecast.results_with_insights.yearly_summary.map((yearData, idx) => (
+                                                                <div key={idx} className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg p-4 border border-blue-200 dark:border-blue-700">
+                                                                    <h5 className="text-lg font-bold text-blue-900 dark:text-blue-100 mb-2">
+                                                                        {yearData.year}
+                                                                    </h5>
+                                                                    <div className="space-y-2">
+                                                                        <div>
+                                                                            <p className="text-[10px] text-blue-600 dark:text-blue-400 mb-0.5">Pendapatan</p>
+                                                                            <p className="text-xs font-semibold text-green-700 dark:text-green-300">
+                                                                                Rp {(parseFloat(yearData.total_income) / 1000000).toFixed(1)}M
+                                                                            </p>
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-[10px] text-blue-600 dark:text-blue-400 mb-0.5">Laba</p>
+                                                                            <p className={`text-xs font-semibold ${yearData.total_profit >= 0
+                                                                                ? 'text-green-700 dark:text-green-300'
+                                                                                : 'text-red-700 dark:text-red-300'
+                                                                                }`}>
+                                                                                Rp {(parseFloat(yearData.total_profit) / 1000000).toFixed(1)}M
+                                                                            </p>
+                                                                        </div>
+                                                                        <div className="pt-1 border-t border-blue-200 dark:border-blue-700">
+                                                                            <p className="text-[10px] text-blue-600 dark:text-blue-400 mb-0.5">Margin</p>
+                                                                            <p className="text-xs font-medium text-blue-900 dark:text-blue-100">
+                                                                                {yearData.avg_margin}%
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
                                                     </div>
-                                                </div>
+                                                ) : (
+                                                    /* Monthly Forecast View */
+                                                    <div>
+                                                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Grafik Forecast Bulanan</h4>
+                                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                                            {/* Income Chart */}
+                                                            <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                                                                <h5 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3">Prediksi Pendapatan</h5>
+                                                                <ResponsiveContainer width="100%" height={180}>
+                                                                    <LineChart data={forecast.results_with_insights.results}>
+                                                                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                                                        <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                                                                        <YAxis tick={{ fontSize: 11 }} />
+                                                                        <Tooltip formatter={(value) => `Rp ${parseFloat(value).toLocaleString('id-ID')}`} contentStyle={{ backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '6px' }} />
+                                                                        <Line type="monotone" dataKey="forecast_income" stroke="#10b981" dot={false} strokeWidth={2} />
+                                                                    </LineChart>
+                                                                </ResponsiveContainer>
+                                                            </div>
+
+                                                            {/* Expense Chart */}
+                                                            <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                                                                <h5 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3">Prediksi Pengeluaran</h5>
+                                                                <ResponsiveContainer width="100%" height={180}>
+                                                                    <LineChart data={forecast.results_with_insights.results}>
+                                                                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                                                        <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                                                                        <YAxis tick={{ fontSize: 11 }} />
+                                                                        <Tooltip formatter={(value) => `Rp ${parseFloat(value).toLocaleString('id-ID')}`} contentStyle={{ backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '6px' }} />
+                                                                        <Line type="monotone" dataKey="forecast_expense" stroke="#ef4444" dot={false} strokeWidth={2} />
+                                                                    </LineChart>
+                                                                </ResponsiveContainer>
+                                                            </div>
+
+                                                            {/* Profit Chart */}
+                                                            <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                                                                <h5 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3">Prediksi Laba</h5>
+                                                                <ResponsiveContainer width="100%" height={180}>
+                                                                    <BarChart data={forecast.results_with_insights.results}>
+                                                                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                                                        <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                                                                        <YAxis tick={{ fontSize: 11 }} />
+                                                                        <Tooltip formatter={(value) => `Rp ${parseFloat(value).toLocaleString('id-ID')}`} contentStyle={{ backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '6px' }} />
+                                                                        <Bar dataKey="forecast_profit" fill="#3b82f6" radius={[3, 3, 0, 0]} />
+                                                                    </BarChart>
+                                                                </ResponsiveContainer>
+                                                            </div>
+
+                                                            {/* Margin Chart */}
+                                                            <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                                                                <h5 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3">Margin Profit (%)</h5>
+                                                                <ResponsiveContainer width="100%" height={180}>
+                                                                    <LineChart data={forecast.results_with_insights.results}>
+                                                                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                                                        <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                                                                        <YAxis tick={{ fontSize: 11 }} />
+                                                                        <Tooltip formatter={(value) => `${parseFloat(value).toFixed(2)}%`} contentStyle={{ backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '6px' }} />
+                                                                        <Line type="monotone" dataKey="forecast_margin" stroke="#8b5cf6" dot={false} strokeWidth={2} />
+                                                                    </LineChart>
+                                                                </ResponsiveContainer>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                     </div>
