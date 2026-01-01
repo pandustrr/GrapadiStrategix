@@ -22,9 +22,9 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
         {/* ========== LOGO ========== */}
         <Link to="/" className="flex items-center space-x-2">
           <img
-            src={isDarkMode ? "/assets/logo/logo-dark.png" : "/assets/logo/logo-light.png"}
+            src={isDarkMode ? "./assets/logo/logo-dark.png" : "./assets/logo/logo-light.png"}
             alt="Grapadi Strategix"
-            className="object-contain w-auto h-20"
+            className="object-contain w-auto h-28"
             onError={(e) => {
               // Fallback to text if image not found
               e.target.style.display = "none";
@@ -67,7 +67,7 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
         {/* ========== DARK MODE + CTA BUTTONS (DESKTOP) ========== */}
         <div className="items-center hidden space-x-4 md:flex">
           <button onClick={toggleDarkMode} className="p-2 text-gray-600 transition-colors rounded-lg dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700" aria-label="Toggle dark mode">
-            {isDarkMode ? <Sun size={20} className="text-yellow-400" /> : <Moon size={20} className="text-gray-600" />}
+            {isDarkMode ? <Sun size={28} className="text-yellow-400" /> : <Moon size={28} className="text-gray-600" />}
           </button>
 
           <Link to="/login" className="font-medium text-gray-700 transition-colors dark:text-gray-300" onMouseEnter={(e) => (e.currentTarget.style.color = "#084404")} onMouseLeave={(e) => (e.currentTarget.style.color = "")}>
@@ -128,7 +128,7 @@ function Navbar({ isDarkMode, toggleDarkMode }) {
             </li>
             <li className="mt-6">
               <button onClick={toggleDarkMode} className="p-3 text-gray-600 transition-colors bg-gray-100 rounded-full dark:bg-gray-800 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400" aria-label="Toggle dark mode">
-                {isDarkMode ? <Sun size={22} className="text-yellow-400" /> : <Moon size={22} className="text-gray-600" />}
+                {isDarkMode ? <Sun size={32} className="text-yellow-400" /> : <Moon size={32} className="text-gray-600" />}
               </button>
             </li>
           </ul>

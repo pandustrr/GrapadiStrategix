@@ -115,10 +115,10 @@ const WhatsAppWidget = () => {
             `}>
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="group relative bg-[#25D366] hover:bg-[#128C7E] text-white p-3 pl-5 rounded-l-3xl shadow-xl flex items-center justify-center transition-all border-y border-l border-white/20"
+                    className="group relative bg-[#25D366] hover:bg-[#128C7E] text-white p-4 pl-6 rounded-l-3xl shadow-xl flex items-center justify-center transition-all border-y border-l border-white/20"
                     aria-label="Contact Admin"
                 >
-                    <FaWhatsapp size={32} className="animate-bounce group-hover:animate-none" />
+                    <FaWhatsapp size={40} className="animate-bounce group-hover:animate-none" />
 
                     {/* Tooltip */}
                     <span className="absolute right-full mr-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-1 rounded-md text-xs font-bold opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap shadow-lg pointer-events-none">

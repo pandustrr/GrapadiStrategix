@@ -149,7 +149,7 @@ const Header = ({
             onClick={onToggleSidebar}
             className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors lg:hidden"
           >
-            <Menu size={20} />
+            <Menu size={24} />
           </button>
 
           {/* App Title */}
@@ -167,25 +167,25 @@ const Header = ({
             aria-label="Toggle dark mode"
           >
             {isDarkMode ? (
-              <Sun size={20} className="text-yellow-500" />
+              <Sun size={24} className="text-yellow-500" />
             ) : (
-              <Moon size={20} className="text-gray-600" />
+              <Moon size={24} className="text-gray-600" />
             )}
           </button>
 
           {/* User Info with Real Pro Status */}
           <div className="flex items-center space-x-2 lg:space-x-3 p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center ${
+              className={`w-10 h-10 rounded-full flex items-center justify-center ${
                 accessInfo.has_access
                   ? "bg-gradient-to-br from-yellow-400 to-orange-500 shadow-lg"
                   : "bg-gradient-to-br from-green-500 to-green-600"
               }`}
             >
               {accessInfo.has_access ? (
-                <Crown size={16} className="text-white" />
+                <Crown size={20} className="text-white" />
               ) : (
-                <User size={16} className="text-white" />
+                <User size={20} className="text-white" />
               )}
             </div>
             <div className="hidden md:block">
@@ -226,8 +226,8 @@ const Header = ({
                       {/* Header */}
                       <div className="p-4 bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-gray-800 dark:to-gray-700 border-b border-gray-200 dark:border-gray-600">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-md">
-                            <Crown size={18} className="text-white" />
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-md">
+                            <Crown size={24} className="text-white" />
                           </div>
                           <div>
                             <h3 className="font-bold text-gray-900 dark:text-white">Status PRO</h3>
@@ -270,7 +270,7 @@ const Header = ({
                         <div className="grid grid-cols-2 gap-3">
                           <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
                             <div className="flex items-center gap-2 mb-1">
-                              <Calendar size={14} className="text-gray-500 dark:text-gray-400" />
+                              <Calendar size={18} className="text-gray-500 dark:text-gray-400" />
                               <span className="text-xs text-gray-500 dark:text-gray-400">Berakhir</span>
                             </div>
                             <p className="font-semibold text-gray-900 dark:text-white text-sm">
@@ -279,7 +279,7 @@ const Header = ({
                           </div>
                           <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
                             <div className="flex items-center gap-2 mb-1">
-                              <Clock size={14} className="text-gray-500 dark:text-gray-400" />
+                              <Clock size={18} className="text-gray-500 dark:text-gray-400" />
                               <span className="text-xs text-gray-500 dark:text-gray-400">Sisa hari</span>
                             </div>
                             <p className={`font-bold text-lg ${getStatusColor(remainingDays)}`}>
@@ -291,7 +291,7 @@ const Header = ({
                         {/* Warning Message */}
                         {remainingDays <= 7 && (
                           <div className="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/50 rounded-lg">
-                            <AlertTriangle size={16} className="text-red-500 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                            <AlertTriangle size={20} className="text-red-500 dark:text-red-400 mt-0.5 flex-shrink-0" />
                             <div>
                               <p className="text-sm font-medium text-red-700 dark:text-red-300">
                                 Masa aktif hampir berakhir
