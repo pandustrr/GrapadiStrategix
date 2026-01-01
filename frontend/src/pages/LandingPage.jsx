@@ -1,6 +1,6 @@
 import { Link, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { BarChart3, DollarSign, TrendingUp, Shield, Users, Rocket, CheckCircle, ArrowRight, LineChart, Target, Zap, Calendar, FileText, Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { BarChart3, DollarSign, TrendingUp, Shield, Users, Rocket, CheckCircle, ArrowRight, LineChart, Target, Zap, Calendar, FileText, Star, ChevronLeft, ChevronRight, Gift } from "lucide-react";
 import Navbar from "../components/Layout/Navbar";
 import Footer from "../components/Layout/Footer";
 import WhatsAppWidget from "../components/Layout/WhatsAppWidget";
@@ -45,22 +45,22 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
       description: "Buat dan kelola rencana bisnis dengan tools yang membantu Anda mencapai target dengan efisien. Tetapkan goals dan track progress secara real-time.",
     },
     {
-      icon: Calendar,
-      title: "Manajemen Proyek",
-      description: "Kelola proyek bisnis dengan timeline yang jelas, assign tugas ke tim, dan pantau progress secara real-time untuk memastikan semuanya berjalan sesuai rencana.",
+      icon: Gift,
+      title: "Program Afiliasi",
+      description: "Dapatkan passive income dengan mengajak teman bergabung. Komisi menarik, tracking real-time, dan dashboard afiliasi yang lengkap untuk memaksimalkan earnings.",
     },
   ];
 
   const benefits = [
     {
+      icon: Gift,
+      title: "Program Afiliasi",
+      description: "Dapatkan passive income dengan mengajak bisnis lain bergabung dan raih komisi menarik.",
+    },
+    {
       icon: Shield,
       title: "Keamanan Data Terjamin",
       description: "Data bisnis Anda dilindungi dengan enkripsi tingkat enterprise dan backup otomatis.",
-    },
-    {
-      icon: Users,
-      title: "Kolaborasi Tim Mudah",
-      description: "Bekerjasama dengan tim secara efisien dengan tools kolaborasi yang terintegrasi.",
     },
     {
       icon: Rocket,
@@ -129,7 +129,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
       <Navbar isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
 
       {/* Hero Section - Corporate Professional */}
-      <section className="relative px-6 pt-32 pb-24 overflow-hidden">
+      <section className="relative px-4 pt-20 pb-12 overflow-hidden">
         {/* Background Image (Optional - if office-bg.jpg exists) */}
         <div className="absolute inset-0 opacity-[0.08] dark:opacity-[0.12]">
           <img src="/assets/images/office-bg.jpg" alt="" className="object-cover w-full h-full" onError={(e) => (e.target.style.display = "none")} />
@@ -141,28 +141,28 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
           <div className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full" style={{ background: "radial-gradient(circle, #10B517 0%, transparent 70%)" }}></div>
         </div>
 
-        <div className="container relative z-10 mx-auto max-w-7xl">
-          <div className="grid items-center grid-cols-1 gap-16 lg:grid-cols-2">
+        <div className="container relative z-10 mx-auto max-w-6xl">
+          <div className="grid items-center grid-cols-1 gap-8 lg:grid-cols-2">
             {/* Left Column - Content */}
             <div className="text-left animate-fade-in">
-              <div className="inline-flex items-center px-5 py-2.5 rounded-full text-sm font-bold mb-8 border-2 custom-green-border custom-green bg-white dark:bg-gray-800">
-                <Zap className="w-4 h-4 mr-2" />
+              <div className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold mb-4 border-2 custom-green-border custom-green bg-white dark:bg-gray-800">
+                <Zap className="w-2.5 h-2.5 mr-1.5" />
                 PLATFORM MANAJEMEN BISNIS #1
               </div>
 
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-gray-900 dark:text-white mb-6 leading-[1.1] tracking-tight">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-gray-900 dark:text-white mb-3 leading-[1.1] tracking-tight">
                 Kelola Bisnis
-                <span className="block mt-2" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
+                <span className="block mt-0.5" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
                   Lebih Cerdas
                 </span>
               </h1>
 
-              <p className="mb-10 text-xl font-light leading-relaxed text-gray-600 md:text-2xl dark:text-gray-400">
+              <p className="mb-6 text-sm font-light leading-relaxed text-gray-600 md:text-base dark:text-gray-400">
                 Platform all-in-one untuk perencanaan strategis, analisis keuangan, dan prediksi AI.
-                <span className="block mt-2 font-semibold text-gray-900 dark:text-white">Semua dalam satu solusi terintegrasi.</span>
+                <span className="block mt-0.5 font-semibold text-gray-900 dark:text-white">Semua dalam satu solusi terintegrasi.</span>
               </p>
 
-              <div className="flex flex-col gap-4 mb-10 sm:flex-row">
+              <div className="flex flex-col gap-2 mb-6 sm:flex-row">
                 <Link
                   to="/register"
                   className="inline-flex items-center justify-center px-10 py-5 text-lg font-bold text-white transition-all duration-300 transform shadow-xl group rounded-xl hover:scale-105 hover:shadow-2xl"
@@ -214,21 +214,80 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
         </div>
       </section>
 
+      {/* Benefits Section - Bold Layout */}
+      <section id="about" className="px-4 py-12 bg-white dark:bg-gray-800">
+        <div className="container mx-auto max-w-6xl">
+          <div className="mb-10 text-center">
+            <h2 className="mb-4 text-2xl font-black tracking-tight text-gray-900 md:text-3xl dark:text-white">
+              Mengapa
+              <span className="block mt-0.5" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
+                Grapadi Strategix?
+              </span>
+            </h2>
+            <p className="max-w-3xl mx-auto text-sm leading-relaxed text-gray-600 dark:text-gray-400">Fitur dan kemampuan unggulan yang membuat kami berbeda</p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
+            {[
+              {
+                icon: Zap,
+                title: "Teknologi AI yang Berbeda",
+                description: "Satu-satunya platform yang menyusun draf rencana bisnis komprehensif dalam hitungan menit menggunakan kecerdasan buatan.",
+              },
+              {
+                icon: Target,
+                title: "Metode Strategix",
+                description: "Proses otomatis yang menggabungkan input ide Anda dengan riset pasar cerdas untuk proyeksi keuangan yang akurat.",
+              },
+              {
+                icon: Users,
+                title: "Dukungan Ahli Berpengalaman",
+                description: "Anda tidak sendirian. Tim konsultan senior kami siap mendampingi untuk memvalidasi dan menyempurnakan rencana bisnis Anda.",
+              },
+              {
+                icon: CheckCircle,
+                title: "Standar Investor & Bank",
+                description: "Hasil dokumen dirancang sesuai standar profesional untuk memudahkan Anda mendapatkan pendanaan atau kerja sama strategis.",
+              },
+              {
+                icon: TrendingUp,
+                title: "Kisah Sukses Pengguna",
+                description: "Lihat bagaimana para wirausaha mengubah ide menjadi unit bisnis nyata dengan perencanaan yang matang.",
+              },
+            ].map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={index}
+                  className="p-6 text-left border-2 border-gray-200 group rounded-2xl bg-white dark:bg-gray-700 hover-lift dark:border-gray-600 transition-all duration-300"
+                >
+                  <div className="flex items-center justify-center w-12 h-12 mb-4 transition-all duration-300 rounded-xl group-hover:scale-110" style={{ backgroundColor: isDarkMode ? "rgba(16, 181, 23, 0.15)" : "rgba(22, 120, 20, 0.1)" }}>
+                    <Icon className="custom-green" size={24} strokeWidth={2.5} />
+                  </div>
+                  <h3 className="mb-3 text-base font-black text-gray-900 dark:text-white">{item.title}</h3>
+                  <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">{item.description}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* Features Section - Modern Grid */}
-      <section id="features" className="px-6 py-24 bg-gray-50 dark:bg-gray-900">
-        <div className="container mx-auto max-w-7xl">
-          <div className="mb-20 text-center">
-            <div className="inline-block px-6 py-2 mb-6 text-sm font-bold tracking-wider uppercase rounded-full custom-green-bg custom-green">Fitur Unggulan</div>
-            <h2 className="mb-6 text-5xl font-black tracking-tight text-gray-900 md:text-6xl dark:text-white">
+      <section id="features" className="px-4 py-12 bg-gray-50 dark:bg-gray-900">
+        <div className="container mx-auto max-w-6xl">
+          <div className="mb-10 text-center">
+            <div className="inline-block px-3 py-1 mb-3 text-xs font-bold tracking-wider uppercase rounded-full custom-green-bg custom-green">Fitur Unggulan</div>
+            <h2 className="mb-2 text-2xl font-black tracking-tight text-gray-900 md:text-3xl dark:text-white">
               Platform Lengkap untuk
-              <span className="block mt-2" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
+              <span className="block mt-0.5" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
                 Kesuksesan Bisnis Anda
               </span>
             </h2>
-            <p className="max-w-3xl mx-auto text-xl leading-relaxed text-gray-600 dark:text-gray-400">Dari perencanaan hingga eksekusi - semua tools yang Anda butuhkan dalam satu dashboard terintegrasi</p>
+            <p className="max-w-3xl mx-auto text-sm leading-relaxed text-gray-600 dark:text-gray-400">Dari perencanaan hingga eksekusi - semua tools yang Anda butuhkan dalam satu dashboard terintegrasi</p>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
@@ -256,115 +315,81 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
         </div>
       </section>
 
-      {/* Benefits Section - Bold Layout */}
-      <section id="about" className="px-6 py-24 bg-white dark:bg-gray-800">
-        <div className="container mx-auto max-w-7xl">
-          <div className="mb-20 text-center">
-            <h2 className="mb-6 text-5xl font-black tracking-tight text-gray-900 md:text-6xl dark:text-white">
-              Mengapa Memilih
-              <span className="block mt-2" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
-                Grapadi Strategix?
-              </span>
-            </h2>
-            <p className="max-w-3xl mx-auto text-xl text-gray-600 dark:text-gray-400">Komitmen kami adalah kesuksesan bisnis Anda dengan teknologi terdepan dan support terbaik</p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
-            {benefits.map((benefit, index) => {
-              const Icon = benefit.icon;
-              return (
-                <div
-                  key={index}
-                  className="p-8 text-center border-2 border-transparent group rounded-2xl bg-gray-50 dark:bg-gray-700 hover-lift hover:border-opacity-100"
-                  style={{ borderColor: isDarkMode ? "rgba(16, 181, 23, 0)" : "rgba(22, 120, 20, 0)" }}
-                >
-                  <div className="flex items-center justify-center w-20 h-20 mx-auto mb-6 transition-all duration-300 shadow-lg rounded-2xl group-hover:scale-110" style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}>
-                    <Icon className="text-white" size={36} strokeWidth={2.5} />
-                  </div>
-                  <h3 className="mb-4 text-xl font-black text-gray-900 dark:text-white">{benefit.title}</h3>
-                  <p className="leading-relaxed text-gray-600 dark:text-gray-400">{benefit.description}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
       {/* Why Choose Section - Value Propositions */}
-      <section className="px-6 py-24 bg-gray-50 dark:bg-gray-900">
-        <div className="container mx-auto max-w-7xl">
-          <div className="mb-20 text-center">
-            <div className="inline-block px-6 py-2 mb-6 text-sm font-bold tracking-wider uppercase rounded-full custom-green-bg custom-green">Keunggulan Kompetitif</div>
-            <h2 className="mb-6 text-5xl font-black tracking-tight text-gray-900 md:text-6xl dark:text-white">
+      <section className="px-4 py-12 bg-gray-50 dark:bg-gray-900">
+        <div className="container mx-auto max-w-6xl">
+          <div className="mb-10 text-center">
+            <div className="inline-block px-3 py-1 mb-3 text-xs font-bold tracking-wider uppercase rounded-full custom-green-bg custom-green">Keunggulan Kompetitif</div>
+            <h2 className="mb-2 text-2xl font-black tracking-tight text-gray-900 md:text-3xl dark:text-white">
               Teknologi & Inovasi untuk
-              <span className="block mt-2" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
+              <span className="block mt-0.5" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
                 Pertumbuhan Bisnis Anda
               </span>
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {/* Value 1 - AI Analytics */}
-            <div className="relative p-10 overflow-hidden bg-white border-2 border-gray-200 group dark:bg-gray-800 rounded-3xl dark:border-gray-700 hover-lift">
+            <div className="relative p-5 overflow-hidden bg-white border-2 border-gray-200 group dark:bg-gray-800 rounded-lg hover-lift">
               <div className="absolute top-0 right-0 w-40 h-40 opacity-10" style={{ background: `radial-gradient(circle, ${isDarkMode ? "#10B517" : "#167814"} 0%, transparent 70%)` }}></div>
               <div className="relative z-10">
-                <div className="flex items-center justify-center w-20 h-20 mb-6 transition-all duration-300 shadow-lg rounded-2xl group-hover:scale-110" style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}>
-                  <Zap className="w-10 h-10 text-white" strokeWidth={2.5} />
+                <div className="flex items-center justify-center w-12 h-12 mb-3 transition-all duration-300 shadow-lg rounded-lg group-hover:scale-110" style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}>
+                  <Zap className="w-6 h-6 text-white" strokeWidth={2.5} />
                 </div>
-                <h3 className="mb-4 text-3xl font-black text-gray-900 dark:text-white">AI-Powered Analytics</h3>
-                <p className="mb-6 text-lg leading-relaxed text-gray-600 dark:text-gray-400">
+                <h3 className="mb-2 text-base font-black text-gray-900 dark:text-white">AI-Powered Analytics</h3>
+                <p className="mb-3 text-xs leading-relaxed text-gray-600 dark:text-gray-400">
                   Manfaatkan kekuatan Artificial Intelligence untuk analisis bisnis yang lebih akurat. Algoritma kami terus belajar dari data untuk memberikan insight yang relevan.
                 </p>
-                <div className="flex items-center gap-3 text-base font-bold" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
-                  <TrendingUp size={24} strokeWidth={2.5} />
+                <div className="flex items-center gap-2 text-xs font-bold" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
+                  <TrendingUp size={16} strokeWidth={2.5} />
                   <span>95% akurasi prediksi</span>
                 </div>
               </div>
             </div>
 
             {/* Value 2 - All-in-One */}
-            <div className="relative p-10 overflow-hidden bg-white border-2 border-gray-200 group dark:bg-gray-800 rounded-3xl dark:border-gray-700 hover-lift">
+            <div className="relative p-5 overflow-hidden bg-white border-2 border-gray-200 group dark:bg-gray-800 rounded-lg hover-lift">
               <div className="absolute top-0 right-0 w-40 h-40 opacity-10" style={{ background: `radial-gradient(circle, ${isDarkMode ? "#10B517" : "#167814"} 0%, transparent 70%)` }}></div>
               <div className="relative z-10">
-                <div className="flex items-center justify-center w-20 h-20 mb-6 transition-all duration-300 shadow-lg rounded-2xl group-hover:scale-110" style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}>
-                  <Target className="w-10 h-10 text-white" strokeWidth={2.5} />
+                <div className="flex items-center justify-center w-12 h-12 mb-3 transition-all duration-300 shadow-lg rounded-lg group-hover:scale-110" style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}>
+                  <Target className="w-6 h-6 text-white" strokeWidth={2.5} />
                 </div>
-                <h3 className="mb-4 text-3xl font-black text-gray-900 dark:text-white">All-in-One Platform</h3>
-                <p className="mb-6 text-lg leading-relaxed text-gray-600 dark:text-gray-400">Satu platform untuk semua kebutuhan. Dari perencanaan strategis hingga forecast dan reporting - semua terintegrasi dalam satu dashboard.</p>
-                <div className="flex items-center gap-3 text-base font-bold" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
-                  <CheckCircle size={24} strokeWidth={2.5} />
+                <h3 className="mb-2 text-base font-black text-gray-900 dark:text-white">All-in-One Platform</h3>
+                <p className="mb-3 text-xs leading-relaxed text-gray-600 dark:text-gray-400">Satu platform untuk semua kebutuhan. Dari perencanaan strategis hingga forecast dan reporting - semua terintegrasi dalam satu dashboard.</p>
+                <div className="flex items-center gap-2 text-xs font-bold" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
+                  <CheckCircle size={16} strokeWidth={2.5} />
                   <span>10+ modul terintegrasi</span>
                 </div>
               </div>
             </div>
 
             {/* Value 3 - Security */}
-            <div className="relative p-10 overflow-hidden bg-white border-2 border-gray-200 group dark:bg-gray-800 rounded-3xl dark:border-gray-700 hover-lift">
+            <div className="relative p-5 overflow-hidden bg-white border-2 border-gray-200 group dark:bg-gray-800 rounded-lg hover-lift">
               <div className="absolute top-0 right-0 w-40 h-40 opacity-10" style={{ background: `radial-gradient(circle, ${isDarkMode ? "#10B517" : "#167814"} 0%, transparent 70%)` }}></div>
               <div className="relative z-10">
-                <div className="flex items-center justify-center w-20 h-20 mb-6 transition-all duration-300 shadow-lg rounded-2xl group-hover:scale-110" style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}>
-                  <Shield className="w-10 h-10 text-white" strokeWidth={2.5} />
+                <div className="flex items-center justify-center w-12 h-12 mb-3 transition-all duration-300 shadow-lg rounded-lg group-hover:scale-110" style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}>
+                  <Shield className="w-6 h-6 text-white" strokeWidth={2.5} />
                 </div>
-                <h3 className="mb-4 text-3xl font-black text-gray-900 dark:text-white">Enterprise Security</h3>
-                <p className="mb-6 text-lg leading-relaxed text-gray-600 dark:text-gray-400">Data bisnis Anda dilindungi dengan enkripsi tingkat enterprise, backup otomatis, dan infrastruktur cloud terpercaya 24/7.</p>
-                <div className="flex items-center gap-3 text-base font-bold" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
-                  <Shield size={24} strokeWidth={2.5} />
+                <h3 className="mb-2 text-base font-black text-gray-900 dark:text-white">Enterprise Security</h3>
+                <p className="mb-3 text-xs leading-relaxed text-gray-600 dark:text-gray-400">Data bisnis Anda dilindungi dengan enkripsi tingkat enterprise, backup otomatis, dan infrastruktur cloud terpercaya 24/7.</p>
+                <div className="flex items-center gap-2 text-xs font-bold" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
+                  <Shield size={16} strokeWidth={2.5} />
                   <span>ISO 27001 Certified</span>
                 </div>
               </div>
             </div>
 
             {/* Value 4 - Support */}
-            <div className="relative p-10 overflow-hidden bg-white border-2 border-gray-200 group dark:bg-gray-800 rounded-3xl dark:border-gray-700 hover-lift">
+            <div className="relative p-5 overflow-hidden bg-white border-2 border-gray-200 group dark:bg-gray-800 rounded-lg hover-lift">
               <div className="absolute top-0 right-0 w-40 h-40 opacity-10" style={{ background: `radial-gradient(circle, ${isDarkMode ? "#10B517" : "#167814"} 0%, transparent 70%)` }}></div>
               <div className="relative z-10">
-                <div className="flex items-center justify-center w-20 h-20 mb-6 transition-all duration-300 shadow-lg rounded-2xl group-hover:scale-110" style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}>
-                  <Users className="w-10 h-10 text-white" strokeWidth={2.5} />
+                <div className="flex items-center justify-center w-12 h-12 mb-3 transition-all duration-300 shadow-lg rounded-lg group-hover:scale-110" style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}>
+                  <Users className="w-6 h-6 text-white" strokeWidth={2.5} />
                 </div>
-                <h3 className="mb-4 text-3xl font-black text-gray-900 dark:text-white">Expert Support 24/7</h3>
-                <p className="mb-6 text-lg leading-relaxed text-gray-600 dark:text-gray-400">Tim support berpengalaman siap membantu kapan saja. Live chat, email, atau phone support dengan respons dalam 30 menit.</p>
-                <div className="flex items-center gap-3 text-base font-bold" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
-                  <Star size={24} strokeWidth={2.5} />
+                <h3 className="mb-2 text-base font-black text-gray-900 dark:text-white">Expert Support 24/7</h3>
+                <p className="mb-3 text-xs leading-relaxed text-gray-600 dark:text-gray-400">Tim support berpengalaman siap membantu kapan saja. Live chat, email, atau phone support dengan respons dalam 30 menit.</p>
+                <div className="flex items-center gap-2 text-xs font-bold" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
+                  <Star size={16} strokeWidth={2.5} />
                   <span>4.9/5 rating kepuasan</span>
                 </div>
               </div>
@@ -372,31 +397,31 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
           </div>
 
           {/* Stats Section - Bold Numbers */}
-          <div className="pt-16 mt-20 border-t-2 border-gray-200 dark:border-gray-700">
-            <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+          <div className="pt-12 mt-12 border-t-2 border-gray-200 dark:border-gray-700">
+            <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+              <div className="p-4 text-center group hover-lift rounded-2xl">
+                <div className="mb-2 text-2xl font-black" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
+                  250+
+                </div>
+                <div className="text-sm font-bold text-gray-600 dark:text-gray-400">Bisnis Terdaftar</div>
+              </div>
               <div className="p-6 text-center group hover-lift rounded-2xl">
-                <div className="mb-3 text-6xl font-black" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
+                <div className="mb-3 text-2xl font-black" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
                   500+
                 </div>
-                <div className="text-lg font-bold text-gray-600 dark:text-gray-400">Bisnis Terdaftar</div>
+                <div className="text-sm font-bold text-gray-600 dark:text-gray-400">Business Plans</div>
               </div>
-              <div className="p-6 text-center group hover-lift rounded-2xl">
-                <div className="mb-3 text-6xl font-black" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
-                  50K+
-                </div>
-                <div className="text-lg font-bold text-gray-600 dark:text-gray-400">Business Plans</div>
-              </div>
-              <div className="p-6 text-center group hover-lift rounded-2xl">
-                <div className="mb-3 text-6xl font-black" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
+              <div className="p-4 text-center group hover-lift rounded-2xl">
+                <div className="mb-2 text-2xl font-black" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
                   40%
                 </div>
-                <div className="text-lg font-bold text-gray-600 dark:text-gray-400">Peningkatan Efisiensi</div>
+                <div className="text-sm font-bold text-gray-600 dark:text-gray-400">Peningkatan Efisiensi</div>
               </div>
-              <div className="p-6 text-center group hover-lift rounded-2xl">
-                <div className="mb-3 text-6xl font-black" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
-                  99.9%
+              <div className="p-4 text-center group hover-lift rounded-2xl">
+                <div className="mb-2 text-2xl font-black" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
+                  90%
                 </div>
-                <div className="text-lg font-bold text-gray-600 dark:text-gray-400">Uptime Guarantee</div>
+                <div className="text-sm font-bold text-gray-600 dark:text-gray-400">Uptime Guarantee</div>
               </div>
             </div>
           </div>
@@ -406,7 +431,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
       {/* CTA Section - Bold & Professional */}
       <section
         id="contact"
-        className="relative px-6 py-20 overflow-hidden"
+        className="relative px-4 py-12 overflow-hidden"
         style={{ background: isDarkMode ? "linear-gradient(135deg, #084404 0%, #167814 50%, #10B517 100%)" : "linear-gradient(135deg, #084404 0%, #167814 50%, #10B517 100%)" }}
       >
         {/* Optional Background Image */}
@@ -421,36 +446,36 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
           <div className="absolute transform rotate-45 -translate-x-1/2 -translate-y-1/2 border-4 border-white top-1/2 left-1/2 w-96 h-96 rounded-3xl"></div>
         </div>
 
-        <div className="container relative z-10 max-w-5xl mx-auto">
+        <div className="container relative z-10 max-w-4xl mx-auto">
           <div className="text-center">
-            <div className="inline-flex items-center px-6 py-3 mb-8 text-sm font-black tracking-wider text-white uppercase rounded-full bg-white/20 backdrop-blur-sm">
-              <Rocket className="w-5 h-5 mr-2" />
+            <div className="inline-flex items-center px-3 py-1.5 mb-4 text-xs font-black tracking-wider text-white uppercase rounded-full bg-white/20 backdrop-blur-sm">
+              <Rocket className="w-3 h-3 mr-1.5" />
               Mulai Transformasi Digital Anda
             </div>
 
-            <h2 className="mb-8 text-5xl font-black leading-tight tracking-tight text-white md:text-7xl">
+            <h2 className="mb-4 text-2xl font-black leading-tight tracking-tight text-white md:text-3xl">
               Siap Mengoptimalkan
-              <span className="block mt-2">Bisnis Anda?</span>
+              <span className="block mt-0.5">Bisnis Anda?</span>
             </h2>
 
-            <p className="max-w-3xl mx-auto mb-12 text-2xl font-light leading-relaxed text-white/95">
+            <p className="max-w-3xl mx-auto mb-6 text-sm font-light leading-relaxed text-white/95">
               Bergabung dengan <span className="font-black">500+ bisnis</span> yang sudah mencapai pertumbuhan signifikan dengan Grapadi Strategix
             </p>
 
             {/* CTA Buttons - Bold Design */}
-            <div className="flex flex-col justify-center gap-6 mb-12 sm:flex-row">
+            <div className="flex flex-col justify-center gap-2 mb-6 sm:flex-row">
               <Link
                 to="/register"
-                className="inline-flex items-center justify-center px-12 py-6 text-xl font-black transition-all duration-300 transform bg-white shadow-2xl group rounded-2xl hover:bg-gray-50 hover:scale-105"
+                className="inline-flex items-center justify-center px-8 py-3 text-sm font-black transition-all duration-300 transform bg-white shadow-2xl group rounded-md hover:bg-gray-50 hover:scale-105"
                 style={{ color: "#167814" }}
               >
-                <CheckCircle className="mr-3 transition-transform group-hover:rotate-12" size={24} strokeWidth={3} />
-                Mulai Gratis Sekarang
-                <ArrowRight className="ml-3 transition-transform group-hover:translate-x-2" size={24} strokeWidth={3} />
+                <CheckCircle className="mr-1.5 transition-transform group-hover:rotate-12" size={18} strokeWidth={3} />
+                Mulai Gratis
+                <ArrowRight className="ml-1.5 transition-transform group-hover:translate-x-1" size={18} strokeWidth={3} />
               </Link>
               <Link
                 to="/login"
-                className="px-12 py-6 text-xl font-black text-white transition-all duration-300 transform border-4 border-white group rounded-2xl backdrop-blur-sm bg-white/10 hover:bg-white hover:scale-105"
+                className="px-8 py-3 text-sm font-black text-white transition-all duration-300 transform border-2 border-white group rounded-md backdrop-blur-sm bg-white/10 hover:bg-white hover:scale-105"
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "white";
                   e.currentTarget.style.color = "#167814";
@@ -483,7 +508,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
             {/* Stats - Compact Version */}
             <div className="grid grid-cols-4 gap-8 pt-16 mt-16 border-t-2 border-white/20">
               {[
-                { icon: Users, number: "500+", label: "Bisnis" },
+                { icon: Users, number: "250+", label: "Bisnis" },
                 { icon: TrendingUp, number: "40%", label: "Efisiensi" },
                 { icon: Star, number: "4.9/5", label: "Rating" },
                 { icon: Zap, number: "24/7", label: "Support" },
@@ -492,7 +517,7 @@ function LandingPage({ isDarkMode, toggleDarkMode }) {
                 return (
                   <div key={idx} className="text-center group">
                     <Icon className="w-10 h-10 mx-auto mb-3 text-white transition-transform group-hover:scale-110" strokeWidth={2.5} />
-                    <div className="mb-2 text-4xl font-black text-white">{stat.number}</div>
+                    <div className="mb-2 text-2xl font-black text-white">{stat.number}</div>
                     <div className="text-sm font-bold tracking-wider uppercase text-white/80">{stat.label}</div>
                   </div>
                 );
