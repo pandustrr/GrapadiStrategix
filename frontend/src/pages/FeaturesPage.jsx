@@ -411,7 +411,7 @@ function FeaturesPage({ isDarkMode, toggleDarkMode }) {
       <Navbar isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
 
       {/* Hero Section */}
-      <section className="relative px-4 pt-24 pb-12 overflow-hidden">
+      <section className="relative px-4 pt-12 md:pt-24 pb-8 md:pb-12 overflow-hidden">
         <div className="absolute inset-0 opacity-5 dark:opacity-10">
           <div className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full" style={{ background: "radial-gradient(circle, #167814 0%, transparent 70%)" }}></div>
           <div className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full" style={{ background: "radial-gradient(circle, #10B517 0%, transparent 70%)" }}></div>
@@ -419,19 +419,19 @@ function FeaturesPage({ isDarkMode, toggleDarkMode }) {
 
         <div className="container relative z-10 max-w-6xl mx-auto">
           <div className="text-center">
-            <div className="inline-flex items-center px-4 py-2 mb-6 text-sm font-bold bg-white border-2 rounded-full custom-green-border custom-green dark:bg-gray-800">
+            <div className="inline-flex items-center px-4 py-2 mb-6 text-xs md:text-sm font-bold bg-white border-2 rounded-full custom-green-border custom-green dark:bg-gray-800">
               <Sparkles className="w-4 h-4 mr-2" />
               FITUR LENGKAP PLATFORM
             </div>
 
-            <h1 className="mb-6 text-3xl font-black leading-tight text-gray-900 md:text-4xl lg:text-5xl dark:text-white">
+            <h1 className="mb-6 text-2xl md:text-4xl lg:text-5xl font-black leading-tight text-gray-900 dark:text-white">
               Semua Yang Anda Butuhkan
               <span className="block mt-2" style={{ color: isDarkMode ? "#10B517" : "#167814" }}>
                 Untuk Kesuksesan Bisnis
               </span>
             </h1>
 
-            <p className="max-w-3xl mx-auto mb-8 text-lg text-gray-600 dark:text-gray-400">
+            <p className="max-w-3xl mx-auto mb-8 text-xs md:text-lg text-gray-600 dark:text-gray-400">
               Platform all-in-one dengan 6 fitur powerful yang dirancang untuk mempercepat pertumbuhan bisnis Anda.
               <span className="block mt-2 font-semibold text-gray-900 dark:text-white">Klik setiap card untuk detail lengkap dan simulasi benefit!</span>
             </p>
@@ -440,34 +440,34 @@ function FeaturesPage({ isDarkMode, toggleDarkMode }) {
       </section>
 
       {/* Features Grid */}
-      <section className="px-4 py-12 bg-gray-50 dark:bg-gray-800">
+      <section className="px-4 py-8 md:py-12 bg-gray-50 dark:bg-gray-800">
         <div className="container max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-2 md:gap-4 lg:gap-6 md:grid-cols-2 lg:grid-cols-3">
             {features.map((feature) => {
               const Icon = feature.icon;
               return (
                 <button
                   key={feature.id}
                   onClick={() => openModal(feature)}
-                  className={`feature-card relative p-8 text-left bg-white dark:bg-gray-900 rounded-2xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden cursor-pointer group`}
+                  className={`feature-card relative p-6 md:p-8 text-left bg-white dark:bg-gray-900 rounded-2xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden cursor-pointer group`}
                 >
                   {/* Gradient Background on Hover */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
 
                   <div className="relative z-10">
                     {/* Icon */}
-                    <div className={`${feature.bgColor} w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                      <Icon className={`${feature.textColor}`} size={32} strokeWidth={2.5} />
+                    <div className={`${feature.bgColor} w-14 md:w-16 h-14 md:h-16 rounded-2xl flex items-center justify-center mb-4 md:mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                      <Icon className={`${feature.textColor}`} size={28} strokeWidth={2.5} />
                     </div>
 
                     {/* Title */}
-                    <h3 className="mb-3 text-xl font-black text-gray-900 transition-colors dark:text-white group-hover:custom-green">{feature.title}</h3>
+                    <h3 className="mb-3 text-lg md:text-xl font-black text-gray-900 transition-colors dark:text-white group-hover:custom-green">{feature.title}</h3>
 
                     {/* Short Description */}
-                    <p className="mb-4 text-sm leading-relaxed text-gray-600 dark:text-gray-400">{feature.shortDesc}</p>
+                    <p className="mb-4 text-xs md:text-sm leading-relaxed text-gray-600 dark:text-gray-400">{feature.shortDesc}</p>
 
                     {/* CTA */}
-                    <div className="flex items-center text-sm font-bold transition-all custom-green group-hover:gap-2">
+                    <div className="flex items-center text-xs md:text-sm font-bold transition-all custom-green group-hover:gap-2">
                       Lihat Detail
                       <ArrowRight size={16} className="ml-1 transition-transform group-hover:translate-x-1" strokeWidth={3} />
                     </div>
@@ -493,38 +493,38 @@ function FeaturesPage({ isDarkMode, toggleDarkMode }) {
             </button>
 
             {/* Content */}
-            <div className="clear-both p-8 modal-content">
+            <div className="clear-both p-4 md:p-6 modal-content">
               {/* Icon */}
-              <div className={`${selectedFeature.bgColor} w-20 h-20 rounded-2xl flex items-center justify-center mb-6`}>
+              <div className={`${selectedFeature.bgColor} w-16 h-16 rounded-2xl flex items-center justify-center mb-4`}>
                 {(() => {
                   const Icon = selectedFeature.icon;
-                  return <Icon className={selectedFeature.textColor} size={40} strokeWidth={2.5} />;
+                  return <Icon className={selectedFeature.textColor} size={32} strokeWidth={2.5} />;
                 })()}
               </div>
 
               {/* Headline */}
-              <h2 className="mb-3 text-3xl font-black leading-tight text-gray-900 dark:text-white">{selectedFeature.detail.headline}</h2>
+              <h2 className="mb-2 text-xl font-black leading-tight text-gray-900 md:text-2xl dark:text-white">{selectedFeature.detail.headline}</h2>
 
               {/* Subheadline */}
-              <p className="mb-8 text-lg leading-relaxed text-gray-600 dark:text-gray-400">{selectedFeature.detail.subheadline}</p>
+              <p className="mb-6 text-sm leading-relaxed text-gray-600 md:text-base dark:text-gray-400">{selectedFeature.detail.subheadline}</p>
 
               {/* Benefits Section */}
-              <div className="mb-10">
-                <h3 className="flex items-center mb-6 text-xl font-black text-gray-900 dark:text-white">
-                  <Sparkles className="mr-2 custom-green" size={24} />
+              <div className="mb-6 md:mb-8">
+                <h3 className="flex items-center mb-4 text-lg font-black text-gray-900 dark:text-white">
+                  <Sparkles className="mr-2 custom-green" size={20} />
                   Kenapa Harus Menggunakan?
                 </h3>
-                <div className="space-y-6">
+                <div className="space-y-4">
                   {selectedFeature.detail.benefits.map((benefit, index) => {
                     const BenefitIcon = benefit.icon;
                     return (
-                      <div key={index} className="flex gap-4">
-                        <div className={`${selectedFeature.bgColor} w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0`}>
-                          <BenefitIcon className={selectedFeature.textColor} size={24} />
+                      <div key={index} className="flex gap-3">
+                        <div className={`${selectedFeature.bgColor} w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0`}>
+                          <BenefitIcon className={selectedFeature.textColor} size={20} />
                         </div>
                         <div>
-                          <h4 className="mb-1 font-bold text-gray-900 dark:text-white">{benefit.title}</h4>
-                          <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">{benefit.desc}</p>
+                          <h4 className="mb-1 text-sm font-bold text-gray-900 dark:text-white">{benefit.title}</h4>
+                          <p className="text-xs leading-relaxed text-gray-600 md:text-sm dark:text-gray-400">{benefit.desc}</p>
                         </div>
                       </div>
                     );
@@ -533,18 +533,18 @@ function FeaturesPage({ isDarkMode, toggleDarkMode }) {
               </div>
 
               {/* How It Works */}
-              <div className="mb-10">
-                <h3 className="flex items-center mb-6 text-xl font-black text-gray-900 dark:text-white">
-                  <Zap className="mr-2 custom-green" size={24} />
+              <div className="mb-6 md:mb-8">
+                <h3 className="flex items-center mb-4 text-lg font-black text-gray-900 dark:text-white">
+                  <Zap className="mr-2 custom-green" size={20} />
                   Bagaimana Cara Kerjanya?
                 </h3>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {selectedFeature.detail.howItWorks.map((step, index) => (
-                    <div key={index} className="flex items-start gap-4">
-                      <div className="flex items-center justify-center flex-shrink-0 w-8 h-8 text-sm font-bold text-white rounded-full" style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}>
+                    <div key={index} className="flex items-start gap-3">
+                      <div className="flex items-center justify-center flex-shrink-0 w-6 h-6 text-xs font-bold text-white rounded-full" style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}>
                         {index + 1}
                       </div>
-                      <p className="pt-1 leading-relaxed text-gray-700 dark:text-gray-300">{step}</p>
+                      <p className="pt-0.5 text-xs md:text-sm leading-relaxed text-gray-700 dark:text-gray-300">{step}</p>
                     </div>
                   ))}
                 </div>
@@ -552,37 +552,37 @@ function FeaturesPage({ isDarkMode, toggleDarkMode }) {
 
               {/* Simulation/ROI */}
               <div
-                className="p-6 mb-8 rounded-2xl"
+                className="p-4 mb-6 rounded-2xl"
                 style={{
                   background: isDarkMode ? "linear-gradient(135deg, rgba(16, 181, 23, 0.1) 0%, rgba(16, 181, 23, 0.05) 100%)" : "linear-gradient(135deg, rgba(22, 120, 20, 0.1) 0%, rgba(22, 120, 20, 0.05) 100%)",
                 }}
               >
-                <h3 className="flex items-center mb-4 text-xl font-black text-gray-900 dark:text-white">
-                  <TrendingUp className="mr-2 custom-green" size={24} />
+                <h3 className="flex items-center mb-3 text-lg font-black text-gray-900 dark:text-white">
+                  <TrendingUp className="mr-2 custom-green" size={20} />
                   {selectedFeature.detail.simulation.title}
                 </h3>
-                <ul className="mb-4 space-y-3">
+                <ul className="mb-3 space-y-2">
                   {selectedFeature.detail.simulation.items.map((item, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <CheckCircle className="custom-green flex-shrink-0 mt-0.5" size={20} strokeWidth={2.5} />
-                      <span className="text-gray-700 dark:text-gray-300">{item}</span>
+                    <li key={index} className="flex items-start gap-2">
+                      <CheckCircle className="custom-green flex-shrink-0 mt-0.5" size={16} strokeWidth={2.5} />
+                      <span className="text-xs text-gray-700 md:text-sm dark:text-gray-300">{item}</span>
                     </li>
                   ))}
                 </ul>
-                <div className="p-4 text-center rounded-xl" style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}>
-                  <p className="text-lg font-black text-white">{selectedFeature.detail.simulation.result}</p>
+                <div className="p-3 text-center rounded-xl" style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}>
+                  <p className="text-sm font-black text-white md:text-base">{selectedFeature.detail.simulation.result}</p>
                 </div>
               </div>
 
               {/* CTA Button */}
               <Link
                 to="/register"
-                className="block w-full py-4 text-lg font-black text-center text-white transition-all duration-300 shadow-xl rounded-xl hover:scale-105"
+                className="block w-full py-2.5 text-sm font-black text-center text-white transition-all duration-300 shadow-xl md:text-base rounded-xl hover:scale-105"
                 style={{ backgroundColor: isDarkMode ? "#10B517" : "#167814" }}
                 onClick={closeModal}
               >
                 {selectedFeature.detail.cta}
-                <ArrowRight className="inline ml-2" size={20} />
+                <ArrowRight className="inline ml-2" size={16} />
               </Link>
             </div>
           </div>
